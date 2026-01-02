@@ -52,7 +52,15 @@ graph TD
 > *   Bản đồ các phân hệ chức năng: Tiếp đón, Khám bệnh, Dược, Viện phí, v.v.
 > *   Mối quan hệ giữa Module kỹ thuật và Nghiệp vụ bệnh viện.
 
-### 3. [Kiến trúc Kỹ thuật (Technical Architecture)](03-technical-architecture.md)
+## Phạm vi và Giới hạn
+> [!CAUTION]
+> **CẢNH BÁO: THIẾU SOURCE CODE BACKEND**
+> Repository này chỉ chứa mã nguồn của Client (Desktop App). Toàn bộ phần Backend API và Database không được bao gồm.
+> Xem chi tiết tại: [Hạ tầng Backend (Thiếu)](../03-technical-specs/backend-infrastructure/00-technical-overview.md).
+
+## Kiến trúc Hệ thống
+
+### Kiến trúc Tổng thể (High-Level Architecture)](03-technical-architecture.md)
 > **Dành cho:** Developers, Tech Leads
 > *   Công nghệ sử dụng (Tech Stack): .NET 4.5, DevExpress.
 > *   Kiến trúc phân tầng (Layered Architecture).
