@@ -15,7 +15,6 @@
 
 #### HIS Desktop (Ứng dụng chính)
 - [Core Framework](./03-technical-specs/his-desktop/01-core-framework.md) - Điểm khởi đầu (Entry point) và vòng đời (lifecycle) ứng dụng.
-- [Business Plugins](./03-technical-specs/his-desktop/business-plugins.md) (Chưa có) - Tập hợp các plugin xử lý nghiệp vụ.
 - [API Consumer](./03-technical-specs/his-desktop/api-consumer.md) (Chưa có) - Cách thức giao tiếp và tương tác với các dịch vụ backend.
 
 #### UC Controls (Thành phần giao diện)
