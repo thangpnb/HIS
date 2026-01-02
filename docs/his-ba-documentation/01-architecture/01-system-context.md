@@ -7,7 +7,7 @@ Tài liệu này định nghĩa phạm vi hoạt động của **Hệ thống Th
 Hệ thống được thiết kế để xử lý quy mô lớn với:
 - **956 Plugin**: Các mô-đun chức năng nghiệp vụ riêng biệt.
 - **790+ Print Processor**: Hệ thống in ấn chuyên dụng.
-- **131 User Control**: Các thành phần giao diện tái sử dụng.
+- **131 User Control**: Các thành phần giao diện tái sử dụng (trong thư viện Core).
 
 ## 2. Sơ đồ Ngữ cảnh (System Context Diagram)
 

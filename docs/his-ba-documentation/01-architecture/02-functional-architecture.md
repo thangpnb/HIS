@@ -74,7 +74,7 @@ Cung cấp các công cụ nền tảng mà các module trên đều cần.
 | Hoạt động Bệnh viện | Module/Plugin xử lý |
 |---------------------|---------------------|
 | Bệnh nhân đến đăng ký khám | `HIS.Desktop.Plugins.Reception` (Tiếp đón) |
-| Bác sĩ khám và kê đơn | `HIS.Desktop.Plugins.ExamTreatment` (Khám bệnh), `AssignPrescriptionPK` (Kê đơn) |
+| Bác sĩ khám và kê đơn | Nhóm `HIS.Desktop.Plugins.*Treatment*` (Khám & Điều trị), `AssignPrescriptionPK` (Kê đơn) |
 | Bệnh nhân đi làm xét nghiệm | `LIS.Desktop.Plugins.*` (Hệ thống xét nghiệm) |
 | Bệnh nhân thanh toán | `HIS.Desktop.Plugins.Transaction*` (Thu ngân), `ElectronicBill` (Xuất hóa đơn) |
 | In kết quả và đơn thuốc | `MPS` (Hệ thống in) |
