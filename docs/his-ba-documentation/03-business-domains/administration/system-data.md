@@ -1,36 +1,36 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the SDA (System Data Administration) plugins located in [HIS/Plugins/SDA.Desktop.Plugins.*](). These 14 plugins manage system-level master data including geographical hierarchies (national, provincial, district, commune), demographic data (ethnicity, religion), system configuration fields, and administrative utilities like SQL execution and UI control visibility management.
+Tài liệu này bao gồm các plugin SDA (System Data Administration - Quản trị Dữ liệu Hệ thống) nằm trong [HIS/Plugins/SDA.Desktop.Plugins.*](). 14 plugin này quản lý dữ liệu danh mục cấp hệ thống bao gồm phân cấp địa lý (quốc gia, tỉnh, huyện, xã), dữ liệu nhân khẩu học (dân tộc, tôn giáo), các trường cấu hình hệ thống và các tiện ích quản trị như thực thi SQL và quản lý hiển thị điều khiển UI.
 
-For information about other plugin categories:
-- Core hospital business logic plugins, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md)
-- Access control and user management, see [ACS Access Control Plugins](../../03-business-domains/administration/access-control.md)
-- Electronic medical records, see [EMR Electronic Medical Record Plugins](../../02-modules/his-desktop/business-plugins.md#emr)
-- Configuration and caching systems, see [LocalStorage & Configuration](../../02-modules/his-desktop/core.md)
+Để biết thông tin về các danh mục plugin khác:
+- Các plugin logic nghiệp vụ cốt lõi của bệnh viện, xem [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md)
+- Kiểm soát truy cập và quản lý người dùng, xem [ACS Access Control Plugins](../../03-business-domains/administration/access-control.md)
+- Bệnh án điện tử, xem [EMR Electronic Medical Record Plugins](../../02-modules/his-desktop/business-plugins.md#emr)
+- Hệ thống cấu hình và bộ nhớ đệm, xem [LocalStorage & Configuration](../../02-modules/his-desktop/core.md)
 
 ---
 
-## SDA Plugin Architecture Overview
+## Tổng quan Kiến trúc Plugin SDA
 
-The SDA plugins form a specialized subsystem within the HIS plugin architecture, focused on managing reference data and system metadata that other plugins depend on.
+Các plugin SDA tạo thành một phân hệ chuyên biệt trong kiến trúc plugin HIS, tập trung vào việc quản lý dữ liệu tham chiếu và metadata hệ thống mà các plugin khác phụ thuộc vào.
 
 ```mermaid
 graph TB
     subgraph "HIS Desktop Core"
-        PluginCore["HIS.Desktop.Modules.Plugin<br/>Plugin Discovery & Lifecycle"]
-        LocalStorage["HIS.Desktop.LocalStorage.BackendData<br/>Cached Master Data"]
+        PluginCore["HIS.Desktop.Modules.Plugin<br/>Khám phá & Vòng đời Plugin"]
+        LocalStorage["HIS.Desktop.LocalStorage.BackendData<br/>Bộ nhớ đệm dữ liệu danh mục"]
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>REST API Client"]
     end
     
-    subgraph "SDA System Data Plugins - 14 Total"
-        Geographic["Geographic Hierarchy<br/>SdaNational (38 files)<br/>SdaProvince<br/>SdaDistrict<br/>SdaCommune"]
-        Demographic["Demographic Data<br/>SdaEthnic<br/>SdaReligion"]
-        SystemConfig["System Configuration<br/>SdaField (25 files)<br/>SdaModuleField (21 files)<br/>SdaHideControl (24 files)"]
-        AdminTools["Admin Tools<br/>SdaExecuteSql (26 files)<br/>SdaGroup<br/>SdaLanguage"]
+    subgraph "SDA System Data Plugins - Tổng cộng 14"
+        Geographic["Phân cấp Địa lý<br/>SdaNational (38 tệp)<br/>SdaProvince<br/>SdaDistrict<br/>SdaCommune"]
+        Demographic["Dữ liệu Nhân khẩu học<br/>SdaEthnic<br/>SdaReligion"]
+        SystemConfig["Cấu hình Hệ thống<br/>SdaField (25 tệp)<br/>SdaModuleField (21 tệp)<br/>SdaHideControl (24 tệp)"]
+        AdminTools["Công cụ Quản trị<br/>SdaExecuteSql (26 tệp)<br/>SdaGroup<br/>SdaLanguage"]
     end
     
-    subgraph "Backend Services"
-        SDAAPI["SDA REST API<br/>Master Data Endpoints"]
+    subgraph "Các dịch vụ Backend"
+        SDAAPI["SDA REST API<br/>Các Endpoint dữ liệu danh mục"]
     end
     
     PluginCore --> Geographic
@@ -44,74 +44,74 @@ graph TB
     AdminTools --> ApiConsumer
     
     ApiConsumer --> SDAAPI
-    SDAAPI -.->|Cached Response| LocalStorage
+    SDAAPI -.->|Phản hồi được Cache| LocalStorage
     
-    LocalStorage -.->|Provides Master Data| Geographic
-    LocalStorage -.->|Provides Master Data| Demographic
+    LocalStorage -.->|Cung cấp dữ liệu danh mục| Geographic
+    LocalStorage -.->|Cung cấp dữ liệu danh mục| Demographic
 ```
 
-**Diagram: SDA Plugin System Architecture**
+**Sơ đồ: Kiến trúc Hệ thống Plugin SDA**
 
-Sources: [[`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)](../../../../.devin/wiki.json#L8-L9), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
+Nguồn: [[`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)](../../../../.devin/wiki.json#L8-L9), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
 
 ---
 
-## Plugin Categories and File Structure
+## Các Danh mục Plugin và Cấu trúc Tệp
 
-The 14 SDA plugins are organized into functional categories. Each plugin follows the standard HIS plugin structure with entry point, UI components, and data models.
+14 plugin SDA được tổ chức thành các danh mục chức năng. Mỗi plugin tuân theo cấu trúc plugin HIS tiêu chuẩn với điểm truy cập (entry point), các thành phần UI và model dữ liệu.
 
-| Plugin Name | Files | Primary Function | Key Features |
+| Tên Plugin | Số tệp | Chức năng Chính | Các tính năng chính |
 |------------|-------|------------------|--------------|
-| **Geographic Hierarchy** |
-| SdaNational | 38 | Manage country/nationality data | CRUD operations, search, filter |
-| SdaProvince | ~20-25 | Manage province/state data | Hierarchical under national |
-| SdaDistrict | ~20-25 | Manage district data | Hierarchical under province |
-| SdaCommune | ~20-25 | Manage commune/ward data | Hierarchical under district |
-| **Demographic Reference** |
-| SdaEthnic | ~20-25 | Manage ethnic group data | Ethnicity codes, descriptions |
-| SdaReligion | ~20-25 | Manage religion data | Religion codes, descriptions |
-| **System Configuration** |
-| SdaField | 25 | Manage system field definitions | Field metadata, data types |
-| SdaModuleField | 21 | Manage module-field relationships | Field visibility per module |
-| SdaHideControl | 24 | Control UI element visibility | Show/hide controls dynamically |
-| **Administrative Tools** |
-| SdaExecuteSql | 26 | Execute custom SQL queries | Admin SQL execution utility |
-| SdaGroup | ~20-25 | Manage system groups | Group definitions |
-| SdaLanguage | ~20-25 | Manage language/localization | Multi-language support |
-| **Others** |
-| SdaConfigApp | ~20-25 | Application configuration | System settings |
-| SdaTranslate | ~20-25 | Translation management | Text translation keys |
+| **Phân cấp Địa lý** |
+| SdaNational | 38 | Quản lý dữ liệu quốc gia/quốc tịch | Các thao tác CRUD, tìm kiếm, lọc |
+| SdaProvince | ~20-25 | Quản lý dữ liệu tỉnh/thành phố | Phân cấp dưới quốc gia |
+| SdaDistrict | ~20-25 | Quản lý dữ liệu quận/huyện | Phân cấp dưới tỉnh |
+| SdaCommune | ~20-25 | Quản lý dữ liệu xã/phường | Phân cấp dưới huyện |
+| **Tham chiếu Nhân khẩu học** |
+| SdaEthnic | ~20-25 | Quản lý dữ liệu dân tộc | Mã dân tộc, mô tả |
+| SdaReligion | ~20-25 | Quản lý dữ liệu tôn giáo | Mã tôn giáo, mô tả |
+| **Cấu hình Hệ thống** |
+| SdaField | 25 | Quản lý định nghĩa các trường hệ thống | Metadata của trường, kiểu dữ liệu |
+| SdaModuleField | 21 | Quản lý mối quan hệ module-trường | Hiển thị trường theo từng module |
+| SdaHideControl | 24 | Kiểm soát hiển thị thành phần UI | Ẩn/hiện các control một cách linh hoạt |
+| **Công cụ Quản trị** |
+| SdaExecuteSql | 26 | Thực thi các truy vấn SQL tùy chỉnh | Tiện ích thực thi SQL dành cho quản trị viên |
+| SdaGroup | ~20-25 | Quản lý các nhóm hệ thống | Định nghĩa nhóm |
+| SdaLanguage | ~20-25 | Quản lý ngôn ngữ/bản dịch | Hỗ trợ đa ngôn ngữ |
+| **Khác** |
+| SdaConfigApp | ~20-25 | Cấu hình ứng dụng | Các thiết lập hệ thống |
+| SdaTranslate | ~20-25 | Quản lý dịch thuật | Các key dịch bản văn |
 
-Sources: [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
+Nguồn: [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
 
 ---
 
-## Geographic Hierarchy Plugin Structure
+## Cấu trúc Plugin Phân cấp Địa lý
 
-The geographic hierarchy plugins (National, Province, District, Commune) implement a four-level administrative division system used throughout Vietnam's healthcare system.
+Các plugin phân cấp địa lý (Quốc gia, Tỉnh, Huyện, Xã) thực hiện hệ thống phân chia hành chính bốn cấp được sử dụng trong toàn bộ hệ thống y tế của Việt Nam.
 
 ```mermaid
 graph LR
-    subgraph "Geographic Plugin Structure"
-        National["SdaNational Plugin<br/>38 files"]
-        Province["SdaProvince Plugin"]
-        District["SdaDistrict Plugin"]
-        Commune["SdaCommune Plugin"]
+    subgraph "Cấu trúc Plugin Địa lý"
+        National["Plugin SdaNational<br/>38 tệp"]
+        Province["Plugin SdaProvince"]
+        District["Plugin SdaDistrict"]
+        Commune["Plugin SdaCommune"]
     end
     
-    subgraph "Typical Plugin Contents"
-        Entry["Plugin Entry Point<br/>[PluginName].cs"]
-        Processor["PluginProcessor.cs<br/>Business Logic"]
-        Form["frmNational.cs<br/>Main Form UI"]
-        ADO["ADO/<br/>Data Transfer Objects"]
-        UC["UCGridControl<br/>List/Grid View"]
+    subgraph "Nội dung Plugin điển hình"
+        Entry["Điểm truy cập Plugin<br/>[PluginName].cs"]
+        Processor["PluginProcessor.cs<br/>Logic nghiệp vụ"]
+        Form["frmNational.cs<br/>Giao diện Form chính"]
+        ADO["ADO/<br/>Đối tượng chuyển đổi dữ liệu"]
+        UC["UCGridControl<br/>Chế độ xem Danh sách/Lưới"]
     end
     
-    subgraph "Data Hierarchy"
-        NationalData["National/Country<br/>V_SDA_NATIONAL"]
-        ProvinceData["Province/State<br/>V_SDA_PROVINCE"]
-        DistrictData["District<br/>V_SDA_DISTRICT"]
-        CommuneData["Commune/Ward<br/>V_SDA_COMMUNE"]
+    subgraph "Phân cấp Dữ liệu"
+        NationalData["Quốc gia<br/>V_SDA_NATIONAL"]
+        ProvinceData["Tỉnh/Thành phố<br/>V_SDA_PROVINCE"]
+        DistrictData["Quận/Huyện<br/>V_SDA_DISTRICT"]
+        CommuneData["Xã/Phường<br/>V_SDA_COMMUNE"]
     end
     
     National --> Entry
@@ -124,66 +124,66 @@ graph LR
     ProvinceData --> DistrictData
     DistrictData --> CommuneData
     
-    National -.->|Manages| NationalData
-    Province -.->|Manages| ProvinceData
-    District -.->|Manages| DistrictData
-    Commune -.->|Manages| CommuneData
+    National -.->|Quản lý| NationalData
+    Province -.->|Quản lý| ProvinceData
+    District -.->|Quản lý| DistrictData
+    Commune -.->|Quản lý| CommuneData
 ```
 
-**Diagram: Geographic Plugin Hierarchy and Structure**
+**Sơ đồ: Cấu trúc và Phân cấp Plugin Địa lý**
 
-### SdaNational Plugin
+### Plugin SdaNational
 
-The largest geographic plugin with 38 files, managing national/country master data.
+Plugin địa lý lớn nhất với 38 tệp, quản lý dữ liệu danh mục quốc gia.
 
-**Key Components:**
-- **Entry Point**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs) - Plugin registration
-- **Main Form**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs) - National data grid and CRUD operations
-- **Processor**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs) - Plugin lifecycle management
-- **Data Models**: [HIS/Plugins/SDA.Desktop.Plugins.SdaNational/ADO/]() - Data transfer objects for national data
+**Các thành phần chính:**
+- **Điểm truy cập**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/SdaNational.cs) - Đăng ký plugin
+- **Form chính**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/Run/frmSdaNational.cs) - Lưới dữ liệu quốc gia và các thao tác CRUD
+- **Processor**: [[`HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs`](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs)](../../../../HIS/Plugins/SDA.Desktop.Plugins.SdaNational/PluginProcessor.cs) - Quản lý vòng đời plugin
+- **Model dữ liệu**: [HIS/Plugins/SDA.Desktop.Plugins.SdaNational/ADO/]() - Các đối tượng chuyển đổi dữ liệu cho dữ liệu quốc gia
 
-**Common Operations:**
-- Create, read, update, delete (CRUD) national/country records
-- Search and filter by national code or name
-- Import/export national data
-- Validation of national code uniqueness
+**Các thao tác phổ biến:**
+- Tạo, đọc, cập nhật, xóa (CRUD) các bản ghi quốc gia
+- Tìm kiếm và lọc theo mã hoặc tên quốc gia
+- Nhập/xuất dữ liệu quốc gia
+- Kiểm tra tính duy nhất của mã quốc gia
 
-### Province, District, Commune Plugins
+### Các Plugin Tỉnh, Huyện, Xã
 
-These plugins follow similar patterns but manage different hierarchical levels. Each plugin:
-- Maintains parent-child relationships (Province → National, District → Province, Commune → District)
-- Provides dropdown/selection controls for other plugins
-- Caches data in `HIS.Desktop.LocalStorage.BackendData` for performance
-- Validates hierarchical integrity on create/update operations
+Các plugin này tuân theo các mẫu tương tự nhưng quản lý các cấp bậc phân cấp khác nhau. Mỗi plugin:
+- Duy trì mối quan hệ cha-con (Tỉnh → Quốc gia, Huyện → Tỉnh, Xã → Huyện)
+- Cung cấp các control dropdown/chọn cho các plugin khác
+- Cache dữ liệu trong `HIS.Desktop.LocalStorage.BackendData` để tăng hiệu suất
+- Kiểm tra tính toàn vẹn của phân cấp khi thực hiện các thao tác tạo/cập nhật
 
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.SdaNational/](), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.SdaNational/](), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167)
 
 ---
 
-## System Configuration Plugins
+## Các Plugin Cấu hình Hệ thống
 
-### SdaField Plugin
+### Plugin SdaField
 
-Manages system field definitions and metadata for dynamic form generation.
+Quản lý các định nghĩa trường hệ thống và metadata để tạo form động.
 
 ```mermaid
 graph TB
-    subgraph "SdaField Plugin - 25 files"
-        FieldEntry["SdaField.cs<br/>Plugin Entry"]
-        FieldForm["frmSdaField.cs<br/>Field Management UI"]
-        FieldProcessor["Field Business Logic"]
+    subgraph "Plugin SdaField - 25 tệp"
+        FieldEntry["SdaField.cs<br/>Điểm truy cập Plugin"]
+        FieldForm["frmSdaField.cs<br/>UI Quản lý Trường"]
+        FieldProcessor["Logic Nghiệp vụ Trường"]
     end
     
-    subgraph "Field Metadata"
-        FieldDef["Field Definition<br/>Code, Name, Type"]
-        DataType["Data Type<br/>String, Number, Date, Boolean"]
-        Validation["Validation Rules<br/>Required, Max Length, Pattern"]
+    subgraph "Metadata của Trường"
+        FieldDef["Định nghĩa Trường<br/>Mã, Tên, Kiểu"]
+        DataType["Kiểu Dữ liệu<br/>Chuỗi, Số, Ngày, Boolean"]
+        Validation["Quy tắc Kiểm tra<br/>Bắt buộc, Độ dài tối đa, Mẫu"]
     end
     
-    subgraph "Usage in System"
-        FormType["HIS.UC.FormType<br/>Dynamic Form Engine"]
-        Plugins["Other Plugins<br/>Read Field Definitions"]
-        LocalStorage["BackendData Cache<br/>SDA_FIELD"]
+    subgraph "Sử dụng trong Hệ thống"
+        FormType["HIS.UC.FormType<br/>Engine Form động"]
+        Plugins["Các Plugin khác<br/>Đọc Định nghĩa Trường"]
+        LocalStorage["Cache BackendData<br/>SDA_FIELD"]
     end
     
     FieldEntry --> FieldForm
@@ -193,87 +193,87 @@ graph TB
     FieldDef --> DataType
     FieldDef --> Validation
     
-    FieldDef -.->|Cached in| LocalStorage
-    LocalStorage -.->|Used by| FormType
-    LocalStorage -.->|Used by| Plugins
+    FieldDef -.->|Được Cache trong| LocalStorage
+    LocalStorage -.->|Sử dụng bởi| FormType
+    LocalStorage -.->|Sử dụng bởi| Plugins
 ```
 
-**Diagram: SdaField Plugin and Field Metadata System**
+**Sơ đồ: Plugin SdaField và Hệ thống Metadata Trường**
 
-The `SdaField` plugin defines custom fields that can be added to various system forms. These field definitions include:
-- Field code (unique identifier)
-- Field name (display label)
-- Data type (string, numeric, date, boolean)
-- Validation constraints
-- Default values
+Plugin `SdaField` định nghĩa các trường tùy chỉnh có thể được thêm vào các form hệ thống khác nhau. Các định nghĩa trường này bao gồm:
+- Mã trường (mã định danh duy nhất)
+- Tên trường (nhãn hiển thị)
+- Kiểu dữ liệu (chuỗi, số, ngày, boolean)
+- Các ràng buộc kiểm tra dữ liệu
+- Các giá trị mặc định
 
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.SdaField/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.SdaField/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
 
-### SdaModuleField Plugin
+### Plugin SdaModuleField
 
-Links fields to specific modules, controlling which fields appear in which modules.
+Liên kết các trường với các module cụ thể, kiểm soát trường nào xuất hiện trong module nào.
 
-**Key Functions:**
-- Define field visibility per module
-- Map `SDA_FIELD` records to `HIS.Desktop.Plugins.*` modules
-- Enable/disable fields dynamically based on module context
-- Support for conditional field display logic
+**Các chức năng chính:**
+- Định nghĩa hiển thị trường theo từng module
+- Ánh xạ các bản ghi `SDA_FIELD` tới các module `HIS.Desktop.Plugins.*`
+- Kích hoạt/vô hiệu hóa các trường một cách linh hoạt dựa trên ngữ cảnh module
+- Hỗ trợ logic hiển thị trường có điều kiện
 
-**Integration Points:**
-- Reads from `HIS.Desktop.LocalStorage.BackendData` for cached field definitions
-- Used by form rendering logic in [HIS.UC.FormType/]()
-- Consulted by plugins during form initialization
+**Các điểm tích hợp:**
+- Đọc từ `HIS.Desktop.LocalStorage.BackendData` cho các định nghĩa trường được cache
+- Được sử dụng bởi logic render form trong [HIS.UC.FormType/]()
+- Được các plugin tham vấn trong quá trình khởi tạo form
 
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.SdaModuleField/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.SdaModuleField/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
 
-### SdaHideControl Plugin
+### Plugin SdaHideControl
 
-Provides administrative control over UI element visibility across the application.
+Cung cấp quyền kiểm soát quản trị đối với việc hiển thị các thành phần UI trong toàn bộ ứng dụng.
 
-**Capabilities:**
-- Hide/show specific controls by control ID
-- Apply visibility rules per user, role, or branch
-- Override default control visibility at runtime
-- Audit trail of control visibility changes
+**Khả năng:**
+- Ẩn/hiện các control cụ thể theo ID của control
+- Áp dụng các quy tắc hiển thị theo người dùng, vai trò hoặc chi nhánh
+- Ghi đè hiển thị control mặc định tại thời điểm thực thi
+- Lưu vết (audit trail) các thay đổi về hiển thị control
 
-**Use Cases:**
-- Customizing UI for different hospital departments
-- Hiding features not licensed or configured
-- Simplifying UI for basic users
-- Compliance with regional requirements
+**Các trường hợp sử dụng:**
+- Tùy chỉnh UI cho các khoa phòng bệnh viện khác nhau
+- Ẩn các tính năng không được cấp phép hoặc không được cấu hình
+- Đơn giản hóa UI cho người dùng cơ bản
+- Tuân thủ các yêu cầu của khu vực/vùng miền
 
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.SdaHideControl/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.SdaHideControl/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
 
 ---
 
-## Administrative Tools: SdaExecuteSql Plugin
+## Công cụ Quản trị: Plugin SdaExecuteSql
 
-The `SdaExecuteSql` plugin (26 files) provides a powerful administrative interface for executing custom SQL queries against the backend database.
+Plugin `SdaExecuteSql` (26 tệp) cung cấp một giao diện quản trị mạnh mẽ để thực thi các truy vấn SQL tùy chỉnh đối với cơ sở dữ liệu backend.
 
 ```mermaid
 graph TB
-    subgraph "SdaExecuteSql Plugin - 26 files"
-        SqlEntry["SdaExecuteSql.cs<br/>Plugin Entry"]
-        SqlForm["frmSdaExecuteSql.cs<br/>SQL Editor UI"]
-        SqlProcessor["SQL Execution Logic<br/>Safety Validations"]
+    subgraph "Plugin SdaExecuteSql - 26 tệp"
+        SqlEntry["SdaExecuteSql.cs<br/>Điểm truy cập Plugin"]
+        SqlForm["frmSdaExecuteSql.cs<br/>UI Trình soạn thảo SQL"]
+        SqlProcessor["Logic Thực thi SQL<br/>Kiểm tra An toàn"]
     end
     
-    subgraph "SQL Editor Features"
-        Editor["SQL Text Editor<br/>Syntax Highlighting"]
-        History["Query History<br/>Recent Queries"]
-        Results["Result Grid<br/>Query Results Display"]
-        Export["Export Results<br/>Excel, CSV"]
+    subgraph "Tính năng Trình soạn thảo SQL"
+        Editor["Trình soạn thảo văn bản SQL<br/>Highlight cú pháp"]
+        History["Lịch sử truy vấn<br/>Các truy vấn gần đây"]
+        Results["Lưới kết quả<br/>Hiển thị kết quả truy vấn"]
+        Export["Xuất kết quả<br/>Excel, CSV"]
     end
     
-    subgraph "Security & Validation"
-        Permissions["User Permissions<br/>ACS Role Check"]
-        QueryValidation["Query Validation<br/>Prevent Destructive Ops"]
-        AuditLog["Audit Logging<br/>Track Executions"]
+    subgraph "Bảo mật & Kiểm tra"
+        Permissions["Quyền người dùng<br/>Kiểm tra vai trò ACS"]
+        QueryValidation["Kiểm tra Truy vấn<br/>Ngăn chặn các thao tác phá hủy"]
+        AuditLog["Audit Logging<br/>Theo dõi thực thi"]
     end
     
     subgraph "Backend"
         API["ApiConsumer<br/>POST /sda/execute-sql"]
-        Database["HIS Database<br/>Query Execution"]
+        Database["Cơ sở dữ liệu HIS<br/>Thực thi truy vấn"]
     end
     
     SqlEntry --> SqlForm
@@ -290,153 +290,151 @@ graph TB
     API --> Database
 ```
 
-**Diagram: SdaExecuteSql Plugin Architecture**
+**Các cân nhắc về Bảo mật:**
+- Yêu cầu quyền ACS nâng cao (thường chỉ dành cho quản trị viên)
+- Kiểm tra các truy vấn để ngăn chặn `DROP`, `TRUNCATE`, `DELETE` mà không có mệnh đề `WHERE`
+- Ghi nhật ký tất cả các lần thực thi với người dùng, dấu thời gian và nội dung truy vấn
+- Có chế độ chỉ đọc (read-only) cho các truy vấn không phá hủy dữ liệu
 
-**Security Considerations:**
-- Requires elevated ACS permissions (typically admin-only)
-- Validates queries to prevent DROP, TRUNCATE, DELETE without WHERE clause
-- Logs all executions with user, timestamp, and query content
-- Read-only mode available for non-destructive queries
+**Các mục đích Quản trị phổ biến:**
+- Các script di chuyển dữ liệu
+- Sửa lỗi dữ liệu khẩn cấp
+- Các truy vấn báo cáo tùy chỉnh
+- Các tác vụ bảo trì cơ sở dữ liệu
+- Kiểm tra và gỡ lỗi các vấn đề về dữ liệu
 
-**Common Administrative Uses:**
-- Data migration scripts
-- Emergency data corrections
-- Custom reporting queries
-- Database maintenance tasks
-- Testing and debugging data issues
-
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.SdaExecuteSql/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.SdaExecuteSql/](), [[`.devin/wiki.json:164-165`](../../../../.devin/wiki.json#L164-L165)](../../../../.devin/wiki.json#L164-L165)
 
 ---
 
-## Data Flow: Master Data Loading and Caching
+## Dòng dữ liệu: Tải và Caching Dữ liệu danh mục
 
-SDA plugins implement an aggressive caching strategy for master data to improve application performance.
+Các plugin SDA thực hiện chiến lược bộ nhớ đệm (caching) mạnh mẽ cho dữ liệu danh mục để cải thiện hiệu suất ứng dụng.
 
 ```mermaid
 sequenceDiagram
-    participant Plugin as "SDA Plugin<br/>(e.g., SdaNational)"
+    participant Plugin as "Plugin SDA<br/>(vd: SdaNational)"
     participant ApiConsumer as "HIS.Desktop.ApiConsumer"
-    participant LocalStorage as "BackendData Cache"
-    participant API as "Backend SDA API"
-    participant OtherPlugin as "Consumer Plugin<br/>(e.g., Register)"
+    participant LocalStorage as "Cache BackendData"
+    participant API as "SDA API Backend"
+    participant OtherPlugin as "Plugin Tiêu thụ<br/>(vd: Đăng ký)"
     
-    Note over Plugin,API: Initial Data Load
-    Plugin->>LocalStorage: Check Cache
+    Note over Plugin,API: Tải dữ liệu ban đầu
+    Plugin->>LocalStorage: Kiểm tra Cache
     LocalStorage-->>Plugin: Cache Miss
     Plugin->>ApiConsumer: GET /api/SdaNational/Get
     ApiConsumer->>API: HTTP GET
     API-->>ApiConsumer: List<SDA_NATIONAL>
-    ApiConsumer-->>Plugin: Response
-    Plugin->>LocalStorage: Store in Cache
-    LocalStorage-->>Plugin: Cached
+    ApiConsumer-->>Plugin: Phản hồi
+    Plugin->>LocalStorage: Lưu vào Cache
+    LocalStorage-->>Plugin: Đã Cache
     
-    Note over Plugin,OtherPlugin: Subsequent Access
-    OtherPlugin->>LocalStorage: Get National List
-    LocalStorage-->>OtherPlugin: Return from Cache
+    Note over Plugin,OtherPlugin: Các lần truy cập tiếp theo
+    OtherPlugin->>LocalStorage: Lấy danh sách Quốc gia
+    LocalStorage-->>OtherPlugin: Trả về từ Cache
     
-    Note over Plugin,API: Cache Invalidation
-    Plugin->>Plugin: User Updates Data
+    Note over Plugin,API: Vô hiệu hóa Cache
+    Plugin->>Plugin: Người dùng cập nhật dữ liệu
     Plugin->>ApiConsumer: POST /api/SdaNational/Update
     ApiConsumer->>API: HTTP POST
-    API-->>ApiConsumer: Success
-    Plugin->>LocalStorage: Invalidate Cache
-    Plugin->>LocalStorage: Reload Fresh Data
+    API-->>ApiConsumer: Thành công
+    Plugin->>LocalStorage: Vô hiệu hóa Cache
+    Plugin->>LocalStorage: Tải lại dữ liệu mới
 ```
 
-**Diagram: SDA Master Data Loading and Caching Flow**
+**Sơ đồ: Dòng tải và Caching dữ liệu danh mục SDA**
 
-**Cache Management:**
-- Master data cached on first access in `HIS.Desktop.LocalStorage.BackendData`
-- Cache invalidated on CRUD operations
-- Automatic cache refresh on application startup
-- Manual refresh available through UI
+**Quản lý Cache:**
+- Dữ liệu danh mục được cache trong lần truy cập đầu tiên tại `HIS.Desktop.LocalStorage.BackendData`
+- Cache bị vô hiệu hóa khi thực hiện các thao tác CRUD
+- Tự động làm mới cache khi khởi động ứng dụng
+- Có thể làm mới thủ công thông qua UI
 
-**Performance Impact:**
-- Reduces API calls for frequently accessed reference data
-- Geographic data (national, province, district, commune) used in almost every patient registration
-- Demographic data (ethnic, religion) used in patient demographics
-- Field definitions used in dynamic form rendering
+**Tác động đến Hiệu suất:**
+- Giảm các lệnh gọi API cho dữ liệu tham chiếu được truy cập thường xuyên
+- Dữ liệu địa lý (quốc gia, tỉnh, huyện, xã) được sử dụng trong hầu hết các lượt đăng ký bệnh nhân
+- Dữ liệu nhân khẩu học (dân tộc, tôn giáo) được sử dụng trong thông tin nhân khẩu học của bệnh nhân
+- Định nghĩa các trường được sử dụng trong việc render form động
 
-Sources: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.BackendData/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
+Nguồn: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.BackendData/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
 
 ---
 
-## Common Plugin Pattern: CRUD Operations
+## Mẫu Plugin chung: Các thao tác CRUD
 
-All SDA plugins follow a consistent pattern for Create, Read, Update, Delete operations.
+Tất cả các plugin SDA đều tuân theo một mẫu nhất quán cho các thao tác Tạo, Đọc, Cập nhật, Xóa (CRUD).
 
-### Typical Plugin File Structure
+### Cấu trúc Tệp Plugin điển hình
 
 ```
 SDA.Desktop.Plugins.[PluginName]/
-├── [PluginName].cs                    # Plugin entry point, module registration
-├── PluginProcessor.cs                 # Plugin lifecycle management
+├── [PluginName].cs                    # Điểm truy cập plugin, đăng ký module
+├── PluginProcessor.cs                 # Quản lý vòng đời plugin
 ├── Run/
-│   ├── frm[PluginName].cs            # Main form UI
-│   ├── frm[PluginName].Designer.cs   # Form designer code
-│   └── UCGrid[PluginName].cs         # Grid control component
+│   ├── frm[PluginName].cs            # UI form chính
+│   ├── frm[PluginName].Designer.cs   # Mã designer của form
+│   └── UCGrid[PluginName].cs         # Thành phần lưới điều khiển
 ├── ADO/
-│   ├── [Entity]ADO.cs                # Data transfer object
-│   └── [Entity]ImportADO.cs          # Import data object
+│   ├── [Entity]ADO.cs                # Đối tượng chuyển đổi dữ liệu
+│   └── [Entity]ImportADO.cs          # Đối tượng nhập dữ liệu
 ├── Base/
-│   └── RequestUri__.cs               # API endpoint constants
+│   └── RequestUri__.cs               # Các hằng số endpoint API
 ├── Validtion/
-│   └── Validation[Action].cs         # Validation rules
+│   └── Validation[Action].cs         # Các quy tắc kiểm tra dữ liệu
 ├── Resources/
 │   ├── Lang/
-│   │   └── [PluginName]__*.resx     # Localization resources
-│   └── Image/                        # Plugin icons/images
+│   │   └── [PluginName]__*.resx     # Các tài nguyên bản dịch
+│   └── Image/                        # Các icon/hình ảnh plugin
 └── Properties/
-    └── AssemblyInfo.cs               # Assembly metadata
+    └── AssemblyInfo.cs               # Metadata của assembly
 ```
 
-### Standard API Consumer Pattern
+### Mẫu Tiêu thụ API Chuẩn
 
-Each SDA plugin uses `HIS.Desktop.ApiConsumer` to communicate with backend:
+Mỗi plugin SDA sử dụng `HIS.Desktop.ApiConsumer` để giao tiếp với backend:
 
-**GET Operations:**
-- Endpoint pattern: `/api/Sda[Entity]/Get` - Retrieve all records
-- Endpoint pattern: `/api/Sda[Entity]/GetView` - Retrieve with joins/views
-- Cached in `BackendData` for repeated access
+**Các thao tác GET:**
+- Mẫu endpoint: `/api/Sda[Entity]/Get` - Lấy tất cả các bản ghi
+- Mẫu endpoint: `/api/Sda[Entity]/GetView` - Lấy dữ liệu với các phép join/view
+- Được cache trong `BackendData` để truy cập lặp lại
 
-**CREATE Operations:**
-- Endpoint pattern: `/api/Sda[Entity]/Create` - Create new record
-- Validation performed client-side before API call
-- Cache invalidated on success
+**Các thao tác CREATE:**
+- Mẫu endpoint: `/api/Sda[Entity]/Create` - Tạo bản ghi mới
+- Việc kiểm tra dữ liệu được thực hiện ở phía client trước khi gọi API
+- Cache bị vô hiệu hóa khi thành công
 
-**UPDATE Operations:**
-- Endpoint pattern: `/api/Sda[Entity]/Update` - Update existing record
-- Version checking for concurrent modifications
-- Cache refresh after update
+**Các thao tác UPDATE:**
+- Mẫu endpoint: `/api/Sda[Entity]/Update` - Cập nhật bản ghi hiện có
+- Kiểm tra phiên bản (version checking) để xử lý các sửa đổi đồng thời
+- Làm mới cache sau khi cập nhật
 
-**DELETE Operations:**
-- Endpoint pattern: `/api/Sda[Entity]/Delete` - Delete record
-- Cascading delete checks for referential integrity
-- Cache invalidation
+**Các thao tác DELETE:**
+- Mẫu endpoint: `/api/Sda[Entity]/Delete` - Xóa bản ghi
+- Kiểm tra xóa theo tầng (cascading delete) để đảm bảo tính toàn vẹn tham chiếu
+- Vô hiệu hóa cache
 
-Sources: [HIS/HIS.Desktop/ApiConsumer/HIS.Desktop.ApiConsumer/]()
+Nguồn: [HIS/HIS.Desktop/ApiConsumer/HIS.Desktop.ApiConsumer/]()
 
 ---
 
-## Integration with Other System Components
+## Tích hợp với các Thành phần khác trong Hệ thống
 
-### Integration with ACS (Access Control System)
+### Tích hợp với ACS (Hệ thống Kiểm soát Truy cập)
 
-SDA plugins respect ACS permissions defined in [ACS Access Control Plugins](../../03-business-domains/administration/access-control.md):
+Các plugin SDA tuân thủ các quyền ACS được định nghĩa trong [ACS Access Control Plugins](../../03-business-domains/administration/access-control.md):
 
-- `SdaExecuteSql` requires `ACS_MODULE.EXECUTE_SQL` permission
-- Administrative plugins require `ACS_ROLE.ADMIN` or specific module access
-- CRUD operations check `ACS_CONTROL` permissions (Create, Update, Delete)
-- UI controls disabled based on `SdaHideControl` and ACS rules
+- `SdaExecuteSql` yêu cầu quyền `ACS_MODULE.EXECUTE_SQL`
+- Các plugin quản trị yêu cầu vai trò `ACS_ROLE.ADMIN` hoặc quyền truy cập module cụ thể
+- Các thao tác CRUD kiểm tra quyền `ACS_CONTROL` (Tạo, Cập nhật, Xóa)
+- Các control UI được vô hiệu hóa dựa trên `SdaHideControl` và các quy tắc ACS
 
-### Integration with LocalStorage
+### Tích hợp với LocalStorage
 
-Master data from SDA plugins populates `HIS.Desktop.LocalStorage.BackendData`:
+Dữ liệu danh mục từ các plugin SDA đổ vào `HIS.Desktop.LocalStorage.BackendData`:
 
 ```mermaid
 graph LR
-    subgraph "SDA Plugins"
+    subgraph "Các Plugin SDA"
         NationalPlugin["SdaNational"]
         ProvincePlugin["SdaProvince"]
         DistrictPlugin["SdaDistrict"]
@@ -454,18 +452,18 @@ graph LR
         Religions["SdaReligions<br/>List<SDA_RELIGION>"]
     end
     
-    subgraph "Consumer Plugins"
-        RegisterPlugin["Register Plugin<br/>Patient Registration"]
-        TreatmentPlugin["Treatment Plugin"]
-        ReportPlugins["Report Plugins"]
+    subgraph "Các Plugin Tiêu thụ"
+        RegisterPlugin["Plugin Đăng ký<br/>Đăng ký Bệnh nhân"]
+        TreatmentPlugin["Plugin Điều trị"]
+        ReportPlugins["Các Plugin Báo cáo"]
     end
     
-    NationalPlugin -.->|Populates| Nationals
-    ProvincePlugin -.->|Populates| Provinces
-    DistrictPlugin -.->|Populates| Districts
-    CommunePlugin -.->|Populates| Communes
-    EthnicPlugin -.->|Populates| Ethnics
-    ReligionPlugin -.->|Populates| Religions
+    NationalPlugin -.->|Điền dữ liệu| Nationals
+    ProvincePlugin -.->|Điền dữ liệu| Provinces
+    DistrictPlugin -.->|Điền dữ liệu| Districts
+    CommunePlugin -.->|Điền dữ liệu| Communes
+    EthnicPlugin -.->|Điền dữ liệu| Ethnics
+    ReligionPlugin -.->|Điền dữ liệu| Religions
     
     Nationals --> RegisterPlugin
     Provinces --> RegisterPlugin
@@ -478,67 +476,67 @@ graph LR
     Districts --> ReportPlugins
 ```
 
-**Diagram: SDA Master Data Integration with LocalStorage and Consumer Plugins**
+**Sơ đồ: Tích hợp dữ liệu danh mục SDA với LocalStorage và các Plugin tiêu thụ**
 
-Sources: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.BackendData/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
+Nguồn: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.BackendData/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
 
-### Integration with UC Components
+### Tích hợp với các Thành phần UC
 
-SDA data used in reusable User Controls:
+Dữ liệu SDA được sử dụng trong các User Control có thể tái sử dụng:
 
-- `HIS.UC.PatientSelect` uses geographic hierarchy for address selection
-- `HIS.UC.FormType` uses `SdaField` definitions for dynamic form rendering
-- Dropdown controls throughout application populated from SDA master data
-- `HIS.UC.National` specifically designed for national selection
+- `HIS.UC.PatientSelect` sử dụng phân cấp địa lý để chọn địa chỉ
+- `HIS.UC.FormType` sử dụng các định nghĩa `SdaField` để render form động
+- Các control Dropdown trong toàn bộ ứng dụng được lấy dữ liệu từ danh mục SDA
+- `HIS.UC.National` được thiết kế riêng cho việc chọn quốc gia
 
-Sources: [UC/HIS.UC.PatientSelect/](), [UC/HIS.UC.FormType/](), [UC/HIS.UC.National/]()
-
----
-
-## Configuration and Customization
-
-### SdaConfigKey Integration
-
-SDA plugins use configuration keys defined in `HIS.Desktop.LocalStorage.SdaConfigKey` (30 files):
-
-- `SDA__SHOW_NATIONAL_CODE` - Display national codes in dropdowns
-- `SDA__PROVINCE_IS_REQUIRED` - Require province in address fields  
-- `SDA__ENABLE_COMMUNE_SEARCH` - Enable commune search functionality
-- `SDA__DEFAULT_NATIONAL_CODE` - Default nationality (e.g., "VN")
-
-Configuration values stored in database and cached locally for performance.
-
-Sources: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.SdaConfigKey/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
-
-### Localization Support
-
-SDA plugins support Vietnamese and English through resource files:
-- Resource files pattern: `[PluginName]__Vi.resx`, `[PluginName]__En.resx`
-- `SdaLanguage` plugin manages language preferences
-- `SdaTranslate` plugin manages translation keys and values
-- UI text loaded based on user's language preference
+Nguồn: [UC/HIS.UC.PatientSelect/](), [UC/HIS.UC.FormType/](), [UC/HIS.UC.National/]()
 
 ---
 
-## Summary: SDA Plugin Responsibilities
+## Cấu hình và Tùy chỉnh
 
-The 14 SDA plugins serve as the **master data management backbone** of the HIS system:
+### Tích hợp SdaConfigKey
 
-| Responsibility | Plugins | Purpose |
+Các plugin SDA sử dụng các key cấu hình được định nghĩa trong `HIS.Desktop.LocalStorage.SdaConfigKey` (30 tệp):
+
+- `SDA__SHOW_NATIONAL_CODE` - Hiển thị mã quốc gia trong các dropdown
+- `SDA__PROVINCE_IS_REQUIRED` - Bắt buộc nhập tỉnh/thành phố trong các trường địa chỉ
+- `SDA__ENABLE_COMMUNE_SEARCH` - Kích hoạt tính năng tìm kiếm xã/phường
+- `SDA__DEFAULT_NATIONAL_CODE` - Quốc tịch mặc định (vd: "VN")
+
+Các giá trị cấu hình được lưu trữ trong cơ sở dữ liệu và được cache cục bộ để tăng hiệu suất.
+
+Nguồn: [HIS/HIS.Desktop/LocalStorage/HIS.Desktop.LocalStorage.SdaConfigKey/](), [[`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)](../../../../.devin/wiki.json#L46-L51)
+
+### Hỗ trợ Bản dịch
+
+Các plugin SDA hỗ trợ tiếng Việt và tiếng Anh thông qua các tệp resource:
+- Mẫu tệp resource: `[PluginName]__Vi.resx`, `[PluginName]__En.resx`
+- Plugin `SdaLanguage` quản lý các tùy chọn ngôn ngữ
+- Plugin `SdaTranslate` quản lý các key và giá trị dịch
+- Văn bản UI được tải dựa trên tùy chọn ngôn ngữ của người dùng
+
+---
+
+## Tóm tắt: Trách nhiệm của Plugin SDA
+
+14 plugin SDA đóng vai trò là **xương sống quản lý dữ liệu danh mục** của hệ thống HIS:
+
+| Trách nhiệm | Các Plugin | Mục đích |
 |----------------|---------|---------|
-| **Geographic Reference** | SdaNational, SdaProvince, SdaDistrict, SdaCommune | Four-level administrative division hierarchy for addresses |
-| **Demographic Reference** | SdaEthnic, SdaReligion | Patient demographic classifications |
-| **Dynamic Configuration** | SdaField, SdaModuleField, SdaHideControl | Runtime form and UI customization |
-| **Administrative Tools** | SdaExecuteSql, SdaGroup, SdaLanguage | System maintenance and customization utilities |
-| **Application Settings** | SdaConfigApp, SdaTranslate | Application configuration and localization |
+| **Tham chiếu Địa lý** | SdaNational, SdaProvince, SdaDistrict, SdaCommune | Phân cấp hành chính bốn cấp cho địa chỉ |
+| **Tham chiếu Nhân khẩu học** | SdaEthnic, SdaReligion | Các phân loại nhân khẩu học của bệnh nhân |
+| **Cấu hình Động** | SdaField, SdaModuleField, SdaHideControl | Tùy chỉnh form và UI tại thời điểm thực thi |
+| **Công cụ Quản trị** | SdaExecuteSql, SdaGroup, SdaLanguage | Các tiện ích bảo trì và tùy chỉnh hệ thống |
+| **Thiết lập Ứng dụng** | SdaConfigApp, SdaTranslate | Cấu hình ứng dụng và địa phương hóa (bản dịch) |
 
-**Key Design Principles:**
-1. **Aggressive Caching**: Master data cached in `BackendData` for performance
-2. **Hierarchical Integrity**: Parent-child relationships enforced in geographic data
-3. **Permission-Based Access**: Administrative functions protected by ACS
-4. **Standardized Patterns**: All plugins follow consistent CRUD patterns
-5. **Localization Ready**: Multi-language support throughout
+**Các nguyên tắc thiết kế chính:**
+1. **Caching mạnh mẽ**: Dữ liệu danh mục được cache trong `BackendData` để tăng hiệu suất
+2. **Tính toàn vẹn Phân cấp**: Các mối quan hệ cha-con được thực thi trong dữ liệu địa lý
+3. **Truy cập dựa trên Quyền**: Các chức năng quản trị được bảo vệ bởi ACS
+4. **Các mẫu Standardized**: Tất cả các plugin đều tuân theo các mẫu CRUD nhất quán
+5. **Sẵn sàng cho Bản dịch**: Hỗ trợ đa ngôn ngữ trong toàn bộ hệ thống
 
-SDA plugins are typically accessed by administrators during system setup and configuration, but the data they manage is consumed by virtually every other plugin in the system for patient registration, treatment, reporting, and administrative operations.
+Các plugin SDA thường được các quản trị viên truy cập trong quá trình thiết lập và cấu hình hệ thống, nhưng dữ liệu mà chúng quản lý được tiêu thụ bởi hầu hết mọi plugin khác trong hệ thống để thực hiện các thao tác đăng ký bệnh nhân, điều trị, báo cáo và quản trị.
 
-Sources: [HIS/Plugins/SDA.Desktop.Plugins.*/](), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167), [[`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)](../../../../.devin/wiki.json#L8-L9)
+Nguồn: [HIS/Plugins/SDA.Desktop.Plugins.*/](), [[`.devin/wiki.json:159-167`](../../../../.devin/wiki.json#L159-L167)](../../../../.devin/wiki.json#L159-L167), [[`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)](../../../../.devin/wiki.json#L8-L9)

@@ -1,40 +1,40 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document describes the ACS (Access Control System) plugins within the HIS Desktop application. These 13 plugins implement role-based access control (RBAC) and permission management for the hospital information system. The ACS plugins manage user accounts, roles, application/module permissions, and UI control-level access restrictions.
+Tài liệu này mô tả các plugin ACS (Access Control System - Hệ thống kiểm soát truy cập) trong ứng dụng HIS Desktop. 13 plugin này thực hiện kiểm soát truy cập dựa trên vai trò (RBAC) và quản lý quyền cho hệ thống thông tin bệnh viện. Các plugin ACS quản lý tài khoản người dùng, vai trò, quyền ứng dụng/module và các hạn chế truy cập ở cấp độ điều khiển UI (UI control).
 
-For information about the overall plugin architecture and lifecycle, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For user interface components related to access control, see [UC Components Library](../../02-modules/uc-controls/form-type-controls.md). For system-level data administration including user configuration, see [SDA System Data Plugins](../../03-business-domains/administration/system-data.md).
+Để biết thông tin về kiến trúc plugin tổng thể và vòng đời, hãy xem [Kiến trúc hệ thống Plugin](../../01-architecture/plugin-system/02-discovery-lifecycle.md). Đối với các thành phần giao diện người dùng liên quan đến kiểm soát truy cập, hãy xem [Thư viện thành phần UC](../../02-modules/uc-controls/form-type-controls.md). Đối với quản trị dữ liệu cấp hệ thống bao gồm cấu hình người dùng, hãy xem [Plugin dữ liệu hệ thống SDA](../../03-business-domains/administration/system-data.md).
 
 ---
 
-## ACS Plugin Architecture Overview
+## Tổng quan về Kiến trúc Plugin ACS
 
-The ACS subsystem consists of 13 specialized plugins that collectively manage the permission hierarchy within the HIS application. These plugins are located in `HIS/Plugins/ACS.Desktop.Plugins.*` directories and follow the standard plugin structure established by the HIS.Desktop framework.
+Phân hệ ACS bao gồm 13 plugin chuyên biệt cùng nhau quản lý hệ thống phân quyền trong ứng dụng HIS. Các plugin này nằm trong thư mục `HIS/Plugins/ACS.Desktop.Plugins.*` và tuân theo cấu trúc plugin tiêu chuẩn của framework HIS.Desktop.
 
 ```mermaid
 graph TB
-    subgraph "ACS Plugin Layer"
-        AcsUser["AcsUser<br/>30 files<br/>User Management"]
-        AcsRole["AcsRole<br/>25 files<br/>Role Definition"]
-        AcsRoleBase["AcsRoleBase<br/>25 files<br/>Base Role Templates"]
-        AcsRoleUser["AcsRoleUser<br/>25 files<br/>User-Role Assignment"]
-        ImportAcsRoleUser["ImportAcsRoleUser<br/>Bulk Role Import"]
+    subgraph "Lớp Plugin ACS"
+        AcsUser["AcsUser<br/>30 files<br/>Quản lý người dùng"]
+        AcsRole["AcsRole<br/>25 files<br/>Định nghĩa vai trò"]
+        AcsRoleBase["AcsRoleBase<br/>25 files<br/>Template vai trò cơ sở"]
+        AcsRoleUser["AcsRoleUser<br/>25 files<br/>Gán vai trò cho người dùng"]
+        ImportAcsRoleUser["ImportAcsRoleUser<br/>Nhập vai trò hàng loạt"]
     end
     
-    subgraph "Module & Application Layer"
-        AcsApplication["AcsApplication<br/>24 files<br/>Application Registry"]
-        AcsModule["AcsModule<br/>24 files<br/>Module Management"]
-        AcsModuleGroup["AcsModuleGroup<br/>24 files<br/>Module Grouping"]
-        AcsControl["AcsControl<br/>24 files<br/>Control-Level Permissions"]
+    subgraph "Lớp Module & Ứng dụng"
+        AcsApplication["AcsApplication<br/>24 files<br/>Đăng ký ứng dụng"]
+        AcsModule["AcsModule<br/>24 files<br/>Quản lý Module"]
+        AcsModuleGroup["AcsModuleGroup<br/>24 files<br/>Nhóm Module"]
+        AcsControl["AcsControl<br/>24 files<br/>Quyền cấp độ Control"]
     end
     
-    subgraph "Desktop Core Infrastructure"
+    subgraph "Hạ tầng lõi Desktop"
         PluginCore["HIS.Desktop.Core<br/>Plugin Engine"]
-        LocalStorage["HIS.Desktop.LocalStorage<br/>BackendData Cache"]
+        LocalStorage["HIS.Desktop.LocalStorage<br/>Bộ nhớ đệm BackendData"]
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>ACS API Client"]
     end
     
-    subgraph "Backend Services"
-        ACSAPI["ACS REST API<br/>Authentication & Authorization"]
+    subgraph "Dịch vụ Backend"
+        ACSAPI["ACS REST API<br/>Xác thực & Ủy quyền"]
     end
     
     AcsUser --> PluginCore
@@ -58,28 +58,28 @@ graph TB
     LocalStorage --> AcsRole
 ```
 
-**Diagram: ACS Plugin Architecture and Dependencies**
+**Sơ đồ: Kiến trúc Plugin ACS và các phụ thuộc**
 
-This diagram illustrates the 13 ACS plugins organized into two functional layers: user/role management and application/module management. All plugins integrate with the desktop core infrastructure for plugin lifecycle, local caching, and backend API communication.
+Sơ đồ này minh họa 13 plugin ACS được tổ chức thành hai lớp chức năng: quản lý người dùng/vai trò và quản lý ứng dụng/module. Tất cả các plugin tích hợp với hạ tầng lõi desktop cho vòng đời plugin, bộ nhớ đệm cục bộ và giao tiếp API backend.
 
-Sources: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), High-level architecture diagrams (Diagram 2: Plugin-Based Architecture)
+Nguồn: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), Sơ đồ kiến trúc cấp cao (Diagram 2: Plugin-Based Architecture)
 
 ---
 
-## Permission Hierarchy Model
+## Mô hình Phân cấp Quyền hạn
 
-The ACS system implements a four-level permission hierarchy that controls access from the application level down to individual UI controls.
+Hệ thống ACS thực hiện mô hình phân cấp quyền bốn cấp độ để kiểm soát truy cập từ cấp độ ứng dụng xuống đến từng thành phần UI control đơn lẻ.
 
 ```mermaid
 graph TD
-    App["ACS_APPLICATION<br/>Application Level<br/>Managed by: AcsApplication"]
-    ModuleGroup["ACS_MODULE_GROUP<br/>Module Group Level<br/>Managed by: AcsModuleGroup"]
-    Module["ACS_MODULE<br/>Module/Plugin Level<br/>Managed by: AcsModule"]
-    Control["ACS_CONTROL<br/>UI Control Level<br/>Managed by: AcsControl"]
+    App["ACS_APPLICATION<br/>Cấp độ ứng dụng<br/>Quản lý bởi: AcsApplication"]
+    ModuleGroup["ACS_MODULE_GROUP<br/>Cấp độ nhóm Module<br/>Quản lý bởi: AcsModuleGroup"]
+    Module["ACS_MODULE<br/>Cấp độ Module/Plugin<br/>Quản lý bởi: AcsModule"]
+    Control["ACS_CONTROL<br/>Cấp độ UI Control<br/>Quản lý bởi: AcsControl"]
     
-    User["ACS_USER<br/>User Account<br/>Managed by: AcsUser"]
-    Role["ACS_ROLE<br/>Role Definition<br/>Managed by: AcsRole/AcsRoleBase"]
-    RoleUser["ACS_ROLE_USER<br/>User-Role Mapping<br/>Managed by: AcsRoleUser"]
+    User["ACS_USER<br/>Tài khoản người dùng<br/>Quản lý bởi: AcsUser"]
+    Role["ACS_ROLE<br/>Định nghĩa vai trò<br/>Quản lý bởi: AcsRole/AcsRoleBase"]
+    RoleUser["ACS_ROLE_USER<br/>Ánh xạ Người dùng-Vai trò<br/>Quản lý bởi: AcsRoleUser"]
     
     App --> ModuleGroup
     ModuleGroup --> Module
@@ -87,121 +87,121 @@ graph TD
     
     User --> RoleUser
     Role --> RoleUser
-    RoleUser -.->|Grants Access To| Module
-    RoleUser -.->|Grants Access To| Control
+    RoleUser -.->|Cấp quyền truy cập cho| Module
+    RoleUser -.->|Cấp quyền truy cập cho| Control
     
     style User fill:#e1f5ff
     style Role fill:#fff4e1
     style RoleUser fill:#e8f5e9
 ```
 
-**Diagram: ACS Four-Level Permission Hierarchy**
+**Sơ đồ: Phân cấp quyền ACS bốn cấp độ**
 
-This hierarchy allows fine-grained control where:
-- **Application**: The entire HIS.Desktop application
-- **Module Group**: Logical groupings of related plugins (e.g., "Patient Management", "Pharmacy")
-- **Module**: Individual plugins (e.g., `HIS.Desktop.Plugins.Register`, `HIS.Desktop.Plugins.AssignPrescriptionPK`)
-- **Control**: Specific UI controls within plugins (e.g., buttons, grids, form fields)
+Phân cấp này cho phép kiểm soát chi tiết trong đó:
+- **Ứng dụng (Application)**: Toàn bộ ứng dụng HIS.Desktop
+- **Nhóm Module (Module Group)**: Các nhóm logic của các plugin liên quan (ví dụ: "Quản lý bệnh nhân", "Dược")
+- **Module**: Các plugin riêng lẻ (ví dụ: `HIS.Desktop.Plugins.Register`, `HIS.Desktop.Plugins.AssignPrescriptionPK`)
+- **Control**: Các UI control cụ thể trong plugin (ví dụ: nút bấm, lưới dữ liệu, các trường trong form)
 
-Sources: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), High-level architecture diagrams (Diagram 2: Plugin-Based Architecture)
+Nguồn: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), Sơ đồ kiến trúc cấp cao (Diagram 2: Plugin-Based Architecture)
 
 ---
 
-## Core ACS Plugins
+## Các Plugin ACS cốt lõi
 
-### User Management: AcsUser
+### Quản lý người dùng: AcsUser
 
-**Location**: `HIS/Plugins/ACS.Desktop.Plugins.AcsUser/` (30 files)
+**Vị trí**: `HIS/Plugins/ACS.Desktop.Plugins.AcsUser/` (30 tệp)
 
-The `AcsUser` plugin provides comprehensive user account management functionality. This is the largest ACS plugin and serves as the primary interface for system administrators to manage user credentials, profiles, and account status.
+Plugin `AcsUser` cung cấp chức năng quản lý tài khoản người dùng toàn diện. Đây là plugin ACS lớn nhất và đóng vai trò là giao diện chính cho các quản trị viên hệ thống để quản lý thông tin đăng nhập, hồ sơ và trạng thái tài khoản của người dùng.
 
-**Key Responsibilities**:
-- Create, update, delete, and search user accounts
-- Manage user authentication credentials (username, password)
-- Configure user profile information (name, email, department)
-- Enable/disable user accounts
-- Track user login history and session management
-- Integration with backend ACS user repository
+**Trách nhiệm chính**:
+- Tạo, cập nhật, xóa và tìm kiếm tài khoản người dùng
+- Quản lý thông tin xác thực người dùng (tên đăng nhập, mật khẩu)
+- Cấu hình thông tin hồ sơ người dùng (tên, email, phòng ban)
+- Kích hoạt/vô hiệu hóa tài khoản người dùng
+- Theo dõi lịch sử đăng nhập và quản lý phiên làm việc của người dùng
+- Tích hợp với kho lưu trữ người dùng ACS ở backend
 
-**Typical File Structure**:
+**Cấu trúc tệp điển hình**:
 ```
 ACS.Desktop.Plugins.AcsUser/
-├── AcsUser.cs                    # Plugin entry point
-├── Run/                          # Plugin execution logic
-├── ADO/                          # Active Data Objects for user models
-├── Base/                         # Base classes and interfaces
-├── Properties/                   # Assembly info and resources
-└── Resources/                    # UI resources, localization
+├── AcsUser.cs                    # Điểm bắt đầu (Entry point) của plugin
+├── Run/                          # Logic thực thi plugin
+├── ADO/                          # Các đối tượng dữ liệu (Active Data Objects) cho model người dùng
+├── Base/                         # Các lớp cơ sở và interface
+├── Properties/                   # Thông tin assembly và tài nguyên
+└── Resources/                    # Tài nguyên UI, bản dịch (localization)
 ```
 
-Sources: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
+Nguồn: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
 
 ---
 
-### Role Management: AcsRole & AcsRoleBase
+### Quản lý vai trò: AcsRole & AcsRoleBase
 
-**Location**: 
-- `HIS/Plugins/ACS.Desktop.Plugins.AcsRole/` (25 files)
-- `HIS/Plugins/ACS.Desktop.Plugins.AcsRoleBase/` (25 files)
+**Vị trí**: 
+- `HIS/Plugins/ACS.Desktop.Plugins.AcsRole/` (25 tệp)
+- `HIS/Plugins/ACS.Desktop.Plugins.AcsRoleBase/` (25 tệp)
 
-These plugins work together to define and manage role-based access control templates.
+Các plugin này hoạt động cùng nhau để định nghĩa và quản lý các template kiểm soát truy cập dựa trên vai trò.
 
-**AcsRole Plugin**:
-- Create and edit custom roles
-- Define role permissions by selecting allowed modules and controls
-- Manage role metadata (name, description, priority)
-- Clone existing roles to create templates
-- Delete or archive roles
+**Plugin AcsRole**:
+- Tạo và chỉnh sửa các vai trò tùy chỉnh
+- Định nghĩa quyền hạn của vai trò bằng cách chọn các module và control được phép
+- Quản lý metadata của vai trò (tên, mô tả, độ ưu tiên)
+- Sao chép các vai trò hiện có để tạo template
+- Xóa hoặc lưu trữ các vai trò
 
-**AcsRoleBase Plugin**:
-- Manage base role templates provided by the system
-- Define standard roles (e.g., "Doctor", "Nurse", "Pharmacist", "Administrator")
-- Provide immutable role templates for common hospital workflows
-- Serve as starting points for custom role creation
+**Plugin AcsRoleBase**:
+- Quản lý các template vai trò cơ sở do hệ thống cung cấp
+- Định nghĩa các vai trò tiêu chuẩn (ví dụ: "Bác sĩ", "Điều dưỡng", "Dược sĩ", "Quản trị viên")
+- Cung cấp các template vai trò không thể thay đổi cho các quy trình bệnh viện phổ biến
+- Đóng vai trò là điểm bắt đầu để tạo các vai trò tùy chỉnh
 
-**Role Definition Pattern**:
+**Mô hình Định nghĩa Vai trò**:
 ```mermaid
 graph LR
-    AcsRoleBase["AcsRoleBase<br/>Base Templates"] --> AcsRole["AcsRole<br/>Custom Roles"]
-    AcsRole --> Permissions["Permission Set"]
+    AcsRoleBase["AcsRoleBase<br/>Template cơ sở"] --> AcsRole["AcsRole<br/>Vai trò tùy chỉnh"]
+    AcsRole --> Permissions["Bộ quyền hạn"]
     
-    Permissions --> ModulePerm["Module Permissions<br/>Plugin Access"]
-    Permissions --> ControlPerm["Control Permissions<br/>UI Element Access"]
+    Permissions --> ModulePerm["Quyền Module<br/>Truy cập Plugin"]
+    Permissions --> ControlPerm["Quyền Control<br/>Truy cập thành phần UI"]
     
-    AcsRole --> AcsRoleUser["AcsRoleUser<br/>Assign to Users"]
+    AcsRole --> AcsRoleUser["AcsRoleUser<br/>Gán cho người dùng"]
 ```
 
-**Diagram: Role Definition and Assignment Flow**
+**Sơ đồ: Quy trình Định nghĩa và Gán vai trò**
 
-Sources: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
+Nguồn: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
 
 ---
 
-### Role Assignment: AcsRoleUser & ImportAcsRoleUser
+### Gán vai trò: AcsRoleUser & ImportAcsRoleUser
 
-**Location**: 
-- `HIS/Plugins/ACS.Desktop.Plugins.AcsRoleUser/` (25 files)
+**Vị trí**: 
+- `HIS/Plugins/ACS.Desktop.Plugins.AcsRoleUser/` (25 tệp)
 - `HIS/Plugins/ACS.Desktop.Plugins.ImportAcsRoleUser/`
 
-**AcsRoleUser Plugin**:
-- Assign roles to user accounts (many-to-many relationship)
-- View current role assignments for users
-- Remove role assignments
-- Validate role conflicts and dependencies
-- Audit role assignment history
+**Plugin AcsRoleUser**:
+- Gán vai trò cho tài khoản người dùng (mối quan hệ nhiều-nhiều)
+- Xem các phân bổ vai trò hiện tại của người dùng
+- Gỡ bỏ việc gán vai trò
+- Kiểm tra xung đột và phụ thuộc của vai trò
+- Kiểm tra lịch sử gán vai trò
 
-**ImportAcsRoleUser Plugin**:
-- Bulk import role assignments from external files (Excel, CSV)
-- Validate import data against existing users and roles
-- Preview import changes before committing
-- Generate import error reports
-- Rollback failed imports
+**Plugin ImportAcsRoleUser**:
+- Nhập hàng loạt việc gán vai trò từ các tệp bên ngoài (Excel, CSV)
+- Xác thực dữ liệu nhập vào so với người dùng và vai trò hiện có
+- Xem trước các thay đổi trước khi thực hiện
+- Tạo báo cáo lỗi khi nhập dữ liệu
+- Hoàn tác (rollback) nếu quá trình nhập thất bại
 
-**User-Role Assignment Model**:
+**Mô hình Gán vai trò-Người dùng**:
 ```mermaid
 erDiagram
-    ACS_USER ||--o{ ACS_ROLE_USER : "has many"
-    ACS_ROLE ||--o{ ACS_ROLE_USER : "granted to many"
+    ACS_USER ||--o{ ACS_ROLE_USER : "có nhiều"
+    ACS_ROLE ||--o{ ACS_ROLE_USER : "được cấp cho nhiều"
     ACS_ROLE_USER {
         long USER_ID
         long ROLE_ID
@@ -224,59 +224,59 @@ erDiagram
     }
 ```
 
-**Diagram: User-Role Assignment Entity Relationship**
+**Sơ đồ: Thực thể mối quan hệ Gán vai trò cho Người dùng**
 
-Sources: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
+Nguồn: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
 
 ---
 
-### Application & Module Management
+### Quản lý Ứng dụng & Module
 
-#### AcsApplication Plugin
+#### Plugin AcsApplication
 
-**Location**: `HIS/Plugins/ACS.Desktop.Plugins.AcsApplication/` (24 files)
+**Vị trí**: `HIS/Plugins/ACS.Desktop.Plugins.AcsApplication/` (24 tệp)
 
-Manages the registration and configuration of applications within the ACS ecosystem. In the HIS context, this primarily registers the `HIS.Desktop` application itself and any satellite applications.
+Quản lý việc đăng ký và cấu hình các ứng dụng trong hệ sinh thái ACS. Trong bối cảnh HIS, việc này chủ yếu đăng ký chính ứng dụng `HIS.Desktop` và bất kỳ ứng dụng vệ tinh nào.
 
-**Key Functions**:
-- Register application metadata (code, name, version)
-- Configure application-level permissions
-- Define application endpoints and authentication requirements
-- Manage application status and deployment configuration
+**Các chức năng chính**:
+- Đăng ký metadata ứng dụng (mã, tên, phiên bản)
+- Cấu hình quyền ở cấp độ ứng dụng
+- Định nghĩa các endpoint của ứng dụng và yêu cầu xác thực
+- Quản lý trạng thái ứng dụng và cấu hình triển khai
 
-#### AcsModule Plugin
+#### Plugin AcsModule
 
-**Location**: `HIS/Plugins/ACS.Desktop.Plugins.AcsModule/` (24 files)
+**Vị trí**: `HIS/Plugins/ACS.Desktop.Plugins.AcsModule/` (24 tệp)
 
-Manages individual plugin modules within the application. Each plugin in the HIS system (e.g., `AssignPrescriptionPK`, `Register`, `Transaction`) is registered as an ACS module.
+Quản lý các module plugin riêng lẻ trong ứng dụng. Mỗi plugin trong hệ thống HIS (ví dụ: `AssignPrescriptionPK`, `Register`, `Transaction`) được đăng ký như một module ACS.
 
-**Key Functions**:
-- Register plugins as ACS modules
-- Define module metadata (code, name, description, icon)
-- Configure module visibility and availability
-- Set module execution requirements and dependencies
-- Map modules to module groups
+**Các chức năng chính**:
+- Đăng ký plugin dưới dạng module ACS
+- Định nghĩa metadata module (mã, tên, mô tả, icon)
+- Cấu hình hiển thị và tính khả dụng của module
+- Thiết lập các yêu cầu thực thi và phụ thuộc của module
+- Ánh xạ module vào các nhóm module
 
-#### AcsModuleGroup Plugin
+#### Plugin AcsModuleGroup
 
-**Location**: `HIS/Plugins/ACS.Desktop.Plugins.AcsModuleGroup/` (24 files)
+**Vị trí**: `HIS/Plugins/ACS.Desktop.Plugins.AcsModuleGroup/` (24 tệp)
 
-Organizes modules into logical groups for easier permission management and navigation.
+Tổ chức các module thành các nhóm logic để quản lý quyền và điều hướng dễ dàng hơn.
 
-**Key Functions**:
-- Create and manage module groups (e.g., "Outpatient", "Inpatient", "Pharmacy", "Laboratory")
-- Assign modules to groups
-- Define group-level permissions
-- Configure group ordering and hierarchy
+**Các chức năng chính**:
+- Tạo và quản lý các nhóm module (ví dụ: "Ngoại trú", "Nội trú", "Dược", "Xét nghiệm")
+- Gán các module vào nhóm
+- Định nghĩa quyền ở cấp độ nhóm
+- Cấu hình thứ tự sắp xếp và phân cấp nhóm
 
-**Application-Module-Group Relationship**:
+**Mối quan hệ Ứng dụng-Module-Nhóm**:
 ```mermaid
 graph TD
     AcsApp["ACS_APPLICATION<br/>HIS.Desktop"]
     
-    OutpatientGroup["ACS_MODULE_GROUP<br/>Outpatient Management"]
-    InpatientGroup["ACS_MODULE_GROUP<br/>Inpatient Management"]
-    PharmacyGroup["ACS_MODULE_GROUP<br/>Pharmacy"]
+    OutpatientGroup["ACS_MODULE_GROUP<br/>Quản lý Ngoại trú"]
+    InpatientGroup["ACS_MODULE_GROUP<br/>Quản lý Nội trú"]
+    PharmacyGroup["ACS_MODULE_GROUP<br/>Dược"]
     
     Register["ACS_MODULE<br/>HIS.Desktop.Plugins.Register"]
     Exam["ACS_MODULE<br/>HIS.Desktop.Plugins.Exam"]
@@ -295,30 +295,30 @@ graph TD
     PharmacyGroup --> ExpMest
 ```
 
-**Diagram: Application-Module Group-Module Hierarchy Example**
+**Sơ đồ: Ví dụ về Phân cấp Ứng dụng - Nhóm Module - Module**
 
-Sources: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
+Nguồn: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
 
 ---
 
-### Control-Level Permissions: AcsControl
+### Quyền cấp độ Control: AcsControl
 
-**Location**: `HIS/Plugins/ACS.Desktop.Plugins.AcsControl/` (24 files)
+**Vị trí**: `HIS/Plugins/ACS.Desktop.Plugins.AcsControl/` (24 tệp)
 
-The `AcsControl` plugin provides the most granular level of access control by managing permissions for individual UI controls within plugins.
+Plugin `AcsControl` cung cấp mức độ kiểm soát truy cập chi tiết nhất bằng cách quản lý quyền cho các UI control riêng lẻ trong các plugin.
 
-**Key Functions**:
-- Register UI controls from plugins (buttons, grids, text boxes, checkboxes)
-- Define control metadata (control code, name, parent module)
-- Configure control visibility and enabled state based on role
-- Support control-level auditing
-- Integration with `SdaHideControl` for UI customization
+**Các chức năng chính**:
+- Đăng ký các UI control từ các plugin (nút bấm, lưới dữ liệu, ô nhập văn bản, hộp kiểm)
+- Định nghĩa metadata của control (mã control, tên, module cha)
+- Cấu hình hiển thị và trạng thái kích hoạt của control dựa trên vai trò
+- Hỗ trợ kiểm tra (auditing) ở cấp độ control
+- Tích hợp với `SdaHideControl` để tùy chỉnh giao diện người dùng
 
-**Control Permission Application**:
+**Áp dụng quyền cho Control**:
 ```mermaid
 sequenceDiagram
     participant Plugin as "HIS.Desktop.Plugin"
-    participant AcsControl as "AcsControl Service"
+    participant AcsControl as "Dịch vụ AcsControl"
     participant LocalStorage as "LocalStorage.BackendData"
     participant UI as "UI Control"
     
@@ -326,46 +326,46 @@ sequenceDiagram
     AcsControl->>LocalStorage: GetCachedPermissions(userId)
     LocalStorage-->>AcsControl: UserPermissions
     
-    alt Has Permission
-        AcsControl-->>Plugin: Allowed
+    alt Có quyền
+        AcsControl-->>Plugin: Được phép (Allowed)
         Plugin->>UI: control.Visible = true
         Plugin->>UI: control.Enabled = true
-    else No Permission
-        AcsControl-->>Plugin: Denied
+    else Không có quyền
+        AcsControl-->>Plugin: Bị từ chối (Denied)
         Plugin->>UI: control.Visible = false
         Plugin->>UI: control.Enabled = false
     end
 ```
 
-**Diagram: Control-Level Permission Check Sequence**
+**Sơ đồ: Tuần tự kiểm tra quyền ở cấp độ Control**
 
-**Common Control Types Managed**:
-- **btnSave**: Save button in forms
-- **btnDelete**: Delete button in grids
-- **btnExport**: Export data button
-- **gridView**: Data grid visibility
-- **txtSensitiveField**: Sensitive input fields (e.g., salary, confidential notes)
+**Các loại Control phổ biến được quản lý**:
+- **btnSave**: Nút Lưu trong các form
+- **btnDelete**: Nút Xóa trong các lưới dữ liệu
+- **btnExport**: Nút Xuất dữ liệu
+- **gridView**: Hiển thị lưới dữ liệu
+- **txtSensitiveField**: Các trường nhập liệu nhạy cảm (ví dụ: lương, ghi chú bảo mật)
 
-Sources: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
+Nguồn: [[`.devin/wiki.json:113-117`](../../../../.devin/wiki.json#L113-L117)](../../../../.devin/wiki.json#L113-L117)
 
 ---
 
-## Data Flow and API Integration
+## Luồng Dữ liệu và Tích hợp API
 
-The ACS plugins interact with backend services through the `HIS.Desktop.ApiConsumer` layer and cache permission data locally for performance.
+Các plugin ACS tương tác với các dịch vụ backend thông qua lớp `HIS.Desktop.ApiConsumer` và lưu bộ nhớ đệm (cache) dữ liệu phân quyền cục bộ để tối ưu hiệu suất.
 
 ```mermaid
 graph TB
-    subgraph "ACS Plugins"
-        AcsUser_P["AcsUser Plugin"]
-        AcsRole_P["AcsRole Plugin"]
-        AcsRoleUser_P["AcsRoleUser Plugin"]
+    subgraph "Các Plugin ACS"
+        AcsUser_P["Plugin AcsUser"]
+        AcsRole_P["Plugin AcsRole"]
+        AcsRoleUser_P["Plugin AcsRoleUser"]
     end
     
-    subgraph "Desktop Infrastructure"
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>ACS API Methods"]
+    subgraph "Hạ tầng Desktop"
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>Các phương thức ACS API"]
         LocalStorage["HIS.Desktop.LocalStorage<br/>BackendData"]
-        PubSub["LocalStorage.PubSub<br/>Event System"]
+        PubSub["LocalStorage.PubSub<br/>Hệ thống sự kiện"]
     end
     
     subgraph "Backend"
@@ -374,223 +374,220 @@ graph TB
         AcsAuthAPI["ACS.Backend.Api.Authentication<br/>POST /Login"]
     end
     
-    AcsUser_P -->|Create/Update User| ApiConsumer
-    AcsRole_P -->|Manage Roles| ApiConsumer
-    AcsRoleUser_P -->|Assign Roles| ApiConsumer
+    AcsUser_P -->|Tạo/Cập nhật Người dùng| ApiConsumer
+    AcsRole_P -->|Quản lý Vai trò| ApiConsumer
+    AcsRoleUser_P -->|Gán Vai trò| ApiConsumer
     
     ApiConsumer -->|HTTP Request| AcsUserAPI
     ApiConsumer -->|HTTP Request| AcsRoleAPI
     ApiConsumer -->|HTTP Request| AcsAuthAPI
     
-    AcsUserAPI -.->|Response| ApiConsumer
-    AcsRoleAPI -.->|Response| ApiConsumer
-    AcsAuthAPI -.->|Response| ApiConsumer
+    AcsUserAPI -.->|Phản hồi| ApiConsumer
+    AcsRoleAPI -.->|Phản hồi| ApiConsumer
+    AcsAuthAPI -.->|Phản hồi| ApiConsumer
     
-    ApiConsumer -->|Cache| LocalStorage
+    ApiConsumer -->|Lưu bộ nhớ đệm| LocalStorage
     
-    LocalStorage -->|Publish| PubSub
-    PubSub -.->|Subscribe| AcsUser_P
-    PubSub -.->|Subscribe| AcsRole_P
+    LocalStorage -->|Phát sự kiện| PubSub
+    PubSub -.->|Đăng ký nhận| AcsUser_P
+    PubSub -.->|Đăng ký nhận| AcsRole_P
 ```
 
-**Diagram: ACS Data Flow Between Plugins, API Consumer, and Backend**
+**Sơ đồ: Luồng dữ liệu ACS giữa Plugin, API Consumer và Backend**
 
-### Caching Strategy
+### Chiến lược lưu bộ nhớ đệm (Caching)
 
-The ACS system caches permission data in `HIS.Desktop.LocalStorage.BackendData` to minimize API calls and improve application responsiveness:
+Hệ thống ACS lưu trữ dữ liệu phân quyền trong `HIS.Desktop.LocalStorage.BackendData` để giảm thiểu các lần gọi API và cải thiện khả năng phản hồi của ứng dụng:
 
-| Data Type | Cache Key | Refresh Strategy |
+| Loại dữ liệu | Cache Key | Chiến lược làm mới |
 |-----------|-----------|------------------|
-| Current User Permissions | `CurrentUserPermissions` | On login, manual refresh |
-| User List | `AcsUserList` | On demand, TTL 5 minutes |
-| Role Definitions | `AcsRoleList` | On demand, TTL 10 minutes |
-| Module Registry | `AcsModuleList` | Application startup, manual refresh |
-| User-Role Assignments | `AcsRoleUserList` | On demand, invalidate on change |
+| Quyền hiện tại của người dùng | `CurrentUserPermissions` | Khi đăng nhập, làm mới thủ công |
+| Danh sách người dùng | `AcsUserList` | Khi có yêu cầu, TTL 5 phút |
+| Định nghĩa vai trò | `AcsRoleList` | Khi có yêu cầu, TTL 10 phút |
+| Đăng ký Module | `AcsModuleList` | Khi khởi động ứng dụng, làm mới thủ công |
+| Gán Vai trò-Người dùng | `AcsRoleUserList` | Khi có yêu cầu, hủy khi có thay đổi |
 
-Sources: [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), High-level architecture diagrams (Diagram 3: Data Flow & API Integration)
+Nguồn: [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), Sơ đồ kiến trúc cấp cao (Diagram 3: Data Flow & API Integration)
 
 ---
 
-## Plugin Communication Patterns
+## Các mẫu giao tiếp Plugin
 
-ACS plugins communicate with other HIS plugins using two primary patterns:
+Các plugin ACS giao tiếp với các plugin HIS khác bằng hai mẫu chính:
 
-### 1. DelegateRegister Pattern
+### 1. Mẫu DelegateRegister
 
-Used for direct plugin-to-plugin communication when a plugin needs to query or modify ACS data.
+Được sử dụng cho giao tiếp trực tiếp giữa các plugin khi một plugin cần truy vấn hoặc sửa đổi dữ liệu ACS.
 
-**Example**: A plugin checking if the current user has permission to access a feature:
+**Ví dụ**: Một plugin kiểm tra xem người dùng hiện tại có quyền truy cập vào một tính năng hay không:
 
 ```
-// Pattern used in plugins
+// Mẫu được sử dụng trong các plugin
 var hasPermission = HIS.Desktop.DelegateRegister.CheckModulePermission(moduleCode);
 if (hasPermission) {
-    // Execute feature
+    // Thực thi tính năng
 }
 ```
 
-### 2. PubSub Event Pattern
+### 2. Mẫu sự kiện PubSub
 
-Used for broadcasting ACS-related events to all interested plugins.
+Được sử dụng để phát các sự kiện liên quan đến ACS cho tất cả các plugin quan tâm.
 
-**Common ACS Events**:
-- `AcsUserChanged`: Published when user data is updated
-- `AcsRoleAssigned`: Published when roles are assigned/revoked
-- `AcsPermissionRefreshed`: Published when permission cache is invalidated
-- `AcsUserLoggedOut`: Published on user logout
+**Các sự kiện ACS phổ biến**:
+- `AcsUserChanged`: Được phát khi dữ liệu người dùng được cập nhật
+- `AcsRoleAssigned`: Được phát khi các vai trò được gán/thu hồi
+- `AcsPermissionRefreshed`: Được phát khi bộ nhớ đệm phân quyền bị vô hiệu hóa
+- `AcsUserLoggedOut`: Được phát khi người dùng đăng xuất
 
-**Event Flow**:
+**Luồng sự kiện**:
 ```mermaid
 sequenceDiagram
-    participant AcsRoleUser as "AcsRoleUser Plugin"
+    participant AcsRoleUser as "Plugin AcsRoleUser"
     participant PubSub as "LocalStorage.PubSub"
-    participant RegisterPlugin as "Register Plugin"
-    participant MenuBar as "Main Menu Bar"
+    participant RegisterPlugin as "Plugin Đăng ký (Register)"
+    participant MenuBar as "Thanh Menu chính"
     
     AcsRoleUser->>PubSub: Publish("AcsRoleAssigned", {userId, roleId})
-    PubSub->>RegisterPlugin: Notify("AcsRoleAssigned")
-    RegisterPlugin->>RegisterPlugin: RefreshPermissions()
-    PubSub->>MenuBar: Notify("AcsRoleAssigned")
-    MenuBar->>MenuBar: RebuildMenu()
+    PubSub->>RegisterPlugin: Thông báo("AcsRoleAssigned")
+    RegisterPlugin->>RegisterPlugin: Làm mới quyền hạn (RefreshPermissions)
+    PubSub->>MenuBar: Thông báo("AcsRoleAssigned")
+    MenuBar->>MenuBar: Xây dựng lại Menu (RebuildMenu)
 ```
 
-**Diagram: PubSub Event Flow for Role Assignment**
+**Sơ đồ: Luồng sự kiện PubSub cho việc gán Vai trò**
 
-Sources: [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), High-level architecture diagrams (Diagram 2: Plugin-Based Architecture)
+Nguồn: [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), Sơ đồ kiến trúc cấp cao (Diagram 2: Plugin-Based Architecture)
 
 ---
 
-## Integration with HIS Desktop Core
+## Tích hợp với HIS Desktop Core
 
-The ACS plugins integrate tightly with several HIS Desktop core systems:
+Các plugin ACS tích hợp chặt chẽ với một số hệ thống cốt lõi của HIS Desktop:
 
-### Session Management
+### Quản lý phiên (Session Management)
 
-On user login, the ACS system:
-1. Authenticates credentials via `ACS.Backend.Api.Authentication`
-2. Retrieves user permissions and roles
-3. Caches permissions in `LocalStorage.BackendData`
-4. Initializes the session with permission context
-5. Publishes `UserLoggedIn` event to all plugins
+Khi người dùng đăng nhập, hệ thống ACS:
+1. Xác thực thông tin qua `ACS.Backend.Api.Authentication`
+2. Lấy quyền và vai trò của người dùng
+3. Lưu quyền vào bộ nhớ đệm trong `LocalStorage.BackendData`
+4. Khởi tạo phiên làm việc với ngữ cảnh phân quyền
+5. Phát sự kiện `UserLoggedIn` cho tất cả các plugin
 
-### Plugin Discovery and Registration
+### Khám phá và Đăng ký Plugin
 
-During application startup:
-1. `Inventec.Desktop.Core` discovers all installed plugins
-2. Each plugin registers itself with the ACS module registry via `AcsModule` API
-3. Plugin metadata (code, name, icon) is stored in ACS database
-4. Plugin availability is determined by user role permissions
+Trong quá trình khởi động ứng dụng:
+1. `Inventec.Desktop.Core` khám phá tất cả các plugin đã cài đặt
+2. Mỗi plugin tự đăng ký với registry module ACS thông qua API `AcsModule`
+3. Metadata của plugin (mã, tên, icon) được lưu trữ trong cơ sở dữ liệu ACS
+4. Tính khả dụng của plugin được quyết định bởi quyền vai trò của người dùng
 
-### Menu and Navigation
+### Menu và Điều hướng
 
-The main application menu is dynamically generated based on:
-- User's assigned roles (via `AcsRoleUser`)
-- Module permissions (via `AcsModule`)
-- Module group hierarchy (via `AcsModuleGroup`)
+Menu ứng dụng chính được tạo động dựa trên:
+- Các vai trò được gán cho người dùng (qua `AcsRoleUser`)
+- Quyền Module (qua `AcsModule`)
+- Phân cấp nhóm Module (qua `AcsModuleGroup`)
 
-**Menu Generation Flow**:
+**Luồng tạo Menu**:
 ```mermaid
 graph LR
-    Login["User Login"] --> GetRoles["Get User Roles<br/>from AcsRoleUser"]
-    GetRoles --> GetPerms["Get Module Permissions<br/>from AcsRole"]
-    GetPerms --> FilterModules["Filter Available Modules<br/>from AcsModule"]
-    FilterModules --> BuildGroups["Build Menu Groups<br/>from AcsModuleGroup"]
-    BuildGroups --> RenderMenu["Render Menu UI"]
+    Login["Người dùng Đăng nhập"] --> GetRoles["Lấy Vai trò người dùng<br/>từ AcsRoleUser"]
+    GetRoles --> GetPerms["Lấy Quyền Module<br/>từ AcsRole"]
+    GetPerms --> FilterModules["Lọc các Module khả dụng<br/>từ AcsModule"]
+    FilterModules --> BuildGroups["Xây dựng các Nhóm Menu<br/>từ AcsModuleGroup"]
+    BuildGroups --> RenderMenu["Hiển thị Giao diện Menu"]
 ```
 
-**Diagram: Dynamic Menu Generation Based on ACS Permissions**
+**Sơ đồ: Tạo Menu động dựa trên quyền ACS**
 
-Sources: [[`.devin/wiki.json:34-43`](../../../../.devin/wiki.json#L34-L43)](../../../../.devin/wiki.json#L34-L43), High-level architecture diagrams (Diagram 1: Four-Module System Architecture)
+Nguồn: [[`.devin/wiki.json:34-43`](../../../../.devin/wiki.json#L34-L43)](../../../../.devin/wiki.json#L34-L43), Sơ đồ kiến trúc cấp cao (Diagram 1: Four-Module System Architecture)
 
 ---
 
-## Summary of ACS Plugins
+## Tóm tắt các Plugin ACS
 
-| Plugin | Files | Primary Responsibility |
+| Plugin | Tệp | Trách nhiệm chính |
 |--------|-------|------------------------|
-| **AcsUser** | 30 | User account management, authentication credentials |
-| **AcsRole** | 25 | Custom role definition and management |
-| **AcsRoleBase** | 25 | System-provided base role templates |
-| **AcsRoleUser** | 25 | User-to-role assignment and management |
-| **ImportAcsRoleUser** | - | Bulk import role assignments |
-| **AcsApplication** | 24 | Application registration and configuration |
-| **AcsModule** | 24 | Plugin/module registration and permissions |
-| **AcsModuleGroup** | 24 | Module grouping and organization |
-| **AcsControl** | 24 | UI control-level permission management |
-| **Others** | - | Additional ACS utilities and helpers |
+| **AcsUser** | 30 | Quản lý tài khoản người dùng, thông tin xác thực |
+| **AcsRole** | 25 | Định nghĩa và quản lý vai trò tùy chỉnh |
+| **AcsRoleBase** | 25 | Các template vai trò cơ sở do hệ thống cung cấp |
+| **AcsRoleUser** | 25 | Quản lý và gán vai trò-người dùng |
+| **ImportAcsRoleUser** | - | Nhập hàng loạt việc gán vai trò |
+| **AcsApplication** | 24 | Đăng ký và cấu hình ứng dụng |
+| **AcsModule** | 24 | Đăng ký plugin/module và phân quyền |
+| **AcsModuleGroup** | 24 | Nhóm và tổ chức module |
+| **AcsControl** | 24 | Quản lý quyền ở cấp độ UI control |
+| **Khác** | - | Các tiện ích và trình hỗ trợ ACS bổ sung |
 
-All ACS plugins follow the standard HIS plugin architecture with entry point classes, `Run/` folders for execution logic, `ADO/` folders for data models, and integration with `HIS.Desktop.ApiConsumer` for backend communication.
+Tất cả các plugin ACS tuân theo kiến trúc plugin HIS tiêu chuẩn với các lớp entry point, thư mục `Run/` cho logic thực thi, thư mục `ADO/` cho các model dữ liệu và tích hợp với `HIS.Desktop.ApiConsumer` để giao tiếp với backend.
 
-Sources: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), High-level architecture diagrams (Diagram 2: Plugin-Based Architecture)
+Nguồn: [[`.devin/wiki.json:110-117`](../../../../.devin/wiki.json#L110-L117)](../../../../.devin/wiki.json#L110-L117), Sơ đồ kiến trúc cấp cao (Diagram 2: Plugin-Based Architecture)
 
-# EMR Electronic Medical Record Plugins
+# Các Plugin EMR (Bệnh án Điện tử)
 
+## Mục đích và Phạm vi
 
+Tài liệu này bao gồm phân hệ plugin EMR (Electronic Medical Record - Bệnh án Điện tử) trong ứng dụng HIS Desktop. Các plugin EMR cung cấp chức năng quản lý bệnh án điện tử, bao gồm tạo tài liệu, tích hợp chữ ký số và quản lý quy trình phê duyệt. Phân hệ này bao gồm 16 plugin chuyên biệt nằm trong thư mục `HIS/Plugins/EMR.Desktop.Plugins.*`.
 
+Để biết các mẫu kiến trúc plugin chung và cơ chế giao tiếp, hãy xem [Kiến trúc hệ thống Plugin](../../01-architecture/plugin-system/04-communication.md). Đối với các plugin logic nghiệp vụ liên quan tạo ra dữ liệu y tế được EMR tiêu thụ, hãy xem [Các plugin nghiệp vụ cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md).
 
-## Purpose and Scope
-
-This document covers the EMR (Electronic Medical Record) plugin subsystem within the HIS Desktop application. The EMR plugins provide functionality for managing electronic medical records, including document creation, digital signature integration, and approval workflow management. This subsystem consists of 16 specialized plugins located in `HIS/Plugins/EMR.Desktop.Plugins.*`.
-
-For general plugin architecture patterns and communication mechanisms, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For related business logic plugins that generate medical data consumed by EMR, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md).
-
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-## EMR Plugin Overview
+## Tổng quan về Plugin EMR
 
-The EMR subsystem contains 16 plugins that collectively manage the lifecycle of electronic medical records from creation through digital signature and approval workflows.
+Phân hệ EMR chứa 16 plugin cùng nhau quản lý vòng đời của bệnh án điện tử từ khi tạo cho đến quy trình ký số và phê duyệt.
 
-### EMR Plugin Inventory
+### Danh mục Plugin EMR
 
-| Plugin Name | Files | Primary Responsibility |
+| Tên Plugin | Tệp | Trách nhiệm chính |
 |------------|-------|------------------------|
-| `EmrDocument` | 42 | Document creation, editing, and management interface |
-| `EmrSignDocumentList` | 23 | List view for documents requiring signatures |
-| `EmrSignerFlow` | 22 | Signer workflow configuration and management |
-| `EmrFlow` | 21 | Approval workflow definition and execution |
-| `EmrTreatmentList` | 21 | Treatment-linked document listing |
-| `EmrSign` | 18 | Digital signature execution interface |
-| `EmrBusiness` | ~15 | Business logic layer for EMR operations |
-| `EmrConfig` | ~15 | EMR configuration management |
-| `EmrDocumentList` | ~15 | General document listing interface |
-| Additional 7 plugins | ~10 each | Supporting functionality for EMR workflows |
+| `EmrDocument` | 42 | Giao diện tạo, chỉnh sửa và quản lý tài liệu |
+| `EmrSignDocumentList` | 23 | Danh sách hiển thị các tài liệu yêu cầu chữ ký |
+| `EmrSignerFlow` | 22 | Cấu hình và quản lý quy trình người ký |
+| `EmrFlow` | 21 | Định nghĩa và thực thi quy trình phê duyệt |
+| `EmrTreatmentList` | 21 | Danh sách tài liệu liên kết với điều trị |
+| `EmrSign` | 18 | Giao diện thực thi chữ ký số |
+| `EmrBusiness` | ~15 | Lớp logic nghiệp vụ cho các hoạt động EMR |
+| `EmrConfig` | ~15 | Quản lý cấu hình EMR |
+| `EmrDocumentList` | ~15 | Giao diện liệt kê tài liệu chung |
+| 7 plugin bổ sung | ~10 mỗi cái | Các chức năng hỗ trợ cho quy trình EMR |
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-## EMR Plugin Architecture
+## Kiến trúc Plugin EMR
 
 ```mermaid
 graph TB
-    subgraph "EMR Plugin Layer"
-        EmrDocument["EmrDocument<br/>42 files<br/>Document CRUD"]
-        EmrSignDocList["EmrSignDocumentList<br/>23 files<br/>Signature Queue"]
-        EmrSignerFlow["EmrSignerFlow<br/>22 files<br/>Signer Configuration"]
-        EmrFlow["EmrFlow<br/>21 files<br/>Workflow Engine"]
-        EmrTreatmentList["EmrTreatmentList<br/>21 files<br/>Treatment Documents"]
-        EmrSign["EmrSign<br/>18 files<br/>Digital Signature UI"]
-        EmrBusiness["EmrBusiness<br/>Business Logic"]
-        EmrConfig["EmrConfig<br/>Configuration"]
-        EmrDocumentList["EmrDocumentList<br/>Document Browser"]
+    subgraph "Lớp Plugin EMR"
+        EmrDocument["EmrDocument<br/>42 files<br/>CRUD tài liệu"]
+        EmrSignDocList["EmrSignDocumentList<br/>23 files<br/>Hàng đợi chữ ký"]
+        EmrSignerFlow["EmrSignerFlow<br/>22 files<br/>Cấu hình người ký"]
+        EmrFlow["EmrFlow<br/>21 files<br/>Engine quy trình"]
+        EmrTreatmentList["EmrTreatmentList<br/>21 files<br/>Tài liệu điều trị"]
+        EmrSign["EmrSign<br/>18 files<br/>UI Chữ ký số"]
+        EmrBusiness["EmrBusiness<br/>Logic nghiệp vụ"]
+        EmrConfig["EmrConfig<br/>Cấu hình"]
+        EmrDocumentList["EmrDocumentList<br/>Trình duyệt tài liệu"]
     end
     
-    subgraph "Configuration & Storage"
-        EmrConfigLS["HIS.Desktop.LocalStorage.EmrConfig<br/>EMR Settings Cache"]
-        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>EMR Entity Cache"]
+    subgraph "Cấu hình & Lưu trữ"
+        EmrConfigLS["HIS.Desktop.LocalStorage.EmrConfig<br/>Cache thiết lập EMR"]
+        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>Cache các thực thể EMR"]
     end
     
-    subgraph "Communication Layer"
+    subgraph "Lớp Giao tiếp"
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>REST Client"]
-        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Event Bus"]
-        DelegateReg["DelegateRegister<br/>Plugin Communication"]
+        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Bus sự kiện"]
+        DelegateReg["DelegateRegister<br/>Giao tiếp Plugin"]
     end
     
-    subgraph "External Services"
-        DigitalSignSvc["Digital Signature Service<br/>Certificate Authority"]
-        BackendAPI["Backend EMR API<br/>Document Storage"]
+    subgraph "Dịch vụ bên ngoài"
+        DigitalSignSvc["Dịch vụ Chữ ký số<br/>Certificate Authority"]
+        BackendAPI["Backend EMR API<br/>Lưu trữ tài liệu"]
     end
     
     EmrDocument --> EmrBusiness
@@ -602,9 +599,9 @@ graph TB
     EmrBusiness --> BackendData
     EmrBusiness --> ApiConsumer
     
-    EmrDocument -.->|Events| PubSub
-    EmrSign -.->|Events| PubSub
-    EmrDocument -.->|Direct Call| DelegateReg
+    EmrDocument -.->|Sự kiện| PubSub
+    EmrSign -.->|Sự kiện| PubSub
+    EmrDocument -.->|Gọi trực tiếp| DelegateReg
     
     ApiConsumer --> BackendAPI
     EmrSign --> DigitalSignSvc
@@ -613,39 +610,39 @@ graph TB
     EmrSignDocList --> EmrSign
 ```
 
-**Diagram 1: EMR Plugin Architecture and Dependencies**
+**Sơ đồ 1: Kiến trúc Plugin EMR và các Phụ thuộc**
 
-This diagram shows the layered architecture of EMR plugins. The top layer contains user-facing plugins, which delegate business logic to `EmrBusiness`. Configuration and data caching are provided by `LocalStorage` components. Communication occurs through REST APIs, event-driven PubSub, and direct plugin-to-plugin calls via `DelegateRegister`.
+Sơ đồ này cho thấy kiến trúc phân lớp của các plugin EMR. Lớp trên cùng chứa các plugin hướng tới người dùng, các plugin này ủy thác logic nghiệp vụ cho `EmrBusiness`. Việc cấu hình và lưu bộ nhớ đệm dữ liệu được cung cấp bởi các thành phần `LocalStorage`. Giao tiếp xảy ra thông qua REST API, PubSub dựa trên sự kiện và các cuộc gọi trực tiếp giữa các plugin qua `DelegateRegister`.
 
-**Sources:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9, [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67, [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9), [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67), [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-## Core EMR Plugins
+## Các Plugin EMR cốt lõi
 
-### EmrDocument Plugin
+### Plugin EmrDocument
 
 ```mermaid
 graph LR
     subgraph "EMR.Desktop.Plugins.EmrDocument"
-        Entry["EmrDocument.cs<br/>Plugin Entry Point"]
-        Run["Run/<br/>Form Implementation"]
-        ADO["ADO/<br/>Data Transfer Objects"]
-        Base["Base/<br/>Resource Manager"]
+        Entry["EmrDocument.cs<br/>Điểm truy cập Plugin"]
+        Run["Run/<br/>Thực thi Form"]
+        ADO["ADO/<br/>Đối tượng chuyển đổi dữ liệu"]
+        Base["Base/<br/>Quản lý tài nguyên"]
     end
     
-    subgraph "Plugin Structure - 42 Files"
-        FormMain["frmEmrDocument.cs<br/>Main Form UI"]
+    subgraph "Cấu trúc Plugin - 42 Tệp"
+        FormMain["frmEmrDocument.cs<br/>Giao diện Form chính"]
         UCDocument["UCEmrDocument.cs<br/>User Control"]
-        Processor["EmrDocumentProcessor.cs<br/>Business Logic"]
-        Validation["ValidationRule.cs<br/>Input Validation"]
-        Resources["Resources/<br/>Localization"]
+        Processor["EmrDocumentProcessor.cs<br/>Logic nghiệp vụ"]
+        Validation["ValidationRule.cs<br/>Kiểm tra dữ liệu nhập"]
+        Resources["Resources/<br/>Bản dịch"]
     end
     
-    subgraph "Data Models"
-        EmrDocumentADO["EmrDocumentADO.cs<br/>Document DTO"]
-        EmrDocTypeADO["EmrDocumentTypeADO.cs<br/>Document Type"]
-        TreatmentADO["TreatmentADO.cs<br/>Linked Treatment"]
+    subgraph "Model dữ liệu"
+        EmrDocumentADO["EmrDocumentADO.cs<br/>DTO Tài liệu"]
+        EmrDocTypeADO["EmrDocumentTypeADO.cs<br/>Loại tài liệu"]
+        TreatmentADO["TreatmentADO.cs<br/>Điều trị liên kết"]
     end
     
     Entry --> Run
@@ -660,53 +657,53 @@ graph LR
     Processor --> Validation
 ```
 
-**Diagram 2: EmrDocument Plugin Structure**
+**Sơ đồ 2: Cấu trúc Plugin EmrDocument**
 
-The `EmrDocument` plugin follows the standard HIS plugin architecture pattern with 42 files organized into functional folders. The entry point instantiates the main form, which uses user controls for document editing. Business logic is separated into processor classes, with data transfer objects (ADOs) defining the data contract.
+Plugin `EmrDocument` tuân theo mẫu kiến trúc plugin HIS tiêu chuẩn với 42 tệp được tổ chức thành các thư mục chức năng. Điểm bắt đầu (entry point) khởi tạo form chính, form này sử dụng các user control để chỉnh sửa tài liệu. Logic nghiệp vụ được tách biệt vào các lớp processor, với các đối tượng chuyển đổi dữ liệu (ADOs) định nghĩa hợp đồng dữ liệu.
 
-**Key Files (inferred structure):**
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs) - Plugin entry point implementing `Inventec.Desktop.Common.Modules.Module` interface
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs) - Main document editing form
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs) - Document data transfer object
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs) - Localization resource manager
+**Các tệp chính (cấu trúc suy luận):**
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/EmrDocument.cs) - Điểm bắt đầu của plugin thực thi interface `Inventec.Desktop.Common.Modules.Module`
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Run/frmEmrDocument.cs) - Form chỉnh sửa tài liệu chính
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/ADO/EmrDocumentADO.cs) - Đối tượng chuyển đổi dữ liệu tài liệu
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrDocument/Base/ResourceLangManager.cs) - Trình quản lý tài nguyên bản dịch
 
-**Functionality:**
-- Create and edit electronic medical record documents
-- Link documents to treatment records
-- Support multiple document types (progress notes, discharge summaries, procedure reports)
-- Rich text editing with medical templates
-- Document version control and history tracking
+**Chức năng:**
+- Tạo và chỉnh sửa các tài liệu bệnh án điện tử
+- Liên kết tài liệu với hồ sơ điều trị
+- Hỗ trợ nhiều loại tài liệu (ghi chú diễn tiến, tóm tắt xuất viện, báo cáo thủ thuật)
+- Chỉnh sửa văn bản phong phú (rich text) với các template y tế
+- Kiểm soát phiên bản tài liệu và theo dõi lịch sử
 
-**Sources:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9, [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67, [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9), [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67), [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-### Digital Signature Plugins
+### Các Plugin Chữ ký số
 
-The EMR subsystem includes three interconnected plugins for digital signature management: `EmrSign`, `EmrSignDocumentList`, and `EmrSignerFlow`.
+Phân hệ EMR bao gồm ba plugin được liên kết với nhau để quản lý chữ ký số: `EmrSign`, `EmrSignDocumentList`, và `EmrSignerFlow`.
 
 ```mermaid
 graph TB
-    subgraph "Signature Workflow"
-        CreateDoc["User Creates<br/>EMR Document"]
-        SubmitFlow["Document Submitted<br/>to Workflow"]
-        QueueSign["Document Appears in<br/>Signature Queue"]
-        ReviewDoc["Authorized Signer<br/>Reviews Document"]
-        ExecuteSign["Digital Signature<br/>Applied"]
-        CompletedDoc["Document Marked<br/>as Signed"]
+    subgraph "Quy trình ký"
+        CreateDoc["Người dùng tạo<br/>Tài liệu EMR"]
+        SubmitFlow["Tài liệu được gửi<br/>vào Quy trình"]
+        QueueSign["Tài liệu xuất hiện trong<br/>Hàng đợi ký"]
+        ReviewDoc["Người ký được ủy quyền<br/>Xem lại tài liệu"]
+        ExecuteSign["Chữ ký số<br/>được áp dụng"]
+        CompletedDoc["Tài liệu được đánh dấu<br/>đã ký"]
     end
     
-    subgraph "Plugin Responsibilities"
-        EmrDocument2["EmrDocument<br/>Document Creation"]
-        EmrFlow2["EmrFlow<br/>Workflow Assignment"]
-        EmrSignDocList2["EmrSignDocumentList<br/>Queue Management"]
-        EmrSign2["EmrSign<br/>Signature Execution"]
+    subgraph "Trách nhiệm của Plugin"
+        EmrDocument2["EmrDocument<br/>Tạo tài liệu"]
+        EmrFlow2["EmrFlow<br/>Gán quy trình"]
+        EmrSignDocList2["EmrSignDocumentList<br/>Quản lý hàng đợi"]
+        EmrSign2["EmrSign<br/>Thực thi chữ ký"]
     end
     
-    subgraph "Technical Components"
-        CertStore["Certificate Store<br/>Windows Crypto API"]
-        TimeStamp["Timestamp Authority<br/>RFC 3161"]
-        SignVerify["Signature Verification<br/>PKCS#7"]
+    subgraph "Các thành phần kỹ thuật"
+        CertStore["Kho chứng chỉ<br/>Windows Crypto API"]
+        TimeStamp["Cơ quan cấp dấu thời gian<br/>RFC 3161"]
+        SignVerify["Xác minh chữ ký<br/>PKCS#7"]
     end
     
     CreateDoc --> SubmitFlow
@@ -726,151 +723,151 @@ graph TB
     EmrSign2 --> SignVerify
 ```
 
-**Diagram 3: Digital Signature Workflow**
+**Sơ đồ 3: Quy trình Chữ ký số**
 
-#### EmrSign Plugin (18 files)
+#### Plugin EmrSign (18 tệp)
 
-The `EmrSign` plugin provides the user interface and technical implementation for applying digital signatures to EMR documents.
+Plugin `EmrSign` cung cấp giao diện người dùng và triển khai kỹ thuật để áp dụng chữ ký số vào các tài liệu EMR.
 
-**Key Features:**
-- Certificate selection from Windows Certificate Store
-- Integration with USB token/smart card readers
-- PKCS#7 signature format
-- RFC 3161 timestamp authority integration
-- Signature validation and verification
+**Các tính năng chính:**
+- Chọn chứng chỉ từ Kho chứng chỉ Windows (Windows Certificate Store)
+- Tích hợp với USB token/đầu đọc thẻ thông minh
+- Định dạng chữ ký PKCS#7
+- Tích hợp cơ quan cấp dấu thời gian (Timestamp Authority) RFC 3161
+- Xác thực và kiểm tra chữ ký
 
-**Key Files (inferred):**
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs) - Plugin entry
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs) - Signature dialog
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs) - Cryptographic operations
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs) - Certificate validation
+**Các tệp chính (suy luận):**
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/EmrSign.cs) - Điểm bắt đầu của plugin
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Run/frmEmrSign.cs) - Hộp thoại ký tên
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Crypto/DigitalSignatureHelper.cs) - Các hoạt động mã hóa
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrSign/Validation/CertificateValidator.cs) - Xác thực chứng chỉ
 
-#### EmrSignDocumentList Plugin (23 files)
+#### Plugin EmrSignDocumentList (23 tệp)
 
-Provides a queue view of documents requiring signatures, organized by user role and workflow status.
+Cung cấp chế độ xem hàng đợi các tài liệu yêu cầu chữ ký, được tổ chức theo vai trò người dùng và trạng thái quy trình.
 
-**Key Features:**
-- Multi-user signature queue management
-- Filter by document type, date range, treatment
-- Bulk signature operations
-- Document preview before signing
-- Signature status tracking
+**Các tính năng chính:**
+- Quản lý hàng đợi ký đa người dùng
+- Lọc theo loại tài liệu, khoảng ngày, điều trị
+- Các hoạt động ký hàng loạt
+- Xem trước tài liệu trước khi ký
+- Theo dõi trạng thái chữ ký
 
-#### EmrSignerFlow Plugin (22 files)
+#### Plugin EmrSignerFlow (22 tệp)
 
-Configures the signing workflow, including signer roles, sequence, and conditional logic.
+Cấu hình quy trình ký, bao gồm vai trò người ký, thứ tự và logic điều kiện.
 
-**Key Features:**
-- Define signer roles (attending physician, department head, etc.)
-- Configure sequential vs. parallel signing
-- Set conditional signing rules
-- Override and delegation management
+**Các tính năng chính:**
+- Định nghĩa vai trò người ký (bác sĩ điều trị, trưởng khoa, v.v.)
+- Cấu hình ký tuần tự so với ký song song
+- Thiết lập quy tắc ký có điều kiện
+- Quản lý ghi đè và ủy quyền
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-### Approval Workflow Plugins
+### Các Plugin Quy trình phê duyệt
 
-#### EmrFlow Plugin (21 files)
+#### Plugin EmrFlow (21 tệp)
 
-The `EmrFlow` plugin implements the approval workflow engine for EMR documents, managing document routing through multiple approval stages.
+Plugin `EmrFlow` thực hiện engine quy trình phê duyệt cho các tài liệu EMR, quản lý việc điều hướng tài liệu qua nhiều giai đoạn phê duyệt.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft
-    Draft --> PendingReview: Submit
-    PendingReview --> InReview: Assigned
-    InReview --> Approved: Approve
-    InReview --> Rejected: Reject
-    InReview --> Draft: Return for Revision
-    Rejected --> Draft: Resubmit
-    Approved --> PendingSigning: Route to Signer
-    PendingSigning --> Signed: Digital Signature
+    [*] --> Draft: Bản nháp
+    Draft --> PendingReview: Chờ xem xét (Gửi)
+    PendingReview --> InReview: Đang xem xét (Đã gán)
+    InReview --> Approved: Đã phê duyệt
+    InReview --> Rejected: Từ chối
+    InReview --> Draft: Trả lại để sửa đổi
+    Rejected --> Draft: Gửi lại
+    Approved --> PendingSigning: Chờ ký (Điều phối đến người ký)
+    PendingSigning --> Signed: Đã ký (Chữ ký số)
     Signed --> [*]
     
     note right of Draft
-        EmrDocument Plugin
+        Plugin EmrDocument
     end note
     
     note right of PendingReview
-        EmrFlow Plugin
-        Workflow Assignment
+        Plugin EmrFlow
+        Gán quy trình
     end note
     
     note right of InReview
-        EmrFlow Plugin
-        Approval Logic
+        Plugin EmrFlow
+        Logic phê duyệt
     end note
     
     note right of PendingSigning
         EmrSignDocumentList
-        Signature Queue
+        Hàng đợi ký
     end note
     
     note right of Signed
-        EmrSign Plugin
-        Digital Signature
+        Plugin EmrSign
+        Chữ ký số
     end note
 ```
 
 **Diagram 4: EMR Document State Machine**
 
-**Flow Definition Structure:**
+**Cấu trúc Định nghĩa Quy trình:**
 ```
-EmrFlow Entity:
-- FlowId: Unique identifier
-- FlowName: Display name
-- DocumentTypeId: Applicable document types
-- Steps: Ordered list of approval steps
-  - StepOrder: Sequence number
-  - RoleId: Required approver role
-  - IsRequired: Mandatory vs. optional
-  - Conditions: Business rules for step execution
+Thực thể EmrFlow:
+- FlowId: Mã định danh duy nhất
+- FlowName: Tên hiển thị
+- DocumentTypeId: Các loại tài liệu áp dụng
+- Steps: Danh sách các bước phê duyệt được sắp xếp
+  - StepOrder: Số thứ tự
+  - RoleId: Vai trò người phê duyệt yêu cầu
+  - IsRequired: Bắt buộc so với tùy chọn
+  - Conditions: Các quy tắc nghiệp vụ để thực thi bước
 ```
 
-**Key Operations:**
-- `CreateFlow()` - Define new approval workflow
-- `AssignDocument()` - Route document to workflow
-- `GetPendingTasks()` - Retrieve user's approval queue
-- `ApproveStep()` - Complete approval step
-- `RejectDocument()` - Send back for revision
-- `OverrideFlow()` - Administrative workflow override
+**Các hoạt động chính:**
+- `CreateFlow()` - Định nghĩa quy trình phê duyệt mới
+- `AssignDocument()` - Điều hướng tài liệu vào quy trình
+- `GetPendingTasks()` - Lấy hàng đợi phê duyệt của người dùng
+- `ApproveStep()` - Hoàn thành bước phê duyệt
+- `RejectDocument()` - Trả lại để sửa đổi
+- `OverrideFlow()` - Ghi đè quy trình quản trị
 
-**Key Files (inferred):**
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs) - Plugin entry
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs) - Flow designer UI
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs) - Flow execution logic
-- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs) - Flow definition DTO
+**Các tệp chính (suy luận):**
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/EmrFlow.cs) - Điểm bắt đầu của plugin
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Run/frmEmrFlow.cs) - UI thiết kế quy trình
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/Engine/WorkflowEngine.cs) - Logic thực thi quy trình
+- [[`HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs`](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs)](../../../../HIS/Plugins/EMR.Desktop.Plugins.EmrFlow/ADO/EmrFlowADO.cs) - DTO định nghĩa quy trình
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-### Treatment Integration
+### Tích hợp Điều trị
 
-#### EmrTreatmentList Plugin (21 files)
+#### Plugin EmrTreatmentList (21 tệp)
 
-Provides document listing filtered by treatment record, enabling clinicians to view all EMR documents associated with a specific patient treatment episode.
+Cung cấp danh sách tài liệu được lọc theo hồ sơ điều trị, cho phép các bác sĩ lâm sàng xem tất cả các tài liệu EMR liên quan đến một đợt điều trị cụ thể của bệnh nhân.
 
 ```mermaid
 graph LR
-    subgraph "Treatment Context"
-        TreatmentRecord["V_HIS_TREATMENT<br/>Patient Treatment Record"]
+    subgraph "Ngữ cảnh Điều trị"
+        TreatmentRecord["V_HIS_TREATMENT<br/>Hồ sơ điều trị bệnh nhân"]
     end
     
-    subgraph "EMR Documents"
-        AdmissionNote["Admission Note"]
-        ProgressNotes["Daily Progress Notes"]
-        ProcedureReports["Procedure Reports"]
-        DischargeSum["Discharge Summary"]
+    subgraph "Tài liệu EMR"
+        AdmissionNote["Phiếu vào viện"]
+        ProgressNotes["Ghi chú diễn tiến hàng ngày"]
+        ProcedureReports["Báo cáo thủ thuật"]
+        DischargeSum["Tóm tắt xuất viện"]
     end
     
     subgraph "EMR.Desktop.Plugins.EmrTreatmentList"
-        ListForm["frmEmrTreatmentList.cs<br/>Document Browser"]
-        TreeView["Treatment Timeline View"]
-        GridView["Document Grid View"]
-        Preview["Document Preview Pane"]
+        ListForm["frmEmrTreatmentList.cs<br/>Trình duyệt tài liệu"]
+        TreeView["Xem dòng thời gian điều trị"]
+        GridView["Xem tài liệu dạng lưới"]
+        Preview["Khung xem trước tài liệu"]
     end
     
     TreatmentRecord --> ListForm
@@ -878,171 +875,171 @@ graph LR
     ListForm --> GridView
     ListForm --> Preview
     
-    TreeView -.->|Links| AdmissionNote
-    TreeView -.->|Links| ProgressNotes
-    TreeView -.->|Links| ProcedureReports
-    TreeView -.->|Links| DischargeSum
+    TreeView -.->|Liên kết| AdmissionNote
+    TreeView -.->|Liên kết| ProgressNotes
+    TreeView -.->|Liên kết| ProcedureReports
+    TreeView -.->|Liên kết| DischargeSum
 ```
 
-**Diagram 5: Treatment-Document Linking**
+**Sơ đồ 5: Liên kết Điều trị-Tài liệu**
 
-**Key Features:**
-- Chronological document timeline by treatment
-- Document type categorization
-- Quick access to create new documents
-- Integration with `EmrDocument` for editing
-- Print all treatment documents
+**Các tính năng chính:**
+- Dòng thời gian tài liệu theo thứ tự thời gian của đợt điều trị
+- Phân loại theo loại tài liệu
+- Truy cập nhanh để tạo tài liệu mới
+- Tích hợp với `EmrDocument` để chỉnh sửa
+- In tất cả các tài liệu điều trị
 
-**Integration Points:**
-- Receives treatment context from calling plugin (e.g., `TreatmentFinish`, `ServiceExecute`)
-- Launches `EmrDocument` plugin for document creation/editing
-- Communicates document updates via `PubSub` events
+**Các điểm tích hợp:**
+- Nhận ngữ cảnh điều trị từ plugin gọi (ví dụ: `TreatmentFinish`, `ServiceExecute`)
+- Khởi chạy plugin `EmrDocument` để tạo/chỉnh sửa tài liệu
+- Giao tiếp các cập nhật tài liệu thông qua các sự kiện `PubSub`
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-## Data Models and Communication
+## Model Dữ liệu và Giao tiếp
 
-### EMR Data Transfer Objects (ADOs)
+### Đối tượng chuyển đổi dữ liệu EMR (ADOs)
 
-The EMR plugins use specialized ADO classes for data transfer between UI and business logic layers:
+Các plugin EMR sử dụng các lớp ADO chuyên biệt để chuyển đổi dữ liệu giữa các lớp UI và logic nghiệp vụ:
 
-| ADO Class | Purpose | Key Properties |
+| Lớp ADO | Mục đích | Các thuộc tính chính |
 |-----------|---------|----------------|
-| `EmrDocumentADO` | Document entity | DocumentId, DocumentTypeId, Content, TreatmentId, Status |
-| `EmrDocumentTypeADO` | Document type definition | TypeId, TypeCode, TypeName, IsRequiredSigning |
-| `EmrFlowADO` | Workflow definition | FlowId, Steps, Conditions |
-| `EmrSignerADO` | Signer information | SignerId, SignerName, CertificateSerial, SignDate |
-| `TreatmentDocumentADO` | Treatment-document link | TreatmentId, DocumentIds, DocumentStatuses |
+| `EmrDocumentADO` | Thực thể tài liệu | DocumentId, DocumentTypeId, Content, TreatmentId, Status |
+| `EmrDocumentTypeADO` | Định nghĩa loại tài liệu | TypeId, TypeCode, TypeName, IsRequiredSigning |
+| `EmrFlowADO` | Định nghĩa quy trình | FlowId, Steps, Conditions |
+| `EmrSignerADO` | Thông tin người ký | SignerId, SignerName, CertificateSerial, SignDate |
+| `TreatmentDocumentADO` | Liên kết điều trị-tài liệu | TreatmentId, DocumentIds, DocumentStatuses |
 
-**Sources:** [`.devin/wiki.json:38-42`](../../../../.devin/wiki.json#L38-L42)
+**Nguồn:** [`.devin/wiki.json:38-42`](../../../../.devin/wiki.json#L38-L42)
 
 ---
 
-### Plugin Communication Patterns
+### Các mẫu giao tiếp Plugin
 
-EMR plugins use multiple communication mechanisms for inter-plugin coordination:
+Các plugin EMR sử dụng nhiều cơ chế giao tiếp để điều phối giữa các plugin:
 
-#### 1. PubSub Events
+#### 1. Các sự kiện PubSub
 
 ```mermaid
 graph LR
-    EmrDocument["EmrDocument Plugin"]
-    EmrTreatmentList["EmrTreatmentList Plugin"]
-    EmrSignDocList["EmrSignDocumentList Plugin"]
+    EmrDocument["Plugin EmrDocument"]
+    EmrTreatmentList["Plugin EmrTreatmentList"]
+    EmrSignDocList["Plugin EmrSignDocumentList"]
     
     PubSub["HIS.Desktop.LocalStorage.PubSub"]
     
-    EmrDocument -->|"Publish:<br/>EMR_DOCUMENT_CREATED"| PubSub
-    EmrDocument -->|"Publish:<br/>EMR_DOCUMENT_UPDATED"| PubSub
-    EmrDocument -->|"Publish:<br/>EMR_DOCUMENT_DELETED"| PubSub
+    EmrDocument -->|"Phát sự kiện:<br/>EMR_DOCUMENT_CREATED"| PubSub
+    EmrDocument -->|"Phát sự kiện:<br/>EMR_DOCUMENT_UPDATED"| PubSub
+    EmrDocument -->|"Phát sự kiện:<br/>EMR_DOCUMENT_DELETED"| PubSub
     
-    PubSub -->|"Subscribe:<br/>Refresh List"| EmrTreatmentList
-    PubSub -->|"Subscribe:<br/>Update Queue"| EmrSignDocList
+    PubSub -->|"Đăng ký nhận:<br/>Làm mới danh sách"| EmrTreatmentList
+    PubSub -->|"Đăng ký nhận:<br/>Cập nhật hàng đợi"| EmrSignDocList
 ```
 
-**Diagram 6: PubSub Event Communication**
+**Sơ đồ 6: Giao tiếp sự kiện PubSub**
 
-**Common EMR Events:**
-- `EMR_DOCUMENT_CREATED` - New document created
-- `EMR_DOCUMENT_UPDATED` - Document modified
-- `EMR_DOCUMENT_SIGNED` - Signature applied
-- `EMR_FLOW_ASSIGNED` - Document routed to workflow
-- `EMR_APPROVAL_COMPLETED` - Approval step finished
+**Các sự kiện EMR phổ biến:**
+- `EMR_DOCUMENT_CREATED` - Tài liệu mới được tạo
+- `EMR_DOCUMENT_UPDATED` - Tài liệu được sửa đổi
+- `EMR_DOCUMENT_SIGNED` - Chữ ký đã được áp dụng
+- `EMR_FLOW_ASSIGNED` - Tài liệu được điều hướng vào quy trình
+- `EMR_APPROVAL_COMPLETED` - Bước phê duyệt đã hoàn thành
 
-#### 2. DelegateRegister Direct Calls
+#### 2. Các cuộc gọi trực tiếp DelegateRegister
 
-For synchronous operations requiring return values, EMR plugins use `DelegateRegister`:
+Đối với các hoạt động đồng bộ yêu cầu giá trị trả về, các plugin EMR sử dụng `DelegateRegister`:
 
 ```
-// Example: Launch EmrDocument from another plugin
+// Ví dụ: Khởi chạy EmrDocument từ một plugin khác
 DelegateRegister.OpenEmrDocument(treatmentId, documentTypeId);
 
-// Example: Validate signature before saving
+// Ví dụ: Xác thực chữ ký trước khi lưu
 bool isValid = DelegateRegister.ValidateEmrSignature(documentId);
 ```
 
-**Sources:** [`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51, [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67)
+**Nguồn:** [`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51), [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67)
 
 ---
 
-## Configuration and Backend Integration
+## Cấu hình và Tích hợp Backend
 
 ### EmrConfig LocalStorage
 
-The `HIS.Desktop.LocalStorage.EmrConfig` project caches EMR-specific configuration:
+Dự án `HIS.Desktop.LocalStorage.EmrConfig` lưu bộ nhớ đệm (cache) các cấu hình đặc thù của EMR:
 
-**Cached Configuration:**
-- Document type definitions
-- Workflow templates
-- Signer role mappings
-- Digital signature certificate settings
-- Document retention policies
+**Cấu hình được cache:**
+- Các định nghĩa loại tài liệu
+- Các template quy trình
+- Ánh xạ vai trò người ký
+- Các thiết lập chứng chỉ chữ ký số
+- Chính sách lưu trữ tài liệu
 
-**Key Classes (inferred):**
-- [[`HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs) - Configuration cache
-- [[`HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs) - Document type settings
-- [[`HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs) - Workflow settings
+**Các lớp chính (suy luận):**
+- [[`HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/EmrConfigStore.cs) - Kho lưu trữ cache cấu hình
+- [[`HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/DocumentTypeConfig.cs) - Các thiết lập loại tài liệu
+- [[`HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs`](../../../../HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs)](../../../../HIS.Desktop.LocalStorage.EmrConfig/WorkflowConfig.cs) - Các thiết lập quy trình
 
-### API Integration
+### Tích hợp API
 
-EMR plugins communicate with backend services through `HIS.Desktop.ApiConsumer`:
+Các plugin EMR giao tiếp với các dịch vụ backend thông qua `HIS.Desktop.ApiConsumer`:
 
-**EMR API Endpoints (typical structure):**
-- `POST /api/EmrDocument/Create` - Create document
-- `PUT /api/EmrDocument/Update` - Update document
-- `POST /api/EmrSign/Sign` - Apply digital signature
-- `GET /api/EmrFlow/GetByTreatment` - Retrieve workflow
-- `POST /api/EmrFlow/Assign` - Assign document to flow
+**Các endpoint EMR API (cấu trúc điển hình):**
+- `POST /api/EmrDocument/Create` - Tạo tài liệu
+- `PUT /api/EmrDocument/Update` - Cập nhật tài liệu
+- `POST /api/EmrSign/Sign` - Áp dụng chữ ký số
+- `GET /api/EmrFlow/GetByTreatment` - Truy xuất quy trình
+- `POST /api/EmrFlow/Assign` - Gán tài liệu vào quy trình
 
-**Error Handling:**
-All EMR API calls include standard error handling for:
-- Network failures (retry logic)
-- Authentication failures (re-login prompt)
-- Validation errors (user-friendly messages)
-- Concurrent modification conflicts (optimistic locking)
+**Xử lý lỗi:**
+Tất cả các lệnh gọi EMR API đều bao gồm xử lý lỗi tiêu chuẩn cho:
+- Lỗi mạng (logic thử lại - retry)
+- Lỗi xác thực (yêu cầu đăng nhập lại)
+- Lỗi xác thực dữ liệu (thông báo thân thiện với người dùng)
+- Xung đột sửa đổi đồng thời (optimistic locking - khóa lạc quan)
 
-**Sources:** [`.devin/wiki.json:54-58`](../../../../.devin/wiki.json#L54-L58, [`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)
+**Nguồn:** [`.devin/wiki.json:54-58`](../../../../.devin/wiki.json#L54-L58), [`.devin/wiki.json:46-51`](../../../../.devin/wiki.json#L46-L51)
 
 ---
 
-## Supporting EMR Plugins
+## Các Plugin EMR hỗ trợ
 
-### Additional EMR Functionality
+### Các chức năng EMR bổ sung
 
-Beyond the six major plugins documented above, the EMR subsystem includes additional supporting plugins:
+Bên ngoài sáu plugin chính đã được tài liệu hóa ở trên, phân hệ EMR bao gồm các plugin hỗ trợ bổ sung:
 
-| Plugin | Estimated Files | Purpose |
+| Plugin | Tệp ước tính | Mục đích |
 |--------|----------------|---------|
-| `EmrBusiness` | ~15 | Shared business logic layer for EMR operations |
-| `EmrConfig` | ~15 | Configuration management interface |
-| `EmrDocumentList` | ~15 | General document browser (not treatment-specific) |
-| `EmrDocumentType` | ~12 | Document type definition management |
-| `EmrRole` | ~10 | Role-based access control for EMR |
-| `EmrTemplate` | ~10 | Document template management |
-| `EmrVersion` | ~10 | Document version history tracking |
+| `EmrBusiness` | ~15 | Lớp logic nghiệp vụ chung cho các hoạt động EMR |
+| `EmrConfig` | ~15 | Giao diện quản lý cấu hình |
+| `EmrDocumentList` | ~15 | Trình duyệt tài liệu chung (không cụ thể theo đợt điều trị) |
+| `EmrDocumentType` | ~12 | Quản lý định nghĩa loại tài liệu |
+| `EmrRole` | ~10 | Kiểm soát truy cập dựa trên vai trò cho EMR |
+| `EmrTemplate` | ~10 | Quản lý template tài liệu |
+| `EmrVersion` | ~10 | Theo dõi lịch sử phiên bản tài liệu |
 
-### Plugin Dependencies
+### Phụ thuộc giữa các Plugin
 
 ```mermaid
 graph TB
-    subgraph "Core EMR Plugins"
+    subgraph "Các Plugin EMR lõi"
         Doc["EmrDocument"]
         Sign["EmrSign"]
         Flow["EmrFlow"]
     end
     
-    subgraph "Supporting Plugins"
+    subgraph "Các Plugin hỗ trợ"
         Business["EmrBusiness<br/>Shared Logic"]
-        Config["EmrConfig<br/>Configuration"]
+        Config["EmrConfig<br/>Cấu hình"]
         Template["EmrTemplate<br/>Templates"]
     end
     
-    subgraph "Infrastructure"
+    subgraph "Hạ tầng"
         LocalStorage["LocalStorage.EmrConfig"]
         ApiConsumer["ApiConsumer"]
-        UC["UC Components"]
+        UC["Thành phần UC"]
     end
     
     Doc --> Business
@@ -1058,40 +1055,40 @@ graph TB
     Sign --> UC
 ```
 
-**Diagram 7: EMR Plugin Dependencies**
+**Sơ đồ 7: Phụ thuộc giữa các Plugin EMR**
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
-
----
-
-## Integration with MPS Print System
-
-EMR documents can be printed using the MPS (Medical Print System). The integration flow:
-
-1. User selects document in `EmrDocumentList` or `EmrTreatmentList`
-2. Plugin calls `DelegateRegister.PrintEmrDocument(documentId)`
-3. MPS processor retrieves document data via API
-4. Appropriate `Mps000xxx` processor formats document
-5. Output generated via FlexCell (PDF/Excel)
-
-**Common EMR Print Processors:**
-- `Mps000xxx` series processors for various EMR document types
-- Support for letterhead, signatures, and stamps
-- Batch printing for treatment document sets
-
-**Sources:** [`.devin/wiki.json:14-18`](../../../../.devin/wiki.json#L14-L18, [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-L187)
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127)
 
 ---
 
-## Summary
+## Tích hợp với Hệ thống In MPS
 
-The EMR plugin subsystem provides comprehensive electronic medical record management through 16 specialized plugins. The architecture separates concerns into document management (`EmrDocument`, `EmrDocumentList`, `EmrTreatmentList`), digital signatures (`EmrSign`, `EmrSignDocumentList`, `EmrSignerFlow`), and approval workflows (`EmrFlow`). These plugins leverage the common HIS infrastructure for API communication, local caching, and event-driven coordination with other hospital system modules.
+Các tài liệu EMR có thể được in bằng MPS (Medical Print System). Quy trình tích hợp:
 
-**Key Design Principles:**
-- **Plugin-based modularity** - Each EMR function is an independent plugin
-- **Event-driven communication** - PubSub for loose coupling between plugins
-- **Layered architecture** - UI plugins delegate to business logic layer
-- **Configuration-driven** - Workflows and signatures configurable without code changes
-- **Standards compliance** - PKCS#7 digital signatures, RFC 3161 timestamps
+1. Người dùng chọn tài liệu trong `EmrDocumentList` hoặc `EmrTreatmentList`
+2. Plugin gọi `DelegateRegister.PrintEmrDocument(documentId)`
+3. Processor MPS truy xuất dữ liệu tài liệu qua API
+4. Processor `Mps000xxx` phù hợp sẽ định dạng tài liệu
+5. Kết quả được tạo ra qua FlexCell (PDF/Excel)
 
-**Sources:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127, [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9, [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67)
+**Các Processor In EMR phổ biến:**
+- Các dòng processor `Mps000xxx` cho các loại tài liệu EMR khác nhau
+- Hỗ trợ tiêu đề thư, chữ ký và dấu mộc
+- In hàng loạt cho các bộ tài liệu điều trị
+
+**Nguồn:** [`.devin/wiki.json:14-18`](../../../../.devin/wiki.json#L14-L18), [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-187)
+
+---
+
+## Tóm tắt
+
+Phân hệ plugin EMR cung cấp khả năng quản lý bệnh án điện tử toàn diện thông qua 16 plugin chuyên biệt. Kiến trúc tách biệt các mối quan tâm thành quản lý tài liệu (`EmrDocument`, `EmrDocumentList`, `EmrTreatmentList`), chữ ký số (`EmrSign`, `EmrSignDocumentList`, `EmrSignerFlow`), và quy trình phê duyệt (`EmrFlow`). Các plugin này tận dụng hạ tầng HIS chung để giao tiếp API, lưu bộ nhớ đệm cục bộ và điều phối dựa trên sự kiện với các module hệ thống bệnh viện khác.
+
+**Các nguyên tắc thiết kế chính:**
+- **Tính modular dựa trên plugin** - Mỗi chức năng EMR là một plugin độc lập
+- **Giao tiếp dựa trên sự kiện** - Sử dụng PubSub để giảm sự phụ thuộc lẫn nhau giữa các plugin
+- **Kiến trúc phân lớp** - Các plugin UI ủy thác cho lớp logic nghiệp vụ
+- **Dựa trên cấu hình** - Các quy trình và chữ ký có thể cấu hình mà không cần thay đổi mã nguồn
+- **Tuân thủ tiêu chuẩn** - Chữ ký số PKCS#7, dấu thời gian RFC 3161
+
+**Nguồn:** [`.devin/wiki.json:120-127`](../../../../.devin/wiki.json#L120-L127), [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9), [`.devin/wiki.json:64-67`](../../../../.devin/wiki.json#L64-L67)

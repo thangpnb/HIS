@@ -1,39 +1,39 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-The API Consumer Layer provides a standardized abstraction for all backend API communication in the HIS Desktop application. Located in `HIS.Desktop.ApiConsumer/` (13 files), this layer handles REST API calls, response processing, error handling, and authentication flows between the desktop client and backend services.
+Lớp API Consumer cung cấp một sự trừu tượng hóa tiêu chuẩn cho tất cả việc truyền thông API backend trong ứng dụng HIS Desktop. Tọa lạc tại `HIS.Desktop.ApiConsumer/` (13 tệp), lớp này xử lý các lời gọi REST API, xử lý phản hồi, xử lý lỗi và các luồng xác thực giữa client desktop và các dịch vụ backend.
 
-This document covers the API communication infrastructure. For information about how API responses are cached locally, see [LocalStorage & Configuration](../../02-modules/his-desktop/core.md). For details on how plugins consume APIs, see [Plugin System Architecture](../../01-architecture/plugin-system.md).
+Tài liệu này đề cập đến hạ tầng truyền thông API. Để biết thông tin về cách các phản hồi API được đệm cục bộ, hãy xem [LocalStorage & Cấu hình](../../02-modules/his-desktop/core.md). Để biết chi tiết về cách các plugin sử dụngThiết kế để hoạt động liền mạch trong [Kiến trúc Plugin HIS](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
-## Architecture Overview
+## Tổng quan Kiến trúc
 
-The API Consumer Layer acts as an intermediary between the presentation layer (plugins) and backend REST services, built on top of `Inventec.Common.WebApiClient`.
+Lớp API Consumer hoạt động như một bên trung gian giữa lớp hiển thị (plugin) và các dịch vụ REST backend, được xây dựng trên nền tảng \`Inventec.Common.WebApiClient\`.
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    subgraph "Presentation Layer"
-        Plugins["HIS.Desktop.Plugins.*<br/>956 Business Plugins"]
-        UC["UC Components<br/>131 User Controls"]
+    subgraph "Lớp_Hiển_thị"
+        Plugins["HIS.Desktop.Plugins.*<br/>956 Plugin Nghiệp vụ"]
+        UC["Các thành phần UC<br/>131 User Control"]
     end
     
-    subgraph "API Consumer Layer - HIS.Desktop.ApiConsumer"
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 files<br/>Service-specific API clients"]
-        CommonParam["CommonParam<br/>Request metadata<br/>Session, Language, etc"]
-        ApiParam["ApiParam<br/>Request wrapper"]
+    subgraph "Lớp_API_Consumer_-_HIS.Desktop.ApiConsumer"
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 tệp<br/>Các API client cho từng dịch vụ"]
+        CommonParam["CommonParam<br/>Siêu dữ liệu yêu cầu<br/>Phiên, Ngôn ngữ, v.v."]
+        ApiParam["ApiParam<br/>Wrapper yêu cầu"]
     end
     
-    subgraph "HTTP Communication Layer"
-        WebApiClient["Inventec.Common.WebApiClient<br/>ApiConsumer class<br/>HTTP infrastructure"]
-        HttpClient["System.Net.Http.HttpClient<br/>Low-level HTTP"]
+    subgraph "Lớp_Truyền_thông_HTTP"
+        WebApiClient["Inventec.Common.WebApiClient<br/>Lớp ApiConsumer<br/>Hạ tầng HTTP"]
+        HttpClient["System.Net.Http.HttpClient<br/>HTTP cấp thấp"]
     end
     
-    subgraph "Backend Services"
-        HisAPI["HIS API<br/>Core hospital services"]
-        AcsAPI["ACS API<br/>Access control"]
-        EmrAPI["EMR API<br/>Medical records"]
-        LisAPI["LIS API<br/>Laboratory"]
-        SarAPI["SAR API<br/>Reports"]
+    subgraph "Dịch_vụ_Backend"
+        HisAPI["HIS API<br/>Các dịch vụ bệnh viện cốt lõi"]
+        AcsAPI["ACS API<br/>Kiểm soát truy cập"]
+        EmrAPI["EMR API<br/>Hồ sơ bệnh án"]
+        LisAPI["LIS API<br/>Xét nghiệm"]
+        SarAPI["SAR API<br/>Báo cáo"]
     end
     
     Plugins --> ApiConsumer
@@ -46,44 +46,44 @@ graph TB
     HttpClient --> LisAPI
     HttpClient --> SarAPI
     
-    ApiConsumer -.->|"Uses"| CommonParam
-    ApiConsumer -.->|"Wraps data in"| ApiParam
-```
+    ApiConsumer -.->|"Sử dụng"| CommonParam
+    ApiConsumer -.->|"Bao gói dữ liệu trong"| ApiParam
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs:1-32`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs#L1-L32, [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:1-150`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L1-L150)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs:1-32\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs#L1-L32)], [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:1-150\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L1-L150)]
 
 ---
 
-## Core Components
+## Các Thành phần Cốt lõi
 
-### HIS.Desktop.ApiConsumer Structure
+### Cấu trúc HIS.Desktop.ApiConsumer
 
-The `HIS.Desktop.ApiConsumer/` directory contains service-specific API client classes that encapsulate communication with different backend API domains:
+Thư mục \`HIS.Desktop.ApiConsumer/\` chứa các lớp API client dành riêng cho từng dịch vụ, bao gói việc truyền thông với các miền API backend khác nhau:
 
-| Component | Description |
+| Thành phần | Mô tả |
 |-----------|-------------|
-| **HIS API Consumers** | Client classes for core hospital information system operations (treatment, prescription, billing) |
-| **ACS API Consumer** | Client for access control and authentication services |
-| **EMR API Consumer** | Client for electronic medical record operations |
-| **LIS API Consumer** | Client for laboratory information system integration |
-| **SAR API Consumer** | Client for report template and generation services |
-| **SDA API Consumer** | Client for system data administration |
+| **HIS API Consumers** | Các lớp client cho các hoạt động hệ thống thông tin bệnh viện cốt lõi (điều trị, đơn thuốc, thanh toán) |
+| **ACS API Consumer** | Client cho các dịch vụ kiểm soát truy cập và xác thực |
+| **EMR API Consumer** | Client cho các hoạt động hồ sơ bệnh án điện tử |
+| **LIS API Consumer** | Client cho tích hợp hệ thống thông tin xét nghiệm |
+| **SAR API Consumer** | Client cho các dịch vụ mẫu báo cáo và tạo báo cáo |
+| **SDA API Consumer** | Client cho quản trị dữ liệu hệ thống |
 
-Each consumer class follows a consistent pattern of wrapping service endpoints and providing strongly-typed method calls.
+Mỗi lớp consumer tuân theo một mô hình nhất quán là bao gói các endpoint dịch vụ và cung cấp các lời gọi phương thức có kiểu dữ liệu mạnh.
 
-### Inventec.Common.WebApiClient Integration
+### Tích hợp Inventec.Common.WebApiClient
 
-The foundation of all API communication is the `Inventec.Common.WebApiClient.ApiConsumer` class, which provides:
+Nền tảng của tất cả việc truyền thông API là lớp \`Inventec.Common.WebApiClient.ApiConsumer\`, cung cấp:
 
-- **Base URI Configuration**: Each API consumer is initialized with a specific base URI
-- **Application Code Header**: Automatic injection of `APP_CODE` for service identification
-- **Timeout Management**: Configurable HTTP timeout settings
-- **JSON Serialization**: Automatic serialization/deserialization using Newtonsoft.Json
+- **Cấu hình Base URI**: Mỗi API consumer được khởi tạo với một URI cơ sở cụ thể.
+- **Header Mã Ứng dụng**: Tự động chèn \`APP_CODE\` để định danh dịch vụ.
+- **Quản lý Timeout**: Các thiết lập thời gian chờ HTTP có thể cấu hình.
+- **Tuần tự hóa JSON**: Tự động tuần tự hóa/giải tuần tự hóa sử dụng Newtonsoft.Json.
 
-Example instantiation pattern:
+Ví dụ về mô hình khởi tạo:
 
-```csharp
-// From ApiConsumerStore.cs
+\`\`\`csharp
+// Từ ApiConsumerStore.cs
 internal static Inventec.Common.WebApiClient.ApiConsumer AupConsumer 
 { 
     get { return new Inventec.Common.WebApiClient.ApiConsumer(
@@ -91,74 +91,74 @@ internal static Inventec.Common.WebApiClient.ApiConsumer AupConsumer
         AupConstant.APP_CODE
     ); } 
 }
-```
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs:27-30`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs#L27-L30)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs:27-30\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/ApiConsumerStore.cs#L27-L30)]
 
 ---
 
-## API Communication Patterns
+## Các Mô hình Truyền thông API
 
-### Request Flow Architecture
+### Kiến trúc Luồng Yêu cầu
 
-```mermaid
+\`\`\`mermaid
 sequenceDiagram
-    participant Plugin as "Plugin<br/>(e.g. AssignPrescriptionPK)"
-    participant Consumer as "HIS.Desktop.ApiConsumer<br/>(e.g. HisServiceReqConsumer)"
+    participant Plugin as "Plugin<br/>(vd: AssignPrescriptionPK)"
+    participant Consumer as "HIS.Desktop.ApiConsumer<br/>(vd: HisServiceReqConsumer)"
     participant WebApi as "Inventec.Common.WebApiClient<br/>ApiConsumer"
     participant Http as "HttpClient"
-    participant Backend as "Backend API<br/>(e.g. /api/HisServiceReq/Create)"
+    participant Backend as "Backend API<br/>(vd: /api/HisServiceReq/Create)"
     
-    Plugin->>Consumer: Call API method<br/>(e.g. CreateServiceReq)
-    Consumer->>Consumer: Build ApiParam<br/>with CommonParam + data
+    Plugin->>Consumer: Gọi phương thức API<br/>(vd: CreateServiceReq)
+    Consumer->>Consumer: Xây dựng ApiParam<br/>với CommonParam + dữ liệu
     Consumer->>WebApi: PostAsJsonAsync(uri, apiParam)
-    WebApi->>Http: POST request with headers<br/>(APP_CODE, Session, etc)
-    Http->>Backend: HTTP POST with JSON body
-    Backend-->>Http: HTTP Response (200/4xx/5xx)
+    WebApi->>Http: Yêu cầu POST với các header<br/>(APP_CODE, Session, v.v.)
+    Http->>Backend: HTTP POST với body JSON
+    Backend-->>Http: Phản hồi HTTP (200/4xx/5xx)
     Http-->>WebApi: HttpResponseMessage
-    WebApi->>WebApi: Deserialize JSON<br/>to ApiResultObject<T>
-    WebApi-->>Consumer: Return ApiResultObject<T>
-    Consumer->>Consumer: Check success status<br/>Handle errors
-    Consumer-->>Plugin: Return typed result<br/>or throw exception
-```
+    WebApi->>WebApi: Giải tuần tự hóa JSON<br/>thành ApiResultObject<T>
+    WebApi-->>Consumer: Trả về ApiResultObject<T>
+    Consumer->>Consumer: Kiểm tra trạng thái thành công<br/>Xử lý lỗi
+    Consumer-->>Plugin: Trả về kết quả có kiểu<br/>hoặc ném ngoại lệ
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:43-93`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L43-L93)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:43-93\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L43-L93)]
 
-### ApiParam Structure
+### Cấu trúc ApiParam
 
-All API requests are wrapped in a standardized `ApiParam` object:
+Tất cả các yêu cầu API đều được bao gói trong một đối tượng \`ApiParam\` tiêu chuẩn:
 
-```csharp
-// Request wrapper pattern used throughout ApiConsumer
+\`\`\`csharp
+// Mô hình wrapper yêu cầu được sử dụng xuyên suốt ApiConsumer
 Inventec.Common.WebApiClient.ApiParam apiParam = 
     new Inventec.Common.WebApiClient.ApiParam();
 
-apiParam.CommonParam = new CommonParam(); // Session, user, language metadata
-apiParam.ApiData = dataObject;            // Actual business data
-```
+apiParam.CommonParam = new CommonParam(); // Siêu dữ liệu phiên, người dùng, ngôn ngữ
+apiParam.ApiData = dataObject;            // Dữ liệu nghiệp vụ thực tế
+\`\`\`
 
-The `CommonParam` object carries cross-cutting request metadata:
-- **Session Token**: User authentication token
-- **Language Code**: Localization preference (e.g., "vi", "en")
-- **User Context**: Current user ID and permissions
-- **Branch/Location**: Facility and department context
+Đối tượng \`CommonParam\` mang theo siêu dữ liệu yêu cầu xuyên suốt:
+- **Session Token**: Token xác thực người dùng.
+- **Language Code**: Tùy chọn ngôn ngữ (vd: "vi", "en").
+- **User Context**: ID người dùng hiện tại và quyền hạn.
+- **Branch/Location**: Ngữ cảnh cơ sở và bộ phận.
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:54-62`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L54-L62)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:54-62\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L54-L62)]
 
-### Response Handling
+### Xử lý Phản hồi
 
-API responses follow the `ApiResultObject<T>` pattern:
+Các phản hồi API tuân theo mô hình \`ApiResultObject<T>\`:
 
-| Property | Type | Description |
+| Thuộc tính | Kiểu | Mô tả |
 |----------|------|-------------|
-| **Data** | `T` | Successful response payload (null on error) |
-| **Param** | `CommonParam` | Response metadata including messages and errors |
-| **Success** | `bool` | Indicates whether the operation succeeded |
+| **Data** | \`T\` | Nội dung phản hồi thành công (null nếu lỗi) |
+| **Param** | \`CommonParam\` | Siêu dữ liệu phản hồi bao gồm thông điệp và lỗi |
+| **Success** | \`bool\` | Cho biết thao tác có thành công hay không |
 
-Response processing pattern:
+Mô hình xử lý phản hồi:
 
-```csharp
-// Typical response handling flow
+\`\`\`csharp
+// Luồng xử lý phản hồi điển hình
 if (message.IsSuccessStatusCode)
 {
     string jsonString = message.Content.ReadAsStringAsync().Result;
@@ -169,82 +169,82 @@ if (message.IsSuccessStatusCode)
         return rsData != null ? rsData.Data : null;
     }
 }
-```
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:68-76`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L68-L76)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:68-76\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L68-L76)]
 
 ---
 
-## Authentication and Session Management
+## Quản lý Xác thực và Phiên làm việc
 
-### Authentication Flow
+### Luồng Xác thực
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    subgraph "Initial Authentication"
-        Login["Login Plugin<br/>User credentials"]
+    subgraph "Xác_thực_Ban_đầu"
+        Login["Plugin Đăng nhập<br/>Thông tin đăng nhập"]
         Auth["ACS API Consumer<br/>/api/AcsUser/Login"]
-        Session["Session Token<br/>Stored in LocalStorage"]
+        Session["Token Phiên<br/>Lưu trong LocalStorage"]
     end
     
-    subgraph "Subsequent API Calls"
-        Plugin["Any Plugin<br/>Business operation"]
-        Consumer["API Consumer<br/>Inject session token"]
-        Backend["Backend API<br/>Validate session"]
+    subgraph "Các_lời_gọi_API_Tiếp_theo"
+        Plugin["Bất kỳ Plugin nào<br/>Hoạt động nghiệp vụ"]
+        Consumer["API Consumer<br/>Chèn token phiên"]
+        Backend["Backend API<br/>Xác thực phiên"]
     end
     
     Login --> Auth
     Auth --> Session
-    Session -.->|"Read token"| Consumer
+    Session -.->|"Đọc token"| Consumer
     Plugin --> Consumer
     Consumer --> Backend
     Backend -.->|"401 Unauthorized"| Session
-    Session -.->|"Trigger re-login"| Login
-```
+    Session -.->|"Kích hoạt đăng nhập lại"| Login
+\`\`\`
 
-### Session Token Injection
+### Chèn Token Phiên
 
-Each API request includes the session token in the request headers. The token is managed by `HIS.Desktop.LocalStorage.ConfigApplication` and automatically injected by the API Consumer layer.
+Mỗi yêu cầu API bao gồm token phiên trong các header yêu cầu. Token được quản lý bởi \`HIS.Desktop.LocalStorage.ConfigApplication\` và được tự động chèn bởi lớp API Consumer.
 
-**Token lifecycle:**
-1. User logs in via ACS Login API
-2. Session token stored in `LocalStorage.ConfigApplication`
-3. All subsequent API calls read token from LocalStorage
-4. Token included in request headers automatically
-5. On 401 Unauthorized response, trigger re-authentication
+**Vòng đời Token:**
+1. Người dùng đăng nhập qua API ACS Login.
+2. Token phiên được lưu trong \`LocalStorage.ConfigApplication\`.
+3. Tất cả các lời gọi API tiếp theo đọc token từ LocalStorage.
+4. Token được tự động bao gồm trong các header yêu cầu.
+5. Khi nhận phản hồi 401 Unauthorized, kích hoạt quy trình xác thực lại.
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:47-52`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L47-L52, [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:47-52\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L47-L52)], [[\`.devin/wiki.json:45-52\`](../../../../.devin/wiki.json#L45-L52)]
 
 ---
 
-## Error Handling Patterns
+## Các Mô hình Xử lý Lỗi
 
-### HTTP Status Code Handling
+### Xử lý Mã trạng thái HTTP
 
-The API Consumer layer distinguishes between different error categories:
+Lớp API Consumer phân biệt giữa các danh mục lỗi khác nhau:
 
-| Status Code | Handling Strategy |
+| Mã trạng thái | Chiến lược Xử lý |
 |-------------|-------------------|
-| **200-299** | Success - deserialize response body |
-| **400** | Bad Request - display validation errors to user |
-| **401** | Unauthorized - trigger re-authentication flow |
-| **403** | Forbidden - display permission denied message |
-| **404** | Not Found - entity doesn't exist |
-| **500-599** | Server Error - log error, display generic message |
-| **Timeout** | Network timeout - retry mechanism |
+| **200-299** | Thành công - giải tuần tự hóa body phản hồi |
+| **400** | Bad Request - hiển thị lỗi xác thực cho người dùng |
+| **401** | Unauthorized - kích hoạt luồng xác thực lại |
+| **403** | Forbidden - hiển thị thông báo từ chối quyền truy cập |
+| **404** | Not Found - thực thể không tồn tại |
+| **500-599** | Server Error - ghi log lỗi, hiển thị thông báo chung |
+| **Timeout** | Hết thời gian mạng - cơ chế thử lại |
 
-### Exception Handling Pattern
+### Mô hình Xử lý Ngoại lệ
 
-```csharp
-// Standard exception handling pattern
+\`\`\`csharp
+// Mô hình xử lý ngoại lệ tiêu chuẩn
 try
 {
-    // Make API call
+    // Thực hiện lời gọi API
     using (HttpResponseMessage message = client.PostAsJsonAsync(uri, apiParam).Result)
     {
         if (message.IsSuccessStatusCode)
         {
-            // Process success response
+            // Xử lý phản hồi thành công
         }
         else
         {
@@ -254,60 +254,60 @@ try
 }
 catch (CustomApiException ex)
 {
-    // Specific API error - propagate to caller
+    // Lỗi API cụ thể - chuyển tiếp tới bên gọi
     throw ex;
 }
 catch (Exception ex)
 {
-    // Unexpected error - wrap and log
-    throw new CustomApiException("Exception when calling API", ex);
+    // Lỗi không ngờ tới - bao gói và ghi log
+    throw new CustomApiException("Ngoại lệ khi gọi API", ex);
 }
-```
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:84-92`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L84-L92)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:84-92\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L84-L92)]
 
 ---
 
-## HTTP Client Configuration
+## Cấu hình HTTP Client
 
-### Timeout Configuration
+### Cấu hình Timeout
 
-API calls use configurable timeouts to prevent indefinite blocking:
+Các lời gọi API sử dụng các timeout có thể cấu hình để ngăn chặn việc bị treo vô hạn:
 
-```csharp
-client.Timeout = new TimeSpan(0, 0, AupConstant.TIME_OUT); // seconds
-```
+\`\`\`csharp
+client.Timeout = new TimeSpan(0, 0, AupConstant.TIME_OUT); // giây
+\`\`\`
 
-Default timeout values are stored in configuration constants and can be adjusted per API domain (e.g., longer timeouts for report generation, shorter for simple queries).
+Các giá trị timeout mặc định được lưu trữ trong các hằng số cấu hình và có thể được điều chỉnh cho từng miền API (vd: timeout lâu hơn cho việc tạo báo cáo, ngắn hơn cho các truy vấn đơn giản).
 
-### Request Headers
+### Header Yêu cầu
 
-Standard headers injected into all requests:
+Các header tiêu chuẩn được chèn vào tất cả các yêu cầu:
 
-| Header | Purpose | Example |
+| Header | Mục đích | Ví dụ |
 |--------|---------|---------|
-| **APP_CODE** | Application identifier | `"HIS_DESKTOP"` |
-| **CLIENT_CODE** | Client/facility code | `"HOSPITAL_001"` |
-| **Authorization** | Bearer token | `"Bearer {session_token}"` |
-| **Accept-Language** | Localization | `"vi-VN"` |
-| **Content-Type** | Request format | `"application/json"` |
+| **APP_CODE** | Định danh ứng dụng | \`"HIS_DESKTOP"\` |
+| **CLIENT_CODE** | Mã client/cơ sở | \`"HOSPITAL_001"\` |
+| **Authorization** | Token Bearer | \`"Bearer {session_token}"\` |
+| **Accept-Language** | Ngôn ngữ | \`"vi-VN"\` |
+| **Content-Type** | Định dạng yêu cầu | \`"application/json"\` |
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:47-52`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L47-L52, [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:110-115`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L110-L115)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:47-52\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L47-L52)], [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:110-115\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L110-L115)]
 
 ---
 
-## Integration with LocalStorage
+## Tích hợp với LocalStorage
 
-### Response Caching Strategy
+### Chiến lược Đệm Phản hồi
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    Plugin["Plugin makes API call"]
+    Plugin["Plugin thực hiện lời gọi API"]
     Consumer["API Consumer"]
-    Cache{"Check LocalStorage<br/>BackendData cache"}
-    API["Call Backend API"]
-    Store["Store in BackendData"]
-    Return["Return to Plugin"]
+    Cache{"Kiểm tra bộ đệm<br/>BackendData trong LocalStorage"}
+    API["Gọi Backend API"]
+    Store["Lưu vào BackendData"]
+    Return["Trả về cho Plugin"]
     
     Plugin --> Consumer
     Consumer --> Cache
@@ -315,35 +315,35 @@ graph TB
     Cache -->|"Cache MISS"| API
     API --> Store
     Store --> Return
-```
+\`\`\`
 
-The API Consumer layer integrates with `HIS.Desktop.LocalStorage.BackendData` to implement client-side caching:
+Lớp API Consumer tích hợp với \`HIS.Desktop.LocalStorage.BackendData\` để triển khai việc đệm phía client:
 
-**Cached data categories:**
-- **Reference Data**: Rarely-changing system data (medicine types, departments, rooms)
-- **Configuration**: System and user preferences
-- **User Context**: Current user permissions and roles
+**Các danh mục dữ liệu được đệm:**
+- **Dữ liệu Tham chiếu**: Dữ liệu hệ thống ít thay đổi (kiểu thuốc, khoa, phòng).
+- **Cấu hình**: Các tùy chọn hệ thống và người dùng.
+- **Ngữ cảnh Người dùng**: Quyền và vai trò của người dùng hiện tại.
 
-**Cache invalidation:**
-- Explicit cache clear on data modification operations
-- Time-based expiration for volatile data
-- Version-based invalidation for configuration changes
+**Làm mới bộ đệm:**
+- Xóa bộ đệm rõ ràng khi thực hiện các thao tác sửa đổi dữ liệu.
+- Hết hạn dựa trên thời gian cho các dữ liệu dễ biến động.
+- Vô hiệu hóa dựa trên phiên bản cho các thay đổi cấu hình.
 
-For detailed caching mechanisms, see [LocalStorage & Configuration](../../02-modules/his-desktop/core.md).
+Để biết chi tiết về cơ chế đệm, hãy xem [LocalStorage & Cấu hình](../../02-modules/his-desktop/core.md).
 
-**Sources:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+**Nguồn:** [[\`.devin/wiki.json:45-52\`](../../../../.devin/wiki.json#L45-L52)]
 
 ---
 
-## Usage Examples in Plugins
+## Ví dụ Sử dụng trong Plugin
 
-### Example 1: Creating a Service Request
+### Ví dụ 1: Tạo một Yêu cầu Dịch vụ
 
-```
-// Typical plugin API call pattern
-// From any plugin in HIS.Desktop.Plugins.*
+\`\`\`
+// Mô hình gọi API plugin điển hình
+// Từ bất kỳ plugin nào trong HIS.Desktop.Plugins.*
 
-// 1. Prepare data object
+// 1. Chuẩn bị đối tượng dữ liệu
 var serviceReqData = new ServiceReqSDO 
 {
     PatientId = currentPatient.Id,
@@ -351,29 +351,29 @@ var serviceReqData = new ServiceReqSDO
     ServiceIds = selectedServices
 };
 
-// 2. Call through ApiConsumer
+// 2. Gọi thông qua ApiConsumer
 var apiConsumer = new HisServiceReqConsumer();
 var result = apiConsumer.Create(serviceReqData);
 
-// 3. Handle result
+// 3. Xử lý kết quả
 if (result != null && result.Data != null)
 {
-    // Success - update UI
+    // Thành công - cập nhật UI
     RefreshServiceRequestList();
 }
 else
 {
-    // Error - display message from result.Param
+    // Lỗi - hiển thị thông điệp từ result.Param
     MessageBox.Show(result.Param.Messages);
 }
-```
+\`\`\`
 
-### Example 2: File Upload Pattern
+### Ví dụ 2: Mô hình Tải tệp lên (File Upload)
 
-The file upload functionality demonstrates specialized API communication for binary data:
+Chức năng tải tệp lên trình bày việc truyền thông API chuyên biệt cho dữ liệu nhị phân:
 
-```csharp
-// Upload files to update server
+\`\`\`csharp
+// Tải các tệp lên máy chủ cập nhật
 List<FileUploadInfo> files = new List<FileUploadInfo> 
 {
     new FileUploadInfo { Url = "path/to/file.dll" },
@@ -388,71 +388,71 @@ var uploadedFiles = FileUpload.UploadFile(
 
 foreach (var file in uploadedFiles) 
 {
-    // Process uploaded file info
-    Console.WriteLine($"Uploaded: {file.Url}");
+    // Xử lý thông tin tệp đã tải lên
+    Console.WriteLine($"Đã tải lên: {file.Url}");
 }
-```
+\`\`\`
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:43-93`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L43-L93, [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:106-146`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L106-L146)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:43-93\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L43-L93)], [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:106-146\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L106-L146)]
 
 ---
 
-## Service-Specific API Consumers
+## Các Consumer API dành riêng cho Dịch vụ
 
-### Consumer Classes by Domain
+### Các Lớp Consumer theo Miền
 
-The `HIS.Desktop.ApiConsumer/` directory contains specialized consumer classes for each backend service domain:
+Thư mục \`HIS.Desktop.ApiConsumer/\` chứa các lớp consumer chuyên biệt cho mỗi miền dịch vụ backend:
 
-| Consumer Class | Backend API Domain | Key Operations |
+| Lớp Consumer | Miền API Backend | Các Hoạt động Chính |
 |----------------|-------------------|----------------|
-| **HisServiceReqConsumer** | `/api/HisServiceReq/*` | Create, Update, Delete service requests |
-| **HisTreatmentConsumer** | `/api/HisTreatment/*` | Treatment CRUD, status changes |
-| **HisPatientConsumer** | `/api/HisPatient/*` | Patient registration, updates |
-| **HisPrescriptionConsumer** | `/api/HisPrescription/*` | Prescription management |
-| **AcsUserConsumer** | `/api/AcsUser/*` | Authentication, user management |
-| **EmrDocumentConsumer** | `/api/EmrDocument/*` | Medical record operations |
-| **LisSampleConsumer** | `/api/LisSample/*` | Laboratory sample tracking |
-| **SarReportConsumer** | `/api/SarReport/*` | Report generation requests |
+| **HisServiceReqConsumer** | \`/api/HisServiceReq/*\` | Tạo, Cập nhật, Xóa yêu cầu dịch vụ |
+| **HisTreatmentConsumer** | \`/api/HisTreatment/*\` | CRUD điều trị, thay đổi trạng thái |
+| **HisPatientConsumer** | \`/api/HisPatient/*\` | Đăng ký bệnh nhân, cập nhật |
+| **HisPrescriptionConsumer** | \`/api/HisPrescription/*\` | Quản lý đơn thuốc |
+| **AcsUserConsumer** | \`/api/AcsUser/*\` | Xác thực, quản lý người dùng |
+| **EmrDocumentConsumer** | \`/api/EmrDocument/*\` | Các thao tác hồ sơ bệnh án |
+| **LisSampleConsumer** | \`/api/LisSample/*\` | Theo dõi mẫu xét nghiệm |
+| **SarReportConsumer** | \`/api/SarReport/*\` | Các yêu cầu tạo báo cáo |
 
-Each consumer encapsulates:
-- Endpoint URI construction
-- Request/response type mappings
-- Domain-specific error handling
-- Retry logic for critical operations
+Mỗi consumer bao gói:
+- Xây dựng URI endpoint.
+- Ánh xạ kiểu yêu cầu/phản hồi.
+- Xử lý lỗi dành riêng cho miền.
+- Logic thử lại cho các thao tác quan trọng.
 
-**Sources:** [`.devin/wiki.json:55-57`](../../../../.devin/wiki.json#L55-L57)
+**Nguồn:** [[\`.devin/wiki.json:55-57\`](../../../../.devin/wiki.json#L55-L57)]
 
 ---
 
-## Performance Considerations
+## Các Lưu ý về Hiệu năng
 
 ### Connection Pooling
 
-The `HttpClient` instances are managed through the `ApiConsumer` factory pattern to leverage connection pooling and avoid socket exhaustion.
+Các instance \`HttpClient\` được quản lý thông qua mô hình factory của \`ApiConsumer\` để tận dụng connection pooling và tránh cạn kiệt socket.
 
-### Async/Await Pattern
+### Mô hình Async/Await
 
-While the current implementation uses `.Result` for synchronous operations:
+Mặc dù triển khai hiện tại sử dụng \`.Result\` cho các thao tác đồng bộ:
 
-```csharp
+\`\`\`csharp
 using (HttpResponseMessage message = client.PostAsJsonAsync(uri, apiParam).Result)
-```
+\`\`\`
 
-This pattern is used throughout the desktop application to maintain synchronous plugin execution flow. Modern refactoring could introduce async/await patterns for improved responsiveness.
+Mô hình này được sử dụng xuyên suốt ứng dụng desktop để duy trì luồng thực thi plugin đồng bộ. Việc tái cấu trúc hiện đại có thể áp dụng các mô hình async/await để cải thiện khả năng phản hồi.
 
-### Request Batching
+### Gom nhóm Yêu cầu (Request Batching)
 
-For operations requiring multiple API calls, the API Consumer layer supports batch requests to reduce network round-trips. However, individual plugins are responsible for implementing batching logic at the business layer.
+Đối với các thao tác yêu cầu nhiều lời gọi API, lớp API Consumer hỗ trợ các yêu cầu gom nhóm để giảm thiểu số lượt mạng. Tuy nhiên, các plugin riêng lẻ chịu trách nhiệm triển khai logic gom nhóm ở lớp nghiệp vụ.
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:66-81`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L66-L81)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:66-81\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L66-L81)]
 
 ---
 
-## Logging and Diagnostics
+## Ghi nhật ký và Chẩn đoán
 
-All API calls are instrumented with logging through `Inventec.Common.Logging.LogSystem`:
+Tất cả các lời gọi API đều được trang bị ghi nhật ký thông qua \`Inventec.Common.Logging.LogSystem\`:
 
-```csharp
+\`\`\`csharp
 Inventec.Common.Logging.LogSystem.Debug(
     "clientCode=" + clientCode + "____" + 
     Inventec.Common.Logging.LogUtil.TraceData(
@@ -460,29 +460,29 @@ Inventec.Common.Logging.LogSystem.Debug(
         BASE_URI
     )
 );
-```
+\`\`\`
 
-**Logged information:**
-- Request URI and parameters
-- Request/response timing
-- Error details and stack traces
-- Session context
+**Thông tin được ghi nhật ký:**
+- URI yêu cầu và tham số.
+- Thời gian yêu cầu/phản hồi.
+- Chi tiết lỗi và dấu vết ngăn xếp (stack trace).
+- Ngữ cảnh phiên làm việc.
 
-For details on the logging system, see [Inventec Common Utilities](../../02-modules/common-libraries/libraries.md#inventec-common).
+Để biết chi tiết về hệ thống ghi nhật ký, hãy xem [Thư viện Chung Inventec](../../02-modules/common-libraries/libraries.md#inventec-common).
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:60-64`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L60-L64)
+**Nguồn:** [[\`Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs:60-64\`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/FileUpload.cs#L60-L64)]
 
 ---
 
-## Summary
+## Tóm tắt
 
-The API Consumer Layer provides a robust, standardized interface for all backend communication in the HIS Desktop application. Key characteristics:
+Lớp API Consumer cung cấp một giao diện mạnh mẽ, tiêu chuẩn hóa cho tất cả các việc truyền thông backend trong ứng dụng HIS Desktop. Các đặc điểm chính:
 
-- **Centralized Communication**: All API calls flow through `HIS.Desktop.ApiConsumer/` (13 files)
-- **Type Safety**: Strongly-typed request/response objects via `ApiParam` and `ApiResultObject<T>`
-- **Session Management**: Automatic injection of authentication tokens
-- **Error Handling**: Consistent exception handling and status code interpretation
-- **Foundation**: Built on `Inventec.Common.WebApiClient.ApiConsumer`
-- **Integration**: Seamless connection with LocalStorage caching layer
+- **Truyền thông Tập trung**: Tất cả các lời gọi API chảy qua \`HIS.Desktop.ApiConsumer/\` (13 tệp).
+- **An toàn Kiểu dữ liệu**: Các đối tượng yêu cầu/phản hồi có kiểu dữ liệu mạnh thông qua \`ApiParam\` và \`ApiResultObject<T>\`.
+- **Quản lý Phiên**: Tự động chèn các token xác thực.
+- **Xử lý Lỗi**: Xử lý ngoại lệ và giải thích mã trạng thái nhất quán.
+- **Nền tảng**: Được xây dựng trên \`Inventec.Common.WebApiClient.ApiConsumer\`.
+- **Tích hợp**: Kết nối liền mạch với lớp đệm LocalStorage.
 
-This architecture enables the 956 business plugins to communicate with backend services without implementing HTTP communication logic directly.
+Kiến trúc này cho phép 956 plugin nghiệp vụ có thể truyền thông với các dịch vụ backend mà không cần trực tiếp triển khai logic truyền thông HTTP.

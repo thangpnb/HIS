@@ -1,35 +1,35 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the patient call and display plugin subsystem within the HIS Desktop application. These plugins manage the queue system for calling patients to various service points (examination rooms, cashier counters, laboratory sample collection, etc.) and integrate with display screens to show patient information in waiting areas.
+Tài liệu này trình bày về phân hệ plugin gọi bệnh nhân và hiển thị trong ứng dụng HIS Desktop. Các plugin này quản lý hệ thống hàng đợi để gọi bệnh nhân đến các điểm dịch vụ khác nhau (phòng khám, quầy thu ngân, nơi lấy mẫu xét nghiệm, v.v.) và tích hợp với các màn hình hiển thị để cho biết thông tin bệnh nhân tại các khu vực chờ.
 
-The plugins are located in [HIS/Plugins/]() under various `CallPatient*` prefixes. For information about other plugin categories, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For service execution and room management, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md).
+Các plugin nằm trong thư mục [HIS/Plugins/]() với các tiền tố `CallPatient*` khác nhau. Để biết thông tin về các danh mục plugin khác, xem [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/01-overview.md). Để biết về việc thực hiện dịch vụ và quản lý phòng, xem [Các Plugin Nghiệp vụ Cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md).
 
 ---
 
-## Plugin Architecture Overview
+## Tổng quan Kiến trúc Plugin
 
-The patient call system is implemented through multiple plugin variants, each serving specific use cases or representing different versions of the call system. The plugins follow the standard HIS plugin architecture pattern with entry points, ADO models, and UI components.
+Hệ thống gọi bệnh nhân được triển khai thông qua nhiều biến thể plugin, mỗi biến thể phục vụ các trường hợp sử dụng cụ thể hoặc đại diện cho các phiên bản khác nhau của hệ thống gọi. Các plugin tuân theo mẫu kiến trúc plugin chuẩn của HIS với các điểm truy cập (entry point), mô hình ADO và các thành phần giao diện người dùng (UI).
 
 ```mermaid
 graph TB
-    subgraph "Call Plugin Categories"
-        GeneralCall["CallPatient Versions<br/>(V3, V4, V5, V6, Ver5, Ver7)"]
-        TypeAlter["CallPatientTypeAlter<br/>(52 files)"]
-        CLSCall["CallPatientCLS<br/>(Clinical Lab)"]
-        CashierCall["CallPatientCashier<br/>(Payment Counter)"]
-        ExamCall["CallPatientExam<br/>(Examination Room)"]
-        SampleCall["CallPatientSample<br/>(Sample Collection)"]
+    subgraph "Các Danh mục Plugin Gọi"
+        GeneralCall["Các phiên bản CallPatient<br/>(V3, V4, V5, V6, Ver5, Ver7)"]
+        TypeAlter["CallPatientTypeAlter<br/>(52 tệp)"]
+        CLSCall["CallPatientCLS<br/>(Xét nghiệm lâm sàng)"]
+        CashierCall["CallPatientCashier<br/>(Quầy thanh toán)"]
+        ExamCall["CallPatientExam<br/>(Phòng khám)"]
+        SampleCall["CallPatientSample<br/>(Lấy mẫu)"]
     end
     
-    subgraph "Integration Layer"
-        QueueSystem["Queue Management System"]
-        DisplaySystem["Display Screen System"]
-        PubSub["LocalStorage.PubSub<br/>Event System"]
+    subgraph "Lớp Tích hợp"
+        QueueSystem["Hệ thống Quản lý Hàng đợi"]
+        DisplaySystem["Hệ thống Màn hình Hiển thị"]
+        PubSub["Hệ thống Sự kiện<br/>LocalStorage.PubSub"]
     end
     
-    subgraph "Backend Services"
-        API["HIS.Desktop.ApiConsumer<br/>Queue APIs"]
-        BackendData["LocalStorage.BackendData<br/>Patient Cache"]
+    subgraph "Các Dịch vụ Backend"
+        API["API Hàng đợi<br/>HIS.Desktop.ApiConsumer"]
+        BackendData["Bộ nhớ đệm Bệnh nhân<br/>LocalStorage.BackendData"]
     end
     
     GeneralCall --> QueueSystem
@@ -46,35 +46,35 @@ graph TB
     BackendData --> DisplaySystem
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:100-108`](../../../../.devin/wiki.json#L100-L108)
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:100-108`](../../../../.devin/wiki.json#L100-L108)
 
 ---
 
-## CallPatient Plugin Versions
+## Các Phiên bản Plugin CallPatient
 
-The system includes multiple versions of the `CallPatient` plugin, representing evolution of the call system functionality and potentially different implementations for different hospital configurations.
+Hệ thống bao gồm nhiều phiên bản của plugin `CallPatient`, đại diện cho sự phát triển của các chức năng hệ thống gọi và có thể là các cách triển khai khác nhau cho các cấu hình bệnh viện khác nhau.
 
-### Version Comparison
+### So sánh các Phiên bản
 
-| Plugin Name | File Count | Primary Use Case |
+| Tên Plugin | Số lượng Tệp | Trường hợp Sử dụng Chính |
 |-------------|-----------|------------------|
-| `CallPatientV3` | 24 files | Legacy implementation |
-| `CallPatientV4` | 32 files | Enhanced queue integration |
-| `CallPatientV5` | 26 files | Simplified interface |
-| `CallPatientV6` | 26 files | Current stable version |
-| `CallPatientVer5` | 39 files | Extended feature set |
-| `CallPatientVer7` | 25 files | Latest version with modern UI |
+| `CallPatientV3` | 24 tệp | Triển khai cũ (Legacy) |
+| `CallPatientV4` | 32 tệp | Tích hợp hàng đợi nâng cao |
+| `CallPatientV5` | 26 tệp | Giao diện đơn giản hóa |
+| `CallPatientV6` | 26 tệp | Phiên bản ổn định hiện tại |
+| `CallPatientVer5` | 39 tệp | Tập hợp tính năng mở rộng |
+| `CallPatientVer7` | 25 tệp | Phiên bản mới nhất với UI hiện đại |
 
-### Version Architecture Pattern
+### Mẫu Kiến trúc Phiên bản
 
-Each version follows a consistent structure:
+Mỗi phiên bản đều tuân theo một cấu trúc nhất quán:
 
 ```mermaid
 graph LR
-    Entry["[PluginName].cs<br/>Plugin Entry Point"]
-    Processor["Run/[PluginName]Processor.cs<br/>Business Logic"]
-    Behavior["Run/[PluginName]Behavior.cs<br/>UI Behavior"]
-    ADO["ADO/[PluginName]ADO.cs<br/>Data Models"]
+    Entry["[PluginName].cs<br/>Điểm truy cập Plugin"]
+    Processor["Logic Nghiệp vụ<br/>Run/[PluginName]Processor.cs"]
+    Behavior["Hành vi UI<br/>Run/[PluginName]Behavior.cs"]
+    ADO["Mô hình Dữ liệu<br/>ADO/[PluginName]ADO.cs"]
     
     Entry --> Processor
     Processor --> Behavior
@@ -82,80 +82,80 @@ graph LR
     Behavior --> ADO
 ```
 
-**Typical plugin structure:**
-- Entry point: [`[PluginName].cs`](../../../[PluginName].cs) - implements plugin registration
-- Processor: [`Run/[PluginName]Processor.cs`](../../../Run/[PluginName]Processor.cs) - handles call logic
-- Behavior: [`Run/[PluginName]Behavior.cs`](../../../Run/[PluginName]Behavior.cs) - manages UI interactions
-- ADO: [`ADO/*ADO.cs`](../../../ADO/*ADO.cs) - data transfer objects for patient queue data
-- Base classes: `Base/` - shared infrastructure across versions
+**Cấu trúc plugin điển hình:**
+- Điểm truy cập: [`[PluginName].cs`](../../../[PluginName].cs) - thực hiện đăng ký plugin
+- Bộ xử lý (Processor): [`Run/[PluginName]Processor.cs`](../../../Run/[PluginName]Processor.cs) - xử lý logic gọi
+- Hành vi (Behavior): [`Run/[PluginName]Behavior.cs`](../../../Run/[PluginName]Behavior.cs) - quản lý các tương tác UI
+- ADO: [`ADO/*ADO.cs`](../../../ADO/*ADO.cs) - các đối tượng chuyển đổi dữ liệu cho dữ liệu hàng đợi bệnh nhân
+- Các lớp cơ sở (Base classes): `Base/` - hạ tầng dùng chung giữa các phiên bản
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:104-106`](../../../../.devin/wiki.json#L104-L106)
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:104-106`](../../../../.devin/wiki.json#L104-L106)
 
 ---
 
-## Specialized Call Plugins
+## Các Plugin Gọi Chuyên biệt
 
-Beyond the general `CallPatient` versions, the system provides specialized plugins for specific service points:
+Ngoài các phiên bản `CallPatient` chung, hệ thống cung cấp các plugin chuyên biệt cho các điểm dịch vụ cụ thể:
 
-### CallPatientCLS (Clinical Laboratory Service)
+### CallPatientCLS (Dịch vụ Xét nghiệm Cận lâm sàng)
 
-Handles patient calling for laboratory services including blood tests, urine tests, and other clinical diagnostics.
+Xử lý việc gọi bệnh nhân cho các dịch vụ xét nghiệm bao gồm xét nghiệm máu, xét nghiệm nước tiểu và các chẩn đoán cận lâm sàng khác.
 
-**Key responsibilities:**
-- Queue management for sample collection rooms
-- Integration with LIS (Laboratory Information System) plugins
-- Display of test preparation instructions
-- Sample barcode tracking
+**Các nhiệm vụ chính:**
+- Quản lý hàng đợi cho các phòng lấy mẫu
+- Tích hợp với các plugin LIS (Laboratory Information System - Hệ thống thông tin phòng xét nghiệm)
+- Hiển thị các hướng dẫn chuẩn bị xét nghiệm
+- Theo dõi mã vạch mẫu xét nghiệm
 
-### CallPatientCashier (Payment Counter)
+### CallPatientCashier (Quầy Thu ngân)
 
-Manages patient calling at cashier/payment counters for billing and transaction processing.
+Quản lý việc gọi bệnh nhân tại các quầy thu ngân/thanh toán để xử lý hóa đơn và giao dịch.
 
-**Key responsibilities:**
-- Priority queue handling (emergency patients, elderly)
-- Integration with transaction and billing plugins
-- Display of outstanding balance information
-- Multi-counter queue distribution
+**Các nhiệm vụ chính:**
+- Xử lý hàng đợi ưu tiên (bệnh nhân cấp cứu, người già)
+- Tích hợp với các plugin giao dịch và lập hóa đơn
+- Hiển thị thông tin số dư còn thiếu
+- Phân bổ hàng đợi đa quầy
 
-### CallPatientExam (Examination Room)
+### CallPatientExam (Phòng khám)
 
-Controls patient flow into examination rooms and doctor consultation areas.
+Kiểm soát luồng bệnh nhân vào các phòng khám và khu vực tư vấn của bác sĩ.
 
-**Key responsibilities:**
-- Room-specific queue management
-- Doctor availability integration
-- Patient preparation status checking
-- Appointment schedule synchronization
+**Các nhiệm vụ chính:**
+- Quản lý hàng đợi theo từng phòng cụ thể
+- Tích hợp tình trạng sẵn sàng của bác sĩ
+- Kiểm tra trạng thái chuẩn bị của bệnh nhân
+- Đồng bộ hóa lịch hẹn
 
-### CallPatientSample (Sample Collection)
+### CallPatientSample (Lấy mẫu)
 
-Specialized for phlebotomy and specimen collection areas.
+Chuyên dụng cho các khu vực lấy máu và lấy bệnh phẩm.
 
-**Key responsibilities:**
-- Sample type-specific queuing
-- Fasting status verification
-- Sample collection tracking
-- Integration with LIS sample workflow
+**Các nhiệm vụ chính:**
+- Xếp hàng theo từng loại mẫu cụ thể
+- Xác minh tình trạng nhịn ăn
+- Theo dõi việc thu thập mẫu
+- Tích hợp với quy trình làm việc của mẫu LIS
 
 ```mermaid
 graph TB
-    subgraph "Patient Journey"
-        Registration["Registration<br/>(Register Plugin)"]
-        Queue["Queue Assignment"]
-        Wait["Waiting Area"]
+    subgraph "Hành trình Bệnh nhân"
+        Registration["Đăng ký<br/>(Register Plugin)"]
+        Queue["Phân bổ Hàng đợi"]
+        Wait["Khu vực Chờ"]
     end
     
-    subgraph "Call Points"
-        ExamRoom["CallPatientExam<br/>Examination"]
-        LabSample["CallPatientSample<br/>Sample Collection"]
-        LabTest["CallPatientCLS<br/>Lab Testing"]
-        Cashier["CallPatientCashier<br/>Payment"]
+    subgraph "Các Điểm Gọi"
+        ExamRoom["CallPatientExam<br/>Khám bệnh"]
+        LabSample["CallPatientSample<br/>Lấy mẫu"]
+        LabTest["CallPatientCLS<br/>Xét nghiệm"]
+        Cashier["CallPatientCashier<br/>Thanh toán"]
     end
     
-    subgraph "Display System"
-        WaitingDisplay["Waiting Room Display"]
-        RoomDisplay["Room-Specific Display"]
-        Audio["Audio Announcement"]
+    subgraph "Hệ thống Hiển thị"
+        WaitingDisplay["Màn hình Phòng chờ"]
+        RoomDisplay["Màn hình tại Phòng"]
+        Audio["Thông báo Âm thanh"]
     end
     
     Registration --> Queue
@@ -175,128 +175,128 @@ graph TB
     Cashier --> WaitingDisplay
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatientCLS](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientCashier](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientExam](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientSample]()
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatientCLS](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientCashier](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientExam](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatientSample]()
 
 ---
 
-## CallPatientTypeAlter Plugin
+## Plugin CallPatientTypeAlter
 
-The `CallPatientTypeAlter` plugin (52 files) is a specialized component for managing changes to patient type during their visit. This is the largest plugin in the call system category.
+Plugin `CallPatientTypeAlter` (52 tệp) là một thành phần chuyên biệt để quản lý việc thay đổi đối tượng bệnh nhân trong quá trình thăm khám. Đây là plugin lớn nhất trong danh mục hệ thống gọi.
 
-**Primary functions:**
-- Modify patient classification (e.g., from regular to emergency)
-- Update insurance status during visit
-- Change service package assignments
-- Adjust queue priority based on new patient type
-- Trigger re-calculation of fees and billing
+**Các chức năng chính:**
+- Thay đổi phân loại bệnh nhân (ví dụ: từ thường sang cấp cứu)
+- Cập nhật tình trạng bảo hiểm trong quá trình khám
+- Thay đổi gói dịch vụ được chỉ định
+- Điều chỉnh ưu tiên hàng đợi dựa trên đối tượng bệnh nhân mới
+- Kích hoạt việc tính toán lại phí và hóa đơn
 
-**Integration points:**
+**Các điểm tích hợp:**
 ```mermaid
 graph LR
-    TypeAlter["CallPatientTypeAlter<br/>(52 files)"]
-    PatientInfo["Patient Information<br/>(BackendData)"]
-    Insurance["Insurance Verification<br/>(UCHein UC)"]
-    QueueMgmt["Queue Management"]
-    Billing["Transaction Billing"]
+    TypeAlter["CallPatientTypeAlter<br/>(52 tệp)"]
+    PatientInfo["Thông tin Bệnh nhân<br/>(BackendData)"]
+    Insurance["Xác thực Bảo hiểm<br/>(UCHein UC)"]
+    QueueMgmt["Quản lý Hàng đợi"]
+    Billing["Hóa đơn Giao dịch"]
     
     TypeAlter --> PatientInfo
     TypeAlter --> Insurance
     TypeAlter --> QueueMgmt
     TypeAlter --> Billing
     
-    PatientInfo -.->|Update| TypeAlter
-    Insurance -.->|Verify| TypeAlter
+    PatientInfo -.->|Cập nhật| TypeAlter
+    Insurance -.->|Xác thực| TypeAlter
 ```
 
-**Common patient type transitions:**
-- Regular → Emergency (priority escalation)
-- Self-pay → Insurance (insurance card discovered)
-- Outpatient → Inpatient (admission required)
-- Regular → VIP (service upgrade)
+**Các chuyển đổi đối tượng bệnh nhân phổ biến:**
+- Thường → Cấp cứu (nâng cấp mức độ ưu tiên)
+- Tự trả → Bảo hiểm (khi tìm thấy thẻ bảo hiểm)
+- Ngoại trú → Nội trú (khi có chỉ định nhập viện)
+- Thường → VIP (nâng cấp dịch vụ)
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatientTypeAlter](), [`.devin/wiki.json:104-106`](../../../../.devin/wiki.json#L104-L106)
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatientTypeAlter](), [`.devin/wiki.json:104-106`](../../../../.devin/wiki.json#L104-L106)
 
 ---
 
-## Queue Management Integration
+## Tích hợp Quản lý Hàng đợi
 
-The call plugins integrate with a queue management system that coordinates patient flow across the hospital.
+Các plugin gọi tích hợp với hệ thống quản lý hàng đợi để điều phối luồng bệnh nhân trong toàn bệnh viện.
 
-### Queue Data Flow
+### Luồng Dữ liệu Hàng đợi
 
 ```mermaid
 sequenceDiagram
-    participant Staff as "Staff User<br/>(Call Plugin UI)"
-    participant Plugin as "CallPatient Plugin"
-    participant API as "ApiConsumer<br/>Queue APIs"
-    participant Backend as "Backend Service<br/>(Queue Server)"
+    participant Staff as "Nhân viên<br/>(Giao diện Plugin Gọi)"
+    participant Plugin as "Plugin CallPatient"
+    participant API as "API Hàng đợi<br/>ApiConsumer"
+    participant Backend as "Dịch vụ Backend<br/>(Máy chủ Hàng đợi)"
     participant PubSub as "LocalStorage.PubSub"
-    participant Display as "Display Screens"
+    participant Display as "Màn hình Hiển thị"
     
-    Staff->>Plugin: Click "Call Next Patient"
+    Staff->>Plugin: Nhấn "Gọi bệnh nhân tiếp theo"
     Plugin->>API: GET /api/queue/next
-    API->>Backend: Fetch next patient in queue
-    Backend-->>API: Patient data + queue info
-    API-->>Plugin: Return patient object
-    Plugin->>PubSub: Publish "PatientCalled" event
+    API->>Backend: Lấy bệnh nhân tiếp theo trong hàng đợi
+    Backend-->>API: Dữ liệu bệnh nhân + thông tin hàng đợi
+    API-->>Plugin: Trả về đối tượng bệnh nhân
+    Plugin->>PubSub: Phát sự kiện "PatientCalled"
     Plugin->>API: POST /api/queue/call
-    API->>Backend: Update queue status
-    PubSub-->>Display: Notify display screens
-    Display->>Display: Show patient name/number
-    Display->>Display: Play audio announcement
+    API->>Backend: Cập nhật trạng thái hàng đợi
+    PubSub-->>Display: Thông báo đến các màn hình hiển thị
+    Display->>Display: Hiển thị tên/số của bệnh nhân
+    Display->>Display: Phát thông báo âm thanh
 ```
 
-### Queue State Management
+### Quản lý Trạng thái Hàng đợi
 
-The plugins maintain queue state through:
+Các plugin duy trì trạng thái hàng đợi thông qua:
 
-- **LocalStorage.BackendData**: Cached queue data for offline capability
-- **PubSub events**: Real-time synchronization across workstations
-- **ApiConsumer calls**: Persistent queue state on backend
-- **Local queue models**: ADO objects for in-memory queue management
+- **LocalStorage.BackendData**: Dữ liệu hàng đợi được lưu đệm để có thể hoạt động ngoại tuyến
+- **Các sự kiện PubSub**: Đồng bộ hóa thời gian thực giữa các máy trạm
+- **Các lệnh gọi ApiConsumer**: Trạng thái hàng đợi bền vững trên backend
+- **Các mô hình hàng đợi tại địa phương**: Các đối tượng ADO để quản lý hàng đợi trong bộ nhớ
 
-**Key queue operations:**
+**Các thao tác hàng đợi chính:**
 ```
-- FetchQueueList(): Get all waiting patients
-- CallNextPatient(): Pop next from queue and notify
-- CallSpecificPatient(patientId): Call patient out of order
-- RecallPatient(patientId): Recall missed patient
-- TransferPatient(patientId, newRoom): Move to different queue
-- SetPatientNoShow(patientId): Mark as absent
+- FetchQueueList(): Lấy danh sách tất cả bệnh nhân đang chờ
+- CallNextPatient(): Lấy người tiếp theo từ hàng đợi và thông báo
+- CallSpecificPatient(patientId): Gọi một bệnh nhân cụ thể không theo thứ tự
+- RecallPatient(patientId): Gọi lại bệnh nhân đã lỡ lượt
+- TransferPatient(patientId, newRoom): Chuyển đến một hàng đợi khác
+- SetPatientNoShow(patientId): Đánh dấu bệnh nhân vắng mặt
 ```
 
-**Sources:** [HIS.Desktop.ApiConsumer](), [HIS.Desktop.LocalStorage.PubSub](), [HIS.Desktop.LocalStorage.BackendData]()
+**Nguồn:** [HIS.Desktop.ApiConsumer](), [HIS.Desktop.LocalStorage.PubSub](), [HIS.Desktop.LocalStorage.BackendData]()
 
 ---
 
-## Display System Integration
+## Tích hợp Hệ thống Hiển thị
 
-Call plugins communicate with display screens in waiting areas to show patient information and call notifications.
+Các plugin gọi giao tiếp với các màn hình hiển thị tại các khu vực chờ để cung cấp thông tin cho bệnh nhân và các thông báo gọi số.
 
-### Display Communication Architecture
+### Kiến trúc Giao tiếp Hiển thị
 
 ```mermaid
 graph TB
-    subgraph "Call Plugins"
+    subgraph "Các Plugin Gọi"
         CP1["CallPatientExam"]
         CP2["CallPatientCashier"]
         CP3["CallPatientCLS"]
     end
     
-    subgraph "Event Bus"
-        PubSub["LocalStorage.PubSub<br/>Event Distribution"]
+    subgraph "Bus Sự kiện"
+        PubSub["Phân phối Sự kiện<br/>LocalStorage.PubSub"]
     end
     
-    subgraph "Display Clients"
-        WaitRoom["Waiting Room Display<br/>(General Queue)"]
-        ExamDisplay["Exam Room Display<br/>(Room-Specific)"]
-        LabDisplay["Lab Display<br/>(Sample Queue)"]
+    subgraph "Các Client Hiển thị"
+        WaitRoom["Hiển thị Phòng chờ<br/>(Hàng đợi Chung)"]
+        ExamDisplay["Hiển thị tại Phòng khám<br/>(Theo từng phòng)"]
+        LabDisplay["Hiển thị tại Xét nghiệm<br/>(Hàng đợi Lấy mẫu)"]
     end
     
-    subgraph "Message Types"
-        CallEvent["PatientCalledEvent<br/>{patientName, roomNumber, queueNumber}"]
-        QueueUpdate["QueueUpdateEvent<br/>{waitingCount, currentNumber}"]
-        NoShowEvent["PatientNoShowEvent<br/>{patientId, reason}"]
+    subgraph "Các Loại Tin nhắn"
+        CallEvent["PatientCalledEvent<br/>{Tên BN, Số phòng, Số thứ tự}"]
+        QueueUpdate["QueueUpdateEvent<br/>{Số người chờ, Số hiện tại}"]
+        NoShowEvent["PatientNoShowEvent<br/>{ID bệnh nhân, Lý do}"]
     end
     
     CP1 --> PubSub
@@ -315,211 +315,211 @@ graph TB
     QueueUpdate --> ExamDisplay
 ```
 
-### Display Message Format
+### Định dạng Tin nhắn Hiển thị
 
-The plugins publish structured events via the PubSub system:
+Các plugin phát các sự kiện có cấu trúc thông qua hệ thống PubSub:
 
-**PatientCalledEvent:**
-- `PatientName`: Patient display name (with privacy masking)
-- `QueueNumber`: Current queue number being called
-- `RoomNumber`: Destination room/counter
-- `ServiceType`: Type of service (exam, payment, lab, etc.)
-- `Timestamp`: Call time for tracking
+**PatientCalledEvent (Sự kiện Gọi Bệnh nhân):**
+- `PatientName`: Tên hiển thị của bệnh nhân (có che thông tin nhạy cảm)
+- `QueueNumber`: Số thứ tự hiện đang được gọi
+- `RoomNumber`: Phòng hoặc quầy đích
+- `ServiceType`: Loại dịch vụ (khám, thanh toán, xét nghiệm, v.v.)
+- `Timestamp`: Thời điểm gọi để theo dõi
 
-**QueueUpdateEvent:**
-- `WaitingCount`: Number of patients still waiting
-- `CurrentNumber`: Currently serving queue number
-- `EstimatedWaitMinutes`: Calculated wait time
+**QueueUpdateEvent (Sự kiện Cập nhật Hàng đợi):**
+- `WaitingCount`: Số lượng bệnh nhân vẫn đang chờ
+- `CurrentNumber`: Số thứ tự hiện đang được phục vụ
+- `EstimatedWaitMinutes`: Thời gian chờ dự kiến đã được tính toán
 
-**Sources:** [HIS.Desktop.LocalStorage.PubSub](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*]()
+**Nguồn:** [HIS.Desktop.LocalStorage.PubSub](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*]()
 
 ---
 
-## Plugin Communication Patterns
+## Các Mẫu Giao tiếp của Plugin
 
-Call plugins use multiple communication mechanisms to coordinate with other system components.
+Các plugin gọi sử dụng nhiều cơ chế giao tiếp để điều phối với các thành phần hệ thống khác.
 
-### Inter-Plugin Communication
+### Giao tiếp Giữa các Plugin
 
 ```mermaid
 graph TB
-    subgraph "Call Plugins"
-        CallPlugin["CallPatient Plugin"]
+    subgraph "Các Plugin Gọi"
+        CallPlugin["Plugin CallPatient"]
     end
     
-    subgraph "Communication Mechanisms"
-        DelegateReg["HIS.Desktop.DelegateRegister<br/>Direct Callbacks"]
-        PubSubSystem["LocalStorage.PubSub<br/>Event Broadcasting"]
-        SharedState["LocalStorage.BackendData<br/>Shared Cache"]
+    subgraph "Các Cơ chế Giao tiếp"
+        DelegateReg["Các Callback Trực tiếp<br/>HIS.Desktop.DelegateRegister"]
+        PubSubSystem["Phát tin Sự kiện<br/>LocalStorage.PubSub"]
+        SharedState["Bộ nhớ đệm Dùng chung<br/>LocalStorage.BackendData"]
     end
     
-    subgraph "Related Plugins"
-        Register["Register Plugin<br/>(Patient Check-in)"]
-        ServiceExec["ServiceExecute Plugin<br/>(Service Completion)"]
-        Treatment["Treatment Plugin<br/>(Clinical Workflow)"]
+    subgraph "Các Plugin Liên quan"
+        Register["Plugin Đăng ký<br/>(Tiếp đón Bệnh nhân)"]
+        ServiceExec["Plugin Thực hiện Dịch vụ<br/>(Hoàn thành Dịch vụ)"]
+        Treatment["Plugin Điều trị<br/>(Quy trình Lâm sàng)"]
     end
     
     CallPlugin -->|"RegisterCallback"| DelegateReg
     DelegateReg -->|"InvokeCallback"| Register
     
-    CallPlugin -->|"Publish Events"| PubSubSystem
-    PubSubSystem -->|"Subscribe Events"| ServiceExec
-    PubSubSystem -->|"Subscribe Events"| Treatment
+    CallPlugin -->|"Phát Sự kiện"| PubSubSystem
+    PubSubSystem -->|"Đăng ký Sự kiện"| ServiceExec
+    PubSubSystem -->|"Đăng ký Sự kiện"| Treatment
     
-    CallPlugin -->|"Read/Write"| SharedState
-    Register -->|"Read/Write"| SharedState
+    CallPlugin -->|"Đọc/Ghi"| SharedState
+    Register -->|"Đọc/Ghi"| SharedState
 ```
 
-### Event Subscription Pattern
+### Mẫu Đăng ký Sự kiện
 
-Call plugins typically subscribe to:
+Các plugin gọi thường đăng ký các sự kiện:
 
-- **PatientRegistered**: New patient enters queue
-- **ServiceCompleted**: Patient ready for next step
-- **TreatmentStarted**: Patient called successfully
-- **RoomAvailable**: Service point ready for next patient
-- **StaffLogout**: Queue reassignment needed
+- **PatientRegistered**: Bệnh nhân mới vào hàng đợi
+- **ServiceCompleted**: Bệnh nhân đã sẵn sàng cho bước tiếp theo
+- **TreatmentStarted**: Bệnh nhân đã được gọi thành công
+- **RoomAvailable**: Điểm dịch vụ đã sẵn sàng cho bệnh nhân tiếp theo
+- **StaffLogout**: Cần phân bổ lại hàng đợi
 
-Call plugins typically publish:
+Các plugin gọi thường phát các sự kiện:
 
-- **PatientCalled**: Patient notification sent
-- **PatientNoShow**: Patient did not respond to call
-- **QueueUpdated**: Queue state changed
-- **RoomBusy**: Service point occupied
+- **PatientCalled**: Thông báo gọi bệnh nhân đã được gửi
+- **PatientNoShow**: Bệnh nhân không phản hồi khi gọi
+- **QueueUpdated**: Trạng thái hàng đợi đã thay đổi
+- **RoomBusy**: Điểm dịch vụ đang bận
 
-**Sources:** [HIS.Desktop.DelegateRegister](), [HIS.Desktop.LocalStorage.PubSub]()
+**Nguồn:** [HIS.Desktop.DelegateRegister](), [HIS.Desktop.LocalStorage.PubSub]()
 
 ---
 
-## Data Models and ADO Objects
+## Mô hình Dữ liệu và các Đối tượng ADO
 
-Call plugins use ADO (Active Data Objects) to structure patient queue data.
+Các plugin gọi sử dụng ADO (Active Data Objects) để cấu trúc dữ liệu hàng đợi bệnh nhân.
 
-### Common ADO Objects
+### Các Đối tượng ADO Chung
 
 **QueuePatientADO:**
-- `PatientId`: Unique patient identifier
-- `PatientCode`: Display patient code
-- `PatientName`: Full name
-- `QueueNumber`: Assigned queue number
-- `ServiceType`: Type of service requested
-- `RoomId`: Target room/counter
-- `PriorityLevel`: Queue priority (0=normal, 1=priority, 2=emergency)
-- `CheckInTime`: Queue entry timestamp
-- `CallTime`: When patient was called (null if not yet called)
-- `Status`: Queue status (waiting/called/in-service/completed/no-show)
+- `PatientId`: Định danh duy nhất của bệnh nhân
+- `PatientCode`: Mã bệnh nhân hiển thị
+- `PatientName`: Họ và tên
+- `QueueNumber`: Số thứ tự được cấp
+- `ServiceType`: Loại dịch vụ được yêu cầu
+- `RoomId`: Phòng hoặc quầy đích
+- `PriorityLevel`: Mức độ ưu tiên hàng đợi (0=thường, 1=ưu tiên, 2=cấp cứu)
+- `CheckInTime`: Dấu thời gian vào hàng đợi
+- `CallTime`: Thời điểm bệnh nhân được gọi (null nếu chưa được gọi)
+- `Status`: Trạng thái hàng đợi (đang chờ/đã gọi/đang phục vụ/đã hoàn thành/vắng mặt)
 
 **CallHistoryADO:**
-- `CallId`: Unique call record identifier
-- `PatientId`: Called patient
-- `StaffId`: Staff who initiated call
-- `RoomId`: Destination room
-- `CallTimestamp`: When call was made
-- `ResponseTime`: Patient arrival time at room
-- `CallMethod`: Manual/automatic/recall
+- `CallId`: Định danh duy nhất của bản ghi cuộc gọi
+- `PatientId`: Bệnh nhân được gọi
+- `StaffId`: Nhân viên thực hiện cuộc gọi
+- `RoomId`: Phòng đích
+- `CallTimestamp`: Thời điểm cuộc gọi được thực hiện
+- `ResponseTime`: Thời điểm bệnh nhân đến phòng
+- `CallMethod`: Thủ công/tự động/gọi lại
 
 **RoomQueueADO:**
-- `RoomId`: Room/counter identifier
-- `RoomName`: Display name
-- `ServiceType`: Service category
-- `CurrentPatient`: Patient currently being served
-- `WaitingCount`: Patients in queue
-- `StaffOnDuty`: Current staff assigned
-- `Status`: Room status (available/busy/closed)
+- `RoomId`: Định danh phòng hoặc quầy
+- `RoomName`: Tên hiển thị
+- `ServiceType`: Danh mục dịch vụ
+- `CurrentPatient`: Bệnh nhân hiện đang được phục vụ
+- `WaitingCount`: Số lượng bệnh nhân trong hàng đợi
+- `StaffOnDuty`: Nhân viên hiện đang được phân công
+- `Status`: Trạng thái phòng (sẵn sàng/đang bận/đã đóng)
 
-### Data Validation and Business Rules
+### Kiểm tra Dữ liệu và Quy tắc Nghiệp vụ
 
-Plugins enforce business rules when processing queue operations:
+Các plugin thực thi các quy tắc nghiệp vụ khi xử lý các thao tác hàng đợi:
 
-- Priority patients (elderly, disabled, emergency) moved to front of queue
-- Insurance verification status affects queue placement
-- Time-based auto-reassignment for no-show patients
-- Maximum wait time alerts for queue management
-- Concurrent call prevention (same patient to multiple rooms)
+- Bệnh nhân ưu tiên (người già, người khuyết tật, cấp cứu) được chuyển lên đầu hàng đợi
+- Trạng thái xác thực bảo hiểm ảnh hưởng đến việc xếp hàng
+- Tự động phân bổ lại dựa trên thời gian cho bệnh nhân vắng mặt (no-show)
+- Cảnh báo thời gian chờ tối đa để quản lý hàng đợi
+- Ngăn chặn gọi đồng thời (cùng một bệnh nhân đến nhiều phòng khác nhau)
 
-**Sources:** [HIS.Desktop.ADO](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*/ADO]()
-
----
-
-## Configuration and Customization
-
-Call plugins support configuration through the HIS configuration system.
-
-### Configuration Keys
-
-Common configuration parameters accessed via `HIS.Desktop.LocalStorage.HisConfig`:
-
-- `QUEUE_AUTO_CALL_INTERVAL`: Seconds between automatic calls
-- `QUEUE_RECALL_TIMEOUT`: Minutes before patient marked no-show
-- `QUEUE_DISPLAY_PATIENT_NAME`: Privacy setting for full name display
-- `QUEUE_AUDIO_ENABLE`: Enable/disable audio announcements
-- `QUEUE_PRIORITY_RULES`: JSON configuration for priority algorithms
-- `CALL_PATIENT_VERSION`: Which CallPatient plugin version to load
-
-### Multi-Version Deployment
-
-Hospitals can deploy different CallPatient versions for different departments:
-
-- Outpatient clinics: `CallPatientV6` (standard interface)
-- Emergency department: `CallPatientVer7` (enhanced priority handling)
-- Laboratory: `CallPatientCLS` (specimen-specific features)
-- Pharmacy: `CallPatientCashier` (integrated with dispensing)
-
-Version selection is configured per workstation or per room through `LocalStorage.ConfigApplication`.
-
-**Sources:** [HIS.Desktop.LocalStorage.HisConfig](), [HIS.Desktop.LocalStorage.ConfigApplication]()
+**Nguồn:** [HIS.Desktop.ADO](), [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*/ADO]()
 
 ---
 
-## Integration with Related Systems
+## Cấu hình và Tùy chỉnh
 
-### Service Execution Integration
+Các plugin gọi hỗ trợ cấu hình thông qua hệ thống cấu hình của HIS.
+
+### Các Khóa Cấu hình
+
+Các tham số cấu hình chung được truy cập thông qua `HIS.Desktop.LocalStorage.HisConfig`:
+
+- `QUEUE_AUTO_CALL_INTERVAL`: Số giây giữa các lần gọi tự động
+- `QUEUE_RECALL_TIMEOUT`: Số phút trước khi bệnh nhân được đánh dấu là vắng mặt (no-show)
+- `QUEUE_DISPLAY_PATIENT_NAME`: Thiết đặt quyền riêng tư cho việc hiển thị đầy đủ họ tên
+- `QUEUE_AUDIO_ENABLE`: Bật/Tắt thông báo âm thanh
+- `QUEUE_PRIORITY_RULES`: Cấu hình JSON cho các thuật toán ưu tiên
+- `CALL_PATIENT_VERSION`: Phiên bản plugin CallPatient nào sẽ được tải
+
+### Triển khai Đa phiên bản
+
+Các bệnh viện có thể triển khai các phiên bản CallPatient khác nhau cho các khoa phòng khác nhau:
+
+- Phòng khám ngoại trú: `CallPatientV6` (giao diện tiêu chuẩn)
+- Khoa cấp cứu: `CallPatientVer7` (nâng cao khả năng xử lý ưu tiên)
+- Phòng xét nghiệm: `CallPatientCLS` (các tính năng dành riêng cho bệnh phẩm)
+- Nhà thuốc: `CallPatientCashier` (tích hợp với việc phát thuốc)
+
+Việc lựa chọn phiên bản được cấu hình theo từng máy trạm hoặc theo từng phòng thông qua `LocalStorage.ConfigApplication`.
+
+**Nguồn:** [HIS.Desktop.LocalStorage.HisConfig](), [HIS.Desktop.LocalStorage.ConfigApplication]()
+
+---
+
+## Tích hợp với các Hệ thống Liên quan
+
+### Tích hợp Thực hiện Dịch vụ
 
 ```mermaid
 graph LR
-    Call["Call Plugin<br/>Calls Patient"]
-    Service["ServiceExecute Plugin<br/>Performs Service"]
-    Complete["Service Completion"]
-    NextQueue["Next Queue Assignment"]
+    Call["Plugin Gọi<br/>Gọi Bệnh nhân"]
+    Service["Plugin Thực hiện Dịch vụ<br/>Thực hiện Dịch vụ"]
+    Complete["Hoàn thành Dịch vụ"]
+    NextQueue["Phân bổ Hàng đợi Tiếp theo"]
     
-    Call -->|"Patient Arrives"| Service
-    Service -->|"Completes Service"| Complete
-    Complete -->|"If More Services"| NextQueue
-    NextQueue -->|"Re-enters Queue"| Call
+    Call -->|"Bệnh nhân Đến"| Service
+    Service -->|"Hoàn thành Dịch vụ"| Complete
+    Complete -->|"Nếu còn Dịch vụ khác"| NextQueue
+    NextQueue -->|"Vào lại Hàng đợi"| Call
 ```
 
-When a patient is called and arrives at the service point:
+Khi một bệnh nhân được gọi và đến điểm dịch vụ:
 
-1. Call plugin updates queue status to "in-service"
-2. ServiceExecute plugin (see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md)) takes over
-3. Upon completion, patient may enter new queue for next service
-4. Call plugin notified via PubSub to update display
+1. Plugin gọi cập nhật trạng thái hàng đợi thành "đang phục vụ" (in-service)
+2. Plugin ServiceExecute (xem [Các Plugin Nghiệp vụ Cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md)) tiếp quản
+3. Sau khi hoàn thành, bệnh nhân có thể vào hàng đợi mới cho dịch vụ tiếp theo
+4. Plugin gọi được thông báo thông qua PubSub để cập nhật màn hình hiển thị
 
-### Registration Integration
+### Tích hợp Đăng ký
 
-The patient registration process (Register plugins) creates initial queue entries:
+Quá trình đăng ký bệnh nhân (các plugin Đăng ký) tạo ra các mục hàng đợi ban đầu:
 
-1. Patient registered at front desk
-2. Services assigned (examination, lab tests, etc.)
-3. Queue entries created for each service
-4. Call plugins receive queue data via BackendData cache
-5. Patient appears in waiting list for each service point
+1. Bệnh nhân được đăng ký tại quầy tiếp đón
+2. Các dịch vụ được chỉ định (khám bệnh, xét nghiệm, v.v.)
+3. Các mục hàng đợi được tạo cho mỗi dịch vụ
+4. Các plugin gọi nhận dữ liệu hàng đợi thông qua bộ nhớ đệm BackendData
+5. Bệnh nhân xuất hiện trong danh sách chờ tại mỗi điểm dịch vụ
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.ServiceExecute](), [HIS/Plugins/HIS.Desktop.Plugins.Register]()
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.ServiceExecute](), [HIS/Plugins/HIS.Desktop.Plugins.Register]()
 
 ---
 
-## Summary
+## Tóm tắt
 
-The Patient Call & Display plugin subsystem provides a comprehensive queue management solution with:
+Phân hệ plugin Gọi Bệnh nhân & Hiển thị cung cấp một giải pháp quản lý hàng đợi toàn diện với:
 
-- **Multiple plugin versions** (V3-V7) for different hospital needs and configurations
-- **Specialized plugins** for specific service points (exam, cashier, lab, sample collection)
-- **CallPatientTypeAlter** for dynamic patient type modifications during visits
-- **Event-based architecture** using PubSub for real-time synchronization
-- **Display system integration** for waiting area screens and audio announcements
-- **Flexible configuration** supporting multi-version deployments
+- **Nhiều phiên bản plugin** (V3-V7) cho các nhu cầu và cấu hình bệnh viện khác nhau
+- **Các plugin chuyên biệt** cho các điểm dịch vụ cụ thể (phòng khám, thu ngân, xét nghiệm, lấy mẫu)
+- **CallPatientTypeAlter** để thay đổi đối tượng bệnh nhân linh hoạt trong quá trình thăm khám
+- **Kiến trúc dựa trên sự kiện** sử dụng PubSub để đồng bộ hóa thời gian thực
+- **Tích hợp hệ thống hiển thị** cho các màn hình khu vực chờ và thông báo âm thanh
+- **Cấu hình linh hoạt** hỗ trợ triển khai đa phiên bản
 
-The plugins integrate seamlessly with other HIS subsystems through `DelegateRegister`, `PubSub`, and shared `BackendData` caching, enabling coordinated patient flow management across the entire hospital.
+Các plugin tích hợp liền mạch với các phân hệ khác của HIS thông qua `DelegateRegister`, `PubSub` và bộ nhớ đệm `BackendData` dùng chung, cho phép quản lý luồng bệnh nhân có sự phối hợp trong toàn bộ bệnh viện.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:100-108`](../../../../.devin/wiki.json#L100-L108)
+**Nguồn:** [HIS/Plugins/HIS.Desktop.Plugins.CallPatient*](), [`.devin/wiki.json:100-108`](../../../../.devin/wiki.json#L100-L108)

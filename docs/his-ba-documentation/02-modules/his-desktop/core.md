@@ -1,70 +1,70 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-HIS Desktop Core is the main entry point and application host for the HisNguonMo Hospital Information System. This document covers the core desktop application structure located in `HIS/HIS.Desktop/`, including application initialization, session management, plugin loading mechanisms, and the foundational projects that support the 956+ business plugins.
+HIS Desktop Core là điểm thâm nhập chính và là máy chủ ứng dụng cho Hệ thống Thông tin Bệnh viện HisNguonMo. Tài liệu này mô tả cấu trúc ứng dụng desktop cốt lõi nằm trong `HIS/HIS.Desktop/`, bao gồm khởi tạo ứng dụng, quản lý phiên làm việc, cơ chế tải plugin và các dự án nền tảng hỗ trợ hơn 956 plugin nghiệp vụ.
 
-**Related Pages:**
-- For plugin architecture details and individual plugin categories, see [Plugin System Architecture](../../01-architecture/plugin-system.md)
-- For LocalStorage, configuration, and caching systems, see [LocalStorage & Configuration](../../02-modules/his-desktop/core.md)
-- For API communication layer, see [API Consumer Layer](#1.1.2)
-- For data models, see [Data Models & ADO](#1.1.4)
+**Các Trang Liên quan:**
+- Để biết chi tiết về kiến trúc plugin và các danh*   **Quản lý Plugin**: Quét, tải và khởi tạo các plugin. (Xem [Vòng đời Plugin](../../01-architecture/plugin-system/02-discovery-lifecycle.md)).
+- Đối với các hệ thống LocalStorage, cấu hình và đệm dữ liệu, hãy xem [LocalStorage & Cấu hình](../../02-modules/his-desktop/core.md)
+- Đối với lớp truyền thông API, hãy xem [Lớp API Consumer](#1.1.2)
+- Đối với các mô hình dữ liệu, hãy xem [Mô hình Dữ liệu & ADO](#1.1.4)
 
-## Project Structure Overview
+## Tổng quan Cấu trúc Dự án
 
-HIS Desktop Core consists of multiple interconnected projects that form the foundation layer for the entire application:
+HIS Desktop Core bao gồm nhiều dự án liên kết với nhau tạo thành lớp nền tảng cho toàn bộ ứng dụng:
 
-| Project | Files | Purpose |
+| Dự án | Số tệp | Mục đích |
 |---------|-------|---------|
-| `HIS.Desktop` | 83 | Main application entry point, initialization, main form |
-| `HIS.Desktop.ADO` | 74 | Active Data Objects - data models for UI layer |
-| `HIS.Desktop.Utility` | 55 | Helper functions and utility classes |
-| `HIS.Desktop.Common` | varies | Shared interfaces, base classes, constants |
-| `HIS.Desktop.ApiConsumer` | 13 | REST API client wrappers |
-| `HIS.Desktop.LocalStorage.*` | varies | Configuration and caching subsystems |
-| `HIS.Desktop.Notify` | 25 | Notification system |
-| `HIS.Desktop.IsAdmin` | - | Admin privilege checking |
-| `HIS.Desktop.DelegateRegister` | - | Plugin communication registry |
+| \`HIS.Desktop\` | 83 | Điểm thâm nhập ứng dụng chính, khởi tạo, form chính |
+| \`HIS.Desktop.ADO\` | 74 | Active Data Objects - mô hình dữ liệu cho lớp UI |
+| \`HIS.Desktop.Utility\` | 55 | Các hàm tiện ích và lớp trợ giúp |
+| \`HIS.Desktop.Common\` | thay đổi | Các interface dùng chung, lớp cơ sở, hằng số |
+| \`HIS.Desktop.ApiConsumer\` | 13 | Các lớp wrapper REST API client |
+| \`HIS.Desktop.LocalStorage.*\` | thay đổi | Các hệ thống con cấu hình và đệm dữ liệu |
+| \`HIS.Desktop.Notify\` | 25 | Hệ thống thông báo |
+| \`HIS.Desktop.IsAdmin\` | - | Kiểm tra quyền quản trị |
+| \`HIS.Desktop.DelegateRegister\` | - | Sổ đăng ký truyền thông giữa các plugin |
 
-**Architecture Pattern:** The HIS Desktop Core follows a layered plugin-host architecture where the core provides infrastructure services (API communication, caching, session management) and a plugin loader that discovers and initializes business logic plugins.
+**Mô hình Kiến trúc:** HIS Desktop Core tuân theo kiến trúc plugin-host phân lớp, trong đó thành phần cốt lõi (core) cung cấp các dịch vụ hạ tầng (truyền thông API, đệm dữ liệu, quản lý phiên) và một bộ tải plugin có nhiệm vụ khám phá và khởi tạo các plugin logic nghiệp vụ.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## HIS Desktop Core Architecture
+## Kiến trúc HIS Desktop Core
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    subgraph "HIS.Desktop.csproj - Entry Point"
+    subgraph "HIS.Desktop.csproj_-_Điểm_thâm_nhập"
         Program["Program.cs<br/>Application.Run()"]
-        MainForm["frmMain<br/>Main Window"]
-        Startup["Startup Logic<br/>Session Init"]
+        MainForm["frmMain<br/>Cửa sổ chính"]
+        Startup["Logic khởi động<br/>Khởi tạo phiên"]
     end
     
     subgraph "HIS.Desktop.Common"
-        IModule["IModule Interface<br/>Plugin Contract"]
-        BaseForm["Base Form Classes"]
-        GlobalStore["GlobalStore<br/>Shared State"]
-        TokenManager["TokenManager<br/>Authentication"]
+        IModule["Interface IModule<br/>Hợp đồng Plugin"]
+        BaseForm["Các lớp form cơ sở"]
+        GlobalStore["GlobalStore<br/>Trạng thái dùng chung"]
+        TokenManager["TokenManager<br/>Xác thực"]
     end
     
-    subgraph "HIS.Desktop.ADO - Data Models"
-        ADOModels["74 ADO Classes<br/>UI Data Objects"]
+    subgraph "HIS.Desktop.ADO_-_Mô_hình_Dữ_liệu"
+        ADOModels["74 lớp ADO<br/>Đối tượng dữ liệu UI"]
         ConfigADO["Config ADO"]
         ModuleADO["Module ADO"]
     end
     
     subgraph "HIS.Desktop.Utility"
-        Helpers["Helper Functions<br/>55 Utility Classes"]
-        Extensions["Extension Methods"]
-        Converters["Data Converters"]
+        Helpers["Các hàm trợ giúp<br/>55 lớp tiện ích"]
+        Extensions["Các phương thức mở rộng"]
+        Converters["Bộ chuyển đổi dữ liệu"]
     end
     
     subgraph "HIS.Desktop.ApiConsumer"
-        ApiConsumer["13 API Client Classes<br/>REST Wrappers"]
+        ApiConsumer["13 lớp API Client<br/>Wrapper REST"]
     end
     
-    subgraph "Support Systems"
-        LocalStorage["HIS.Desktop.LocalStorage.*<br/>Config & Cache"]
-        Notify["HIS.Desktop.Notify<br/>25 files"]
-        DelegateReg["DelegateRegister<br/>Plugin Communication"]
+    subgraph "Các_hệ_thống_hỗ_trợ"
+        LocalStorage["HIS.Desktop.LocalStorage.*<br/>Cấu hình & Đệm"]
+        Notify["HIS.Desktop.Notify<br/>25 tệp"]
+        DelegateReg["DelegateRegister<br/>Truyền thông Plugin"]
     end
     
     Program --> Startup
@@ -86,105 +86,105 @@ graph TB
     style IModule fill:#fff4e1
     style ADOModels fill:#e8f5e9
     style LocalStorage fill:#f3e5f5
-```
+\`\`\`
 
-This diagram shows the core project dependencies. [[`HIS.Desktop.csproj`](../../../../HIS.Desktop.csproj)](../../../../HIS.Desktop.csproj) is the executable entry point that initializes the session and main form. `HIS.Desktop.Common` defines the plugin contract (`IModule` interface) that all plugins implement. `HIS.Desktop.ADO` provides 74 data model classes for the UI layer. `HIS.Desktop.ApiConsumer` wraps backend REST API calls. Supporting systems handle configuration, caching, and inter-plugin communication.
+Sơ đồ này cho thấy các phụ thuộc của dự án cốt lõi. [[\`HIS.Desktop.csproj\`](../../../../HIS.Desktop.csproj)](../../../../HIS.Desktop.csproj) là điểm thâm nhập thực thi, thực hiện khởi tạo phiên làm việc và form chính. \`HIS.Desktop.Common\` định nghĩa hợp đồng plugin (interface \`IModule\`) mà tất cả các plugin phải triển khai. \`HIS.Desktop.ADO\` cung cấp 74 lớp mô hình dữ liệu cho lớp giao diện người dùng. \`HIS.Desktop.ApiConsumer\` bao gói các lời gọi REST API phía backend. Các hệ thống hỗ trợ xử lý cấu hình, đệm dữ liệu và truyền thông giữa các plugin.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## Application Entry Point
+## Điểm thâm nhập Ứng dụng
 
-### Program.cs and Application Startup
+### Program.cs và Khởi động Ứng dụng
 
-The [[`HIS.Desktop.csproj`](../../../../HIS.Desktop.csproj)](../../../../HIS.Desktop.csproj) project contains the [[`Program.cs`](../../../Program.cs)](../../../Program.cs) file which serves as the application entry point using the standard WinForms `Application.Run()` pattern.
+Dự án [[\`HIS.Desktop.csproj\`](../../../../HIS.Desktop.csproj)](../../../../HIS.Desktop.csproj) chứa tệp [[\`Program.cs\`](../../../Program.cs)](../../../Program.cs) đóng vai trò là điểm thâm nhập của ứng dụng, sử dụng mô hình \`Application.Run()\` tiêu chuẩn của WinForms.
 
-**Key Initialization Steps:**
-1. **Assembly loading** - Load required assemblies and dependencies
-2. **Configuration loading** - Initialize configuration from `HIS.Desktop.LocalStorage.ConfigApplication` and `HIS.Desktop.LocalStorage.ConfigSystem`
-3. **Authentication** - Establish session through login form, obtain authentication token
-4. **Backend data cache** - Populate `HIS.Desktop.LocalStorage.BackendData` (69 files) with reference data from backend
-5. **Plugin discovery** - Scan and register available plugins
-6. **Main form display** - Show `frmMain` as the application shell
+**Các bước Khởi tạo Chính:**
+1. **Tải Assembly** - Tải các assembly và các phụ thuộc cần thiết.
+2. **Tải cấu hình** - Khởi tạo cấu hình từ \`HIS.Desktop.LocalStorage.ConfigApplication\` và \`HIS.Desktop.LocalStorage.ConfigSystem\`.
+3. **Xác thực** - Thiết lập phiên thông qua form đăng nhập, lấy token xác thực.
+4. **Bộ đệm dữ liệu backend** - Đổ dữ liệu vào \`HIS.Desktop.LocalStorage.BackendData\` (69 tệp) với dữ liệu tham chiếu từ backend.
+5. **Khám phá plugin** - Quét và đăng ký các plugin có sẵn.
+6. **Hiển thị form chính** - Hiển thị \`frmMain\` như một lớp vỏ của ứng dụng.
 
-### Main Form (frmMain)
+### Form Chính (frmMain)
 
-The main form acts as the application shell that hosts plugin content. It typically includes:
-- Menu bar with dynamically loaded plugin menu items
-- Tab control or MDI container for plugin windows
-- Status bar showing session information
-- Notification area for system messages
+Form chính đóng vai trò là khung ứng dụng lưu trữ nội dung của plugin. Nó thường bao gồm:
+- Thanh menu với các mục menu plugin được tải động.
+- Điều khiển tab hoặc container MDI cho các cửa sổ plugin.
+- Thanh trạng thái hiển thị thông tin phiên làm việc.
+- Khu vực thông báo cho các tin nhắn hệ thống.
 
-The main form communicates with plugins through the `HIS.Desktop.Common.IModule` interface and uses `HIS.Desktop.DelegateRegister` for cross-plugin communication.
+Form chính giao tiếp với các plugin thông qua interface \`HIS.Desktop.Common.IModule\` và sử dụng \`HIS.Desktop.DelegateRegister\` để truyền thông chéo giữa các plugin.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## HIS.Desktop.Common - Shared Foundation
+## HIS.Desktop.Common - Nền tảng Dùng chung
 
-`HIS.Desktop.Common` contains shared interfaces, base classes, and constants used throughout the application and all plugins.
+\`HIS.Desktop.Common\` chứa các interface dùng chung, lớp cơ sở và hằng số được sử dụng xuyên suốt ứng dụng và tất cả các plugin.
 
-### Core Components
+### Các Thành phần Cốt lõi
 
-| Component Type | Purpose | Examples |
+| Loại thành phần | Mục đích | Ví dụ |
 |----------------|---------|----------|
-| **Interfaces** | Plugin contracts | `IModule` - plugin entry point interface |
-| **Base Classes** | Form inheritance | Base forms with common functionality |
-| **Constants** | System-wide values | Message codes, configuration keys |
-| **Enums** | Type definitions | Status enums, action types |
-| **GlobalStore** | Application state | Shared state accessible to all plugins |
+| **Interface** | Hợp đồng Plugin | \`IModule\` - interface điểm thâm nhập plugin |
+| **Lớp Cơ sở** | Kế thừa Form | Các form cơ sở với chức năng chung |
+| **Hằng số** | Các giá trị toàn hệ thống | Mã thông điệp, mã cấu hình |
+| **Enum** | Định nghĩa kiểu | Enum trạng thái, loại hành động |
+| **GlobalStore** | Trạng thái ứng dụng | Trạng thái dùng chung có thể truy cập bởi tất cả plugin |
 
-### IModule Interface
+### Interface IModule
 
-The `IModule` interface is the fundamental contract that all plugins must implement:
+Interface \`IModule\` là hợp đồng cơ bản mà tất cả các plugin phải triển khai:
 
-```
-IModule interface defines:
-- Plugin metadata (name, version, room type)
-- Execute() method for plugin activation
-- Resource handling and disposal
-```
+\`\`\`
+Interface IModule định nghĩa:
+- Siêu dữ liệu plugin (tên, phiên bản, loại phòng)
+- Phương thức Execute() để kích hoạt plugin
+- Xử lý và giải phóng tài nguyên
+\`\`\`
 
-Plugins are discovered and loaded based on this interface through reflection by the plugin loader system.
+Các plugin được hệ thống tải plugin khám phá và tải dựa trên interface này thông qua kỹ thuật reflection.
 
-### GlobalStore Pattern
+### Mô hình GlobalStore
 
-`GlobalStore` provides a centralized location for application-wide state including:
-- Current logged-in user information
-- Current branch/facility
-- Current working room
-- System configuration values
+\`GlobalStore\` cung cấp một vị trí tập trung cho trạng thái toàn ứng dụng, bao gồm:
+- Thông tin người dùng hiện đang đăng nhập.
+- Chi nhánh/Cơ sở hiện tại.
+- Phòng làm việc hiện tại.
+- Các giá trị cấu hình hệ thống.
 
-Plugins access `GlobalStore` to retrieve context information needed for their operations.
+Các plugin truy cập \`GlobalStore\` để lấy thông tin ngữ cảnh cần thiết cho các hoạt động của mình.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## HIS.Desktop.ADO - Data Models
+## HIS.Desktop.ADO - Mô hình Dữ liệu
 
-`HIS.Desktop.ADO` contains 74 Active Data Object (ADO) classes that serve as data models for the UI layer. These are distinct from backend entity models and are optimized for UI binding and display.
+\`HIS.Desktop.ADO\` chứa 74 lớp Active Data Object (ADO) đóng vai trò là mô hình dữ liệu cho lớp UI. Những lớp này tách biệt với các mô hình thực thể backend và được tối ưu hóa cho việc liên kết và hiển thị trên giao diện người dùng.
 
-### ADO Design Pattern
+### Mô hình Thiết kế ADO
 
-ADO classes in this project follow these patterns:
-- **UI-optimized structure** - Fields arranged for grid/form binding
-- **Calculated properties** - Derived values for display (e.g., full name from first/last name)
-- **Validation attributes** - Data annotations for input validation
-- **Conversion methods** - Transform backend DTOs to ADO objects
+Các lớp ADO trong dự án này tuân theo các mô hình sau:
+- **Cấu trúc tối ưu cho UI** - Các trường được sắp xếp để liên kết với lưới/form.
+- **Thuộc tính tính toán** - Các giá trị dẫn xuất để hiển thị (ví dụ: họ tên đầy đủ từ họ và tên).
+- **Thuộc tính xác thực** - Các chú thích dữ liệu (data annotations) để xác thực đầu vào.
+- **Phương thức chuyển đổi** - Chuyển đổi các DTO backend thành đối tượng ADO.
 
-### Common ADO Categories
+### Các Danh mục ADO Phổ biến
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    subgraph "HIS.Desktop.ADO - 74 Data Models"
-        Patient["Patient ADO<br/>Patient info"]
-        Treatment["Treatment ADO<br/>Visit data"]
-        Service["Service ADO<br/>Service details"]
-        Medicine["Medicine ADO<br/>Drug info"]
-        Transaction["Transaction ADO<br/>Billing data"]
-        Config["Config ADO<br/>Settings"]
-        Module["Module ADO<br/>Plugin metadata"]
-        User["User ADO<br/>User info"]
+    subgraph "HIS.Desktop.ADO_-_74_Mô_hình_Dữ_liệu"
+        Patient["ADO Bệnh nhân<br/>Thông tin bn"]
+        Treatment["ADO Điều trị<br/>Dữ liệu lượt khám"]
+        Service["ADO Dịch vụ<br/>Chi tiết dịch vụ"]
+        Medicine["ADO Thuốc<br/>Thông tin thuốc"]
+        Transaction["ADO Giao dịch<br/>Dữ liệu thanh toán"]
+        Config["ADO Cấu hình<br/>Cài đặt"]
+        Module["ADO Mô-đun<br/>Siêu dữ liệu plugin"]
+        User["ADO Người dùng<br/>Thông tin ng dùng"]
     end
     
-    Backend["Backend DTOs"] --> Patient
+    Backend["DTO Backend"] --> Patient
     Backend --> Treatment
     Backend --> Service
     Backend --> Medicine
@@ -193,7 +193,7 @@ graph LR
     Backend --> Module
     Backend --> User
     
-    Patient --> UILayer["UI Layer<br/>Grids/Forms"]
+    Patient --> UILayer["Lớp UI<br/>Lưới/Form"]
     Treatment --> UILayer
     Service --> UILayer
     Medicine --> UILayer
@@ -201,73 +201,73 @@ graph LR
     Config --> UILayer
     Module --> UILayer
     User --> UILayer
-```
+\`\`\`
 
-ADO classes act as an adapter layer between backend DTOs and UI components. They include display-specific logic like formatting, concatenation, and status derivation.
+Các lớp ADO hoạt động như một lớp chuyển đổi (adapter layer) giữa các DTO backend và các thành phần UI. Chúng bao gồm logic dành riêng cho hiển thị như định dạng, nối chuỗi và suy diễn trạng thái.
 
-### Example ADO Usage
+### Ví dụ Sử dụng ADO
 
-ADO objects are typically:
-1. Created by `HIS.Desktop.ApiConsumer` classes after API calls
-2. Stored in `HIS.Desktop.LocalStorage.BackendData` for caching
-3. Bound to DevExpress grid controls in plugins
-4. Modified by user interaction in forms
-5. Converted back to backend DTOs for API updates
+Các đối tượng ADO thường:
+1. Được tạo bởi các lớp \`HIS.Desktop.ApiConsumer\` sau các lượt gọi API.
+2. Được lưu trữ trong \`HIS.Desktop.LocalStorage.BackendData\` để đệm dữ liệu.
+3. Được liên kết với các điều khiển lưới DevExpress trong các plugin.
+4. Được sửa đổi bởi tương tác của người dùng trong các form.
+5. Được chuyển đổi ngược lại thành DTO backend để cập nhật qua API.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## HIS.Desktop.Utility - Helper Functions
+## HIS.Desktop.Utility - Các Hàm Tiện ích
 
-`HIS.Desktop.Utility` contains 55 utility classes providing helper functions used throughout the application.
+\`HIS.Desktop.Utility\` chứa 55 lớp tiện ích cung cấp các hàm trợ giúp được sử dụng xuyên suốt ứng dụng.
 
-### Utility Categories
+### Các Danh mục Tiện ích
 
-| Category | Purpose | Common Methods |
+| Danh mục | Mục đích | Các phương thức phổ biến |
 |----------|---------|----------------|
-| **Data Converters** | Type conversions | String to decimal, date parsing |
-| **Format Helpers** | Display formatting | Currency format, date/time display |
-| **Validation** | Input validation | Phone number, email, ID card validation |
-| **File Operations** | File handling | PDF export, Excel import/export |
-| **Print Helpers** | Printing utilities | Print preview, printer selection |
-| **Extension Methods** | Type extensions | String extensions, collection helpers |
+| **Bộ chuyển đổi dữ liệu** | Chuyển đổi kiểu | Chuỗi sang thập phân, phân tích ngày tháng |
+| **Trợ giúp định dạng** | Định dạng hiển thị | Định dạng tiền tệ, hiển thị ngày/giờ |
+| **Xác thực** | Xác thực đầu vào | Xác thực số điện thoại, email, CMND/CCCD |
+| **Thao tác tệp** | Xử lý tệp | Xuất PDF, nhập/xuất Excel |
+| **Trợ giúp in ấn** | Tiện ích in ấn | Xem trước bản in, chọn máy in |
+| **Phương thức mở rộng** | Mở rộng kiểu dữ liệu | Tiện ích chuỗi, trợ giúp tập hợp |
 
-### Common Patterns
+### Các mô hình Phổ biến
 
-Utility classes typically provide static methods that can be called from any plugin:
+Các lớp tiện ích thường cung cấp các phương thức tĩnh có thể được gọi từ bất kỳ plugin nào:
 
-```
-Example utility usage patterns:
+\`\`\`
+Ví dụ về các mô hình sử dụng tiện ích:
 - GlobalUtil.FormatCurrency(amount)
 - DateTimeHelper.ConvertToDisplay(date)
 - ValidationHelper.IsValidPhoneNumber(phone)
 - FileHelper.ExportToExcel(data, path)
-```
+\`\`\`
 
-These utilities eliminate code duplication across the 956 plugins and ensure consistent behavior for common operations.
+Các tiện ích này loại bỏ việc lặp lại mã code trên 956 plugin và đảm bảo hành vi nhất quán cho các thao tác phổ biến.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## HIS.Desktop.ApiConsumer - REST API Layer
+## HIS.Desktop.ApiConsumer - Lớp REST API
 
-`HIS.Desktop.ApiConsumer` contains 13 API client wrapper classes that abstract backend REST API communication. For detailed information, see [API Consumer Layer](#1.1.2).
+\`HIS.Desktop.ApiConsumer\` chứa 13 lớp wrapper API client trừu tượng hóa việc truyền thông REST API backend. Để biết thông tin chi tiết, hãy xem [Lớp API Consumer](#1.1.2).
 
-### API Consumer Structure
+### Cấu trúc API Consumer
 
-Each API consumer class corresponds to a backend service domain:
+Mỗi lớp API consumer tương ứng với một miền dịch vụ backend:
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    subgraph "HIS.Desktop.ApiConsumer - 13 Classes"
-        AcsConsumer["AcsApiConsumer<br/>Access Control"]
-        HisConsumer["HisApiConsumer<br/>Core HIS"]
-        MosConsumer["MosApiConsumer<br/>Medical Operations"]
-        SarConsumer["SarApiConsumer<br/>Reports"]
-        SdaConsumer["SdaApiConsumer<br/>System Data"]
+    subgraph "HIS.Desktop.ApiConsumer_-_13_Lớp"
+        AcsConsumer["AcsApiConsumer<br/>Kiểm soát Truy cập"]
+        HisConsumer["HisApiConsumer<br/>HIS Cốt lõi"]
+        MosConsumer["MosApiConsumer<br/>Nghiệp vụ Y tế"]
+        SarConsumer["SarApiConsumer<br/>Báo cáo"]
+        SdaConsumer["SdaApiConsumer<br/>Dữ liệu Hệ thống"]
         EmrConsumer["EmrApiConsumer<br/>EMR"]
-        LisConsumer["LisApiConsumer<br/>Laboratory"]
+        LisConsumer["LisApiConsumer<br/>Xét nghiệm"]
     end
     
-    Plugin["Plugins"] --> AcsConsumer
+    Plugin["Plugin"] --> AcsConsumer
     Plugin --> HisConsumer
     Plugin --> MosConsumer
     Plugin --> SarConsumer
@@ -282,228 +282,228 @@ graph LR
     EmrConsumer --> WebClient
     LisConsumer --> WebClient
     
-    WebClient --> Backend["Backend REST APIs"]
-```
+    WebClient --> Backend["REST API Backend"]
+\`\`\`
 
-Each consumer provides strongly-typed methods for API endpoints, handles serialization/deserialization, and manages authentication tokens.
+Mỗi consumer cung cấp các phương thức có kiểu dữ liệu mạnh cho các endpoint API, xử lý việc tuần tự hóa/giải tuần tự hóa và quản lý các token xác thực.
 
-Sources: [[`.devin/wiki.json:55-58`](../../../../.devin/wiki.json#L55-L58)](../../../../.devin/wiki.json#L55-L58)
+Nguồn: [[\`.devin/wiki.json:55-58\`](../../../../.devin/wiki.json#L55-L58)](../../../../.devin/wiki.json#L55-L58)
 
-## Application Initialization Flow
+## Luồng Khởi tạo Ứng dụng
 
-```mermaid
+\`\`\`mermaid
 sequenceDiagram
     participant Program as Program.cs
     participant Config as LocalStorage.Config
-    participant Login as Login Form
+    participant Login as Form Đăng nhập
     participant Token as TokenManager
-    participant Backend as BackendData Cache
-    participant PluginLoader as Plugin Loader
+    participant Backend as Bộ đệm BackendData
+    participant PluginLoader as Bộ tải Plugin
     participant Main as frmMain
     
-    Program->>Config: Load ConfigApplication
-    Program->>Config: Load ConfigSystem
-    Program->>Login: Show Login Form
-    Login->>Token: Authenticate(username, password)
-    Token->>Config: Store auth token
-    Token->>Program: Return success
+    Program->>Config: Tải ConfigApplication
+    Program->>Config: Tải ConfigSystem
+    Program->>Login: Hiển thị Form Đăng nhập
+    Login->>Token: Xác thực(username, password)
+    Token->>Config: Lưu auth token
+    Token->>Program: Trả về thành công
     Program->>Backend: LoadBackendData()
-    Backend->>Backend: Cache HIS_CONFIG
-    Backend->>Backend: Cache reference data
-    Backend->>Program: Cache ready
+    Backend->>Backend: Đệm HIS_CONFIG
+    Backend->>Backend: Đệm dữ liệu tham chiếu
+    Backend->>Program: Bộ đệm sẵn sàng
     Program->>PluginLoader: DiscoverPlugins()
-    PluginLoader->>PluginLoader: Scan plugin assemblies
-    PluginLoader->>Program: Plugin registry ready
-    Program->>Main: Show frmMain
-    Main->>PluginLoader: Request menu items
-    PluginLoader->>Main: Return plugin menu
-    Main->>Main: Display application
-```
+    PluginLoader->>PluginLoader: Quét các assembly plugin
+    PluginLoader->>Program: Sổ đăng ký plugin sẵn sàng
+    Program->>Main: Hiển thị frmMain
+    Main->>PluginLoader: Yêu cầu các mục menu
+    PluginLoader->>Main: Trả về menu plugin
+    Main->>Main: Hiển thị ứng dụng
+\`\`\`
 
-This sequence shows the startup flow from application launch to main form display. Configuration is loaded first, then authentication establishes a session, backend data is cached, plugins are discovered, and finally the main form is displayed.
+Trình tự này cho thấy luồng khởi động từ khi khởi chạy ứng dụng đến khi hiển thị form chính. Cấu hình được tải trước, sau đó xác thực lập phiên làm việc, dữ liệu backend được đệm, các plugin được khám phá và cuối cùng form chính được hiển thị.
 
-**Key Points:**
-1. Configuration must be loaded before login
-2. Authentication token is required for all API calls
-3. Backend data caching happens once at startup
-4. Plugin discovery uses reflection to find `IModule` implementations
-5. Main form dynamically builds menu from plugin registry
+**Các Điểm Chính:**
+1. Cấu hình phải được tải trước khi đăng nhập.
+2. Token xác thực là bắt buộc cho tất cả các lời gọi API.
+3. Việc đệm dữ liệu backend diễn ra một lần khi khởi động.
+4. Việc khám phá plugin sử dụng reflection để tìm các triển khai của \`IModule\`.
+5. Form chính xây dựng menu một cách động từ sổ đăng ký plugin.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## Session Management
+## Quản lý Phiên làm việc
 
-### Authentication Flow
+### Luồng Xác thực
 
-Session management is handled through several components:
+Quản lý phiên làm việc được xử lý qua nhiều thành phần:
 
-| Component | Responsibility |
+| Thành phần | Trách nhiệm |
 |-----------|---------------|
-| `TokenManager` | Stores and refreshes authentication token |
-| `GlobalStore.UserAccount` | Current user information |
-| `GlobalStore.HisBranch` | Current facility/branch |
-| `GlobalStore.HisDepartment` | Current working department |
-| `GlobalStore.HisRoom` | Current working room |
+| \`TokenManager\` | Lưu trữ và làm mới token xác thực |
+| \`GlobalStore.UserAccount\` | Thông tin người dùng hiện tại |
+| \`GlobalStore.HisBranch\` | Cơ sở/Chi nhánh hiện tại |
+| \`GlobalStore.HisDepartment\` | Khoa làm việc hiện tại |
+| \`GlobalStore.HisRoom\` | Phòng làm việc hiện tại |
 
-### Token Storage and Refresh
+### Lưu trữ và Làm mới Token
 
-The authentication token is:
-1. Obtained during login via `HIS.Desktop.ApiConsumer` authentication API
-2. Stored in `TokenManager` 
-3. Included in all subsequent API requests via `Inventec.Common.WebApiClient`
-4. Automatically refreshed when approaching expiration
-5. Cleared on logout or session timeout
+Token xác thực:
+1. Được lấy trong quá trình đăng nhập qua API xác thực của \`HIS.Desktop.ApiConsumer\`.
+2. Được lưu trữ trong \`TokenManager\`.
+3. Được bao gồm trong tất cả các yêu cầu API sau đó thông qua \`Inventec.Common.WebApiClient\`.
+4. Được tự động làm mới khi sắp hết hạn.
+5. Được xóa khi đăng xuất hoặc hết hạn phiên làm việc.
 
-### Session Context
+### Ngữ cảnh Phiên (Session Context)
 
-Plugins access session context through `GlobalStore`:
+Các plugin truy cập ngữ cảnh phiên thông qua \`GlobalStore\`:
 
-```
-Access patterns in plugins:
+\`\`\`
+Các mô hình truy cập trong plugin:
 - var user = GlobalStore.UserAccount
 - var branch = GlobalStore.HisBranch  
 - var room = GlobalStore.HisRoom
-```
+\`\`\`
 
-This context determines what data and actions are available to the current user based on their role, department, and room assignment.
+Ngữ cảnh này xác định dữ liệu và hành động nào có sẵn cho người dùng hiện tại dựa trên vai trò, khoa và sự phân công phòng của họ.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
 
-## Plugin Loading Mechanism
+## Cơ chế Tải Plugin
 
-### Plugin Discovery Process
+### Quy trình Khám phá Plugin
 
-The plugin loader system discovers plugins through the following steps:
+Hệ thống tải plugin khám phá các plugin qua các bước sau:
 
-1. **Assembly Scanning** - Scan `HIS/Plugins/` directory for DLL files
-2. **Interface Detection** - Use reflection to find classes implementing `IModule`
-3. **Metadata Extraction** - Read plugin attributes (name, room type, module type)
-4. **Dependency Resolution** - Verify plugin dependencies are available
-5. **Registration** - Add plugin to internal registry with metadata
+1. **Quét Assembly** - Quét thư mục \`HIS/Plugins/\` để tìm các tệp DLL.
+2. **Phát hiện Interface** - Sử dụng reflection để tìm các lớp triển khai \`IModule\`.
+3. **Trích xuất Siêu dữ liệu** - Đọc các thuộc tính plugin (tên, loại phòng, loại mô-đun).
+4. **Giải quyết Phụ thuộc** - Xác minh các phụ thuộc của plugin có sẵn.
+5. **Đăng ký** - Thêm plugin vào sổ đăng ký nội bộ kèm siêu dữ liệu.
 
-### Plugin Lifecycle
+### Vòng đời Plugin
 
-```mermaid
+\`\`\`mermaid
 stateDiagram-v2
-    [*] --> Discovered: Assembly scan
-    Discovered --> Loaded: Load assembly
-    Loaded --> Registered: IModule found
-    Registered --> Activated: User invokes
-    Activated --> Executing: Execute() called
-    Executing --> Displayed: Show UI
-    Displayed --> Disposed: Close/Exit
+    [*] --> Discovered: Quét assembly
+    Discovered --> Loaded: Tải assembly
+    Loaded --> Registered: Tìm thấy IModule
+    Registered --> Activated: Người dùng kích hoạt
+    Activated --> Executing: Gọi Execute()
+    Executing --> Displayed: Hiển thị UI
+    Displayed --> Disposed: Đóng/Thoát
     Disposed --> [*]
     
-    Activated --> Error: Exception
+    Activated --> Error: Ngoại lệ
     Error --> [*]
-```
+\`\`\`
 
-**Plugin States:**
-- **Discovered** - DLL found in plugins directory
-- **Loaded** - Assembly loaded into AppDomain
-- **Registered** - Metadata stored, ready to activate
-- **Activated** - Instance created by plugin loader
-- **Executing** - `IModule.Execute()` method running
-- **Displayed** - Plugin UI shown to user
-- **Disposed** - Resources released, form closed
+**Các Trạng thái Plugin:**
+- **Discovered** - Tệp DLL được tìm thấy trong thư mục plugin.
+- **Loaded** - Assembly được tải vào AppDomain.
+- **Registered** - Siêu dữ liệu được lưu trữ, sẵn sàng kích hoạt.
+- **Activated** - Instance được tạo bởi bộ tải plugin.
+- **Executing** - Phương thức \`IModule.Execute()\` đang chạy.
+- **Displayed** - UI của plugin được hiển thị cho người dùng.
+- **Disposed** - Tài nguyên được giải phóng, form được đóng.
 
-### Plugin Activation
+### Kích hoạt Plugin
 
-When a user clicks a menu item or requests a plugin:
+Khi người dùng nhấp vào một mục menu hoặc yêu cầu một plugin:
 
-1. Plugin loader retrieves plugin metadata from registry
-2. Creates new instance of plugin class via reflection
-3. Calls `IModule.Execute()` passing module data
-4. Plugin displays its UI (form, user control, etc.)
-5. Plugin interacts with backend via `ApiConsumer`
-6. Plugin communicates with other plugins via `DelegateRegister` or `PubSub`
+1. Bộ tải plugin lấy siêu dữ liệu plugin từ sổ đăng ký.
+2. Tạo một instance mới của lớp plugin qua reflection.
+3. Gọi \`IModule.Execute()\` truyền dữ liệu mô-đun.
+4. Plugin hiển thị UI (form, user control, v.v.).
+5. Plugin tương tác với backend qua \`ApiConsumer\`.
+6. Plugin giao tiếp với các plugin khác qua \`DelegateRegister\` hoặc \`PubSub\`.
 
-Sources: [[`.devin/wiki.json:59-68`](../../../../.devin/wiki.json#L59-L68)](../../../../.devin/wiki.json#L59-L68)
+Nguồn: [[\`.devin/wiki.json:59-68\`](../../../../.devin/wiki.json#L59-L68)](../../../../.devin/wiki.json#L59-L68)
 
-## Inter-module Communication
+## Truyền thông Giữa các Mô-đun
 
-### Communication Patterns
+### Các Mô hình Truyền thông
 
-HIS Desktop Core supports two primary communication patterns between plugins:
+HIS Desktop Core hỗ trợ hai mô hình truyền thông chính giữa các plugin:
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    subgraph "Direct Communication via DelegateRegister"
+    subgraph "Truyền_thông_Trực_tiếp_qua_DelegateRegister"
         PluginA["Plugin A"]
-        DelegateReg["HIS.Desktop.DelegateRegister<br/>Delegate Registry"]
+        DelegateReg["HIS.Desktop.DelegateRegister<br/>Sổ đăng ký Delegate"]
         PluginB["Plugin B"]
         
-        PluginA -->|"Register delegate"| DelegateReg
-        PluginB -->|"Invoke delegate"| DelegateReg
-        DelegateReg -->|"Call back"| PluginA
+        PluginA -->|"Đăng ký delegate"| DelegateReg
+        PluginB -->|"Gọi delegate"| DelegateReg
+        DelegateReg -->|"Gọi lại"| PluginA
     end
     
-    subgraph "Event-based Communication via PubSub"
+    subgraph "Truyền_thông_dựa_trên_Sự_kiện_qua_PubSub"
         PluginC["Plugin C"]
-        PubSub["LocalStorage.PubSub<br/>Event Bus"]
+        PubSub["LocalStorage.PubSub<br/>Bus Sự kiện"]
         PluginD["Plugin D"]
         PluginE["Plugin E"]
         
-        PluginC -->|"Publish event"| PubSub
-        PubSub -->|"Notify"| PluginD
-        PubSub -->|"Notify"| PluginE
+        PluginC -->|"Phát sự kiện"| PubSub
+        PubSub -->|"Thông báo"| PluginD
+        PubSub -->|"Thông báo"| PluginE
     end
-```
+\`\`\`
 
-### DelegateRegister Pattern
+### Mô hình DelegateRegister
 
-`HIS.Desktop.DelegateRegister` enables tight coupling between plugins that need direct method invocation:
+\`HIS.Desktop.DelegateRegister\` cho phép liên kết chặt chẽ giữa các plugin cần gọi phương thức trực tiếp:
 
-**Usage:**
-- Plugin A registers a delegate: `DelegateRegister.Register("RefreshPatientList", RefreshMethod)`
-- Plugin B invokes the delegate: `DelegateRegister.Invoke("RefreshPatientList", parameters)`
-- Plugin A's `RefreshMethod` is called with parameters
+**Sử dụng:**
+- Plugin A đăng ký một delegate: \`DelegateRegister.Register("RefreshPatientList", RefreshMethod)\`
+- Plugin B gọi delegate: \`DelegateRegister.Invoke("RefreshPatientList", parameters)\`
+- Phương thức \`RefreshMethod\` của Plugin A được gọi kèm tham số.
 
-This pattern is used when one plugin needs to trigger a specific action in another plugin.
+Mô hình này được sử dụng khi một plugin cần kích hoạt một hành động cụ thể trong một plugin khác.
 
-### PubSub Pattern
+### Mô hình PubSub
 
-`HIS.Desktop.LocalStorage.PubSub` (9 files) provides loose coupling through a publish-subscribe event bus:
+\`HIS.Desktop.LocalStorage.PubSub\` (9 tệp) cung cấp sự liên kết lỏng lẻo thông qua một bus sự kiện publish-subscribe:
 
-**Usage:**
-- Plugins subscribe to events: `PubSub.Subscribe("PatientUpdated", HandlePatientUpdate)`
-- Plugins publish events: `PubSub.Publish("PatientUpdated", patientData)`
-- All subscribers receive notification
+**Sử dụng:**
+- Các plugin đăng ký nhận sự kiện: \`PubSub.Subscribe("PatientUpdated", HandlePatientUpdate)\`
+- Các plugin phát sự kiện: \`PubSub.Publish("PatientUpdated", patientData)\`
+- Tất cả các bên đăng ký đều nhận được thông báo.
 
-This pattern is used for broadcasting state changes that multiple plugins may need to react to.
+Mô hình này được sử dụng để phát đi các thay đổi trạng thái mà nhiều plugin có thể cần phản ứng lại.
 
-Sources: [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), [[`.devin/wiki.json:280-283`](../../../../.devin/wiki.json#L280-L283)](../../../../.devin/wiki.json#L280-L283)
+Nguồn: [[\`.devin/wiki.json:44-53\`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), [[\`.devin/wiki.json:280-283\`](../../../../.devin/wiki.json#L280-L283)](../../../../.devin/wiki.json#L280-L283)
 
-## Core Data Flow Architecture
+## Kiến trúc Luồng Dữ liệu Cốt lõi
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    subgraph "Presentation Layer"
-        Plugins["956 Plugins<br/>Business Logic"]
-        MainForm["frmMain<br/>Application Shell"]
+    subgraph "Lớp_Hiển_thị"
+        Plugins["956 Plugin<br/>Logic Nghiệp vụ"]
+        MainForm["frmMain<br/>Vỏ Ứng dụng"]
     end
     
-    subgraph "HIS Desktop Core Layer"
-        Common["HIS.Desktop.Common<br/>Interfaces & Base Classes"]
-        ADO["HIS.Desktop.ADO<br/>74 Data Models"]
-        Utility["HIS.Desktop.Utility<br/>55 Helper Classes"]
+    subgraph "Lớp_HIS_Desktop_Core"
+        Common["HIS.Desktop.Common<br/>Interface & Lớp Cơ sở"]
+        ADO["HIS.Desktop.ADO<br/>74 Mô hình Dữ liệu"]
+        Utility["HIS.Desktop.Utility<br/>55 Lớp Trợ giúp"]
     end
     
-    subgraph "Data Access Layer"
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 API Clients"]
-        LocalStorage["LocalStorage.BackendData<br/>69 Cache Files"]
+    subgraph "Lớp_Truy_cập_Dữ_liệu"
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 API Client"]
+        LocalStorage["LocalStorage.BackendData<br/>69 tệp Đệm"]
         ConfigApp["LocalStorage.ConfigApplication"]
         ConfigSys["LocalStorage.ConfigSystem"]
     end
     
-    subgraph "Communication Layer"
-        WebApiClient["Inventec.Common.WebApiClient<br/>HTTP Infrastructure"]
-        DelegateReg["DelegateRegister<br/>Plugin-to-Plugin"]
-        PubSub["LocalStorage.PubSub<br/>Event Bus"]
+    subgraph "Lớp_Truyền_thông"
+        WebApiClient["Inventec.Common.WebApiClient<br/>Hạ tầng HTTP"]
+        DelegateReg["DelegateRegister<br/>Giữa các Plugin"]
+        PubSub["LocalStorage.PubSub<br/>Bus Sự kiện"]
     end
     
-    subgraph "Backend Services"
-        REST["REST APIs<br/>HIS/MOS/ACS/SAR/SDA/EMR/LIS"]
+    subgraph "Dịch_vụ_Backend"
+        REST["REST API<br/>HIS/MOS/ACS/SAR/SDA/EMR/LIS"]
     end
     
     MainForm --> Plugins
@@ -520,149 +520,145 @@ graph TB
     ApiConsumer --> WebApiClient
     ApiConsumer --> LocalStorage
     WebApiClient --> REST
-    REST -->|"Cached response"| LocalStorage
+    REST -->|"Phản hồi được đệm"| LocalStorage
     
     ConfigApp --> REST
     ConfigSys --> REST
-```
+\`\`\`
 
-This comprehensive data flow diagram shows how the 956 plugins interact with HIS Desktop Core components. Plugins use `HIS.Desktop.Common` interfaces and `HIS.Desktop.ADO` models, call backend through `ApiConsumer`, cache data in `LocalStorage`, and communicate via `DelegateRegister` and `PubSub`. The `Utility` layer provides cross-cutting helper functions.
+Sơ đồ luồng dữ liệu toàn diện này cho thấy cách 956 plugin tương tác với các thành phần của HIS Desktop Core. Các plugin sử dụng các interface của \`HIS.Desktop.Common\` và các mô hình \`HIS.Desktop.ADO\`, gọi backend thông qua \`ApiConsumer\`, đệm dữ liệu trong \`LocalStorage\`, và truyền thông qua \`DelegateRegister\` và \`PubSub\`. Lớp \`Utility\` cung cấp các hàm trợ giúp xuyên suốt.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43), [[`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), [[`.devin/wiki.json:55-58`](../../../../.devin/wiki.json#L55-L58)](../../../../.devin/wiki.json#L55-L58)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43), [[\`.devin/wiki.json:44-53\`](../../../../.devin/wiki.json#L44-L53)](../../../../.devin/wiki.json#L44-L53), [[\`.devin/wiki.json:55-58\`](../../../../.devin/wiki.json#L55-L58)](../../../../.devin/wiki.json#L55-L58)
 
-## Key Integration Points
+## Các Điểm Tích hợp Chính
 
-### Integration with MPS Print System
+### Tích hợp với Hệ thống In MPS
 
-Plugins invoke the MPS print system through:
-1. Construct print data using `Mps000xxx.PDO` classes
-2. Call MPS processor via `MPS.Processor.Mps000xxx`
-3. Specify output format (PDF, Excel, printer)
-4. MPS returns printed document or sends to printer
+Các plugin gọi hệ thống in MPS thông qua:
+1. Xây dựng dữ liệu in sử dụng các lớp \`Mps000xxx.PDO\`.
+2. Gọi bộ xử lý MPS qua \`MPS.Processor.Mps000xxx\`.
+3. Chỉ định định dạng đầu ra (PDF, Excel, máy in).
+4. MPS trả về tài liệu đã in hoặc gửi tới máy in.
 
-See [MPS Print System](../../02-modules/his-desktop/business-plugins.md#mps-print) for details.
+Xem [Hệ thống In MPS](../../02-modules/his-desktop/business-plugins.md#mps-print) để biết chi tiết.
 
-### Integration with UC Components
+### Tích hợp với các Thành phần UC
 
-Plugins embed reusable UI controls from the UC library:
-1. Reference `HIS.UC.*` projects
-2. Instantiate UC controls in plugin forms
-3. Wire up UC events to plugin logic
-4. UC controls handle their own data binding and validation
+Các plugin nhúng các thành phần giao diện người dùng có thể tái sử dụng từ thư viện UC:
+1. Tham chiếu các dự án \`HIS.UC.*\`.
+2. Khởi tạo các điều khiển UC trong các form của plugin.
+3. Liên kết các sự kiện UC với logic của plugin.
+4. Các điều khiển UC tự xử lý việc liên kết dữ liệu và xác thực của riêng chúng.
 
-See [UC Components Library](../../02-modules/uc-controls/form-type-controls.md) for details.
+Xem [Thư viện Thành phần UC](../../02-modules/uc-controls/form-type-controls.md) để biết chi tiết.
 
-### Integration with Common Libraries
+### Tích hợp với Thư viện Chung
 
-HIS Desktop Core extensively uses `Inventec.Common.*` and `Inventec.Desktop.*` libraries:
-- `Inventec.Desktop.Core` - Plugin discovery and lifecycle engine (208 files)
-- `Inventec.Common.WebApiClient` - HTTP communication layer
-- `Inventec.Common.Logging` - System-wide logging
-- `Inventec.Common.FlexCelPrint` - Excel/PDF generation (38 files)
-- `Inventec.Common.ElectronicBill` - E-invoice integration (319 files)
+HIS Desktop Core sử dụng rộng rãi các thư viện \`Inventec.Common.*\` và \`Inventec.Desktop.*\`:
+- \`Inventec.Desktop.Core\` - Bộ máy khám phá và vòng đời plugin (208 tệp).
+- \`Inventec.Common.WebApiClient\` - Lớp truyền thông HTTP.
+- \`Inventec.Common.Logging\` - Ghi nhật ký toàn hệ thống.
+- \`Inventec.Common.FlexCelPrint\` - Tạo Excel/PDF (38 tệp).
+- \`Inventec.Common.ElectronicBill\` - Tích hợp hóa đơn điện tử (319 tệp).
 
-See [Common Libraries](../../02-modules/common-libraries/libraries.md) for details.
+Xem [Thư viện Chung](../../02-modules/common-libraries/libraries.md) để biết chi tiết.
 
-Sources: [[`.devin/wiki.json:240-273`](../../../../.devin/wiki.json#L240-L273)](../../../../.devin/wiki.json#L240-L273)
+Nguồn: [[\`.devin/wiki.json:240-273\`](../../../../.devin/wiki.json#L240-L273)](../../../../.devin/wiki.json#L240-L273)
 
-## Error Handling and Logging
+## Xử lý Lỗi và Ghi nhật ký
 
-### Exception Management
+### Quản lý Ngoại lệ
 
-HIS Desktop Core implements structured exception handling:
+HIS Desktop Core triển khai xử lý ngoại lệ có cấu trúc:
 
-1. **Plugin-level** - Each plugin handles its own business logic exceptions
-2. **Core-level** - Core catches unhandled exceptions from plugins
-3. **API-level** - `ApiConsumer` handles HTTP errors and timeouts
-4. **Global handler** - Application-level exception handler logs crashes
+1. **Cấp độ Plugin** - Mỗi plugin xử lý các ngoại lệ logic nghiệp vụ của riêng mình.
+2. **Cấp độ Core** - Core bắt các ngoại lệ không được xử lý từ các plugin.
+3. **Cấp độ API** - \`ApiConsumer\` xử lý các lỗi HTTP và hết hạn thời gian (timeout).
+4. **Trình xử lý Toàn cục** - Trình xử lý ngoại lệ cấp ứng dụng ghi nhật ký các trường hợp treo ứng dụng (crash).
 
-### Logging System
+### Hệ thống Ghi nhật ký (Logging)
 
-Logging is provided by `Inventec.Common.Logging`:
-- **Log levels** - Debug, Info, Warning, Error, Fatal
-- **Log targets** - File, database, external logging service
-- **Context** - User, module, action automatically included
-- **Performance** - API call timing and performance metrics
+Việc ghi nhật ký được cung cấp bởi \`Inventec.Common.Logging\`:
+- **Các cấp độ log** - Debug, Info, Warning, Error, Fatal.
+- **Mục tiêu log** - Tệp, cơ sở dữ liệu, dịch vụ ghi log bên ngoài.
+- **Ngữ cảnh** - Người dùng, mô-đun, hành động được tự động bao gồm.
+- **Hiệu năng** - Thời gian gọi API và các số liệu hiệu năng.
 
-Plugins access logging through:
-```
-LogSystem.Debug("Debug message")
-LogSystem.Info("Info message")  
-LogSystem.Error("Error message", exception)
-```
+Các plugin truy cập ghi nhật ký qua:
+\`\`\`
+LogSystem.Debug("Tin nhắn debug")
+LogSystem.Info("Tin nhắn thông tin")  
+LogSystem.Error("Tin nhắn lỗi", exception)
+\`\`\`
 
-Sources: [[`.devin/wiki.json:249-258`](../../../../.devin/wiki.json#L249-L258)](../../../../.devin/wiki.json#L249-L258)
+Nguồn: [[\`.devin/wiki.json:249-258\`](../../../../.devin/wiki.json#L249-L258)](../../../../.devin/wiki.json#L249-L258)
 
-## Summary
+## Tóm tắt
 
-HIS Desktop Core provides the foundational infrastructure for the HisNguonMo system:
+HIS Desktop Core cung cấp hạ tầng nền tảng cho hệ thống HisNguonMo:
 
-**Core Responsibilities:**
-- Application entry point and initialization sequence
-- Plugin discovery, loading, and lifecycle management
-- Session and authentication token management
-- REST API communication abstraction via `ApiConsumer`
-- Data model layer with 74 ADO classes
-- Utility functions with 55 helper classes
-- Inter-plugin communication via `DelegateRegister` and `PubSub`
-- Configuration and backend data caching
+**Các Trách nhiệm Chính:**
+- Điểm thâm nhập ứng dụng và trình tự khởi tạo.
+- Khám phá, tải và quản lý vòng đời plugin.
+- Quản lý phiên và token xác thực.
+- Trừu tượng hóa truyền thông REST API qua \`ApiConsumer\`.
+- Lớp mô hình dữ liệu với 74 lớp ADO.
+- Các hàm tiện ích với 55 lớp trợ giúp.
+- Truyền thông giữa các plugin qua \`DelegateRegister\` và \`PubSub\`.
+- Cấu hình và đệm dữ liệu backend.
 
-**Key Projects:**
-- `HIS.Desktop` (83 files) - entry point
-- `HIS.Desktop.ADO` (74 files) - data models
-- `HIS.Desktop.Utility` (55 files) - utilities
-- `HIS.Desktop.Common` - shared interfaces
-- `HIS.Desktop.ApiConsumer` (13 files) - API layer
+**Các Dự án Chính:**
+- \`HIS.Desktop\` (83 tệp) - điểm thâm nhập.
+- \`HIS.Desktop.ADO\` (74 tệp) - mô hình dữ liệu.
+- \`HIS.Desktop.Utility\` (55 tệp) - tiện ích.
+- \`HIS.Desktop.Common\` - interface dùng chung.
+- \`HIS.Desktop.ApiConsumer\` (13 tệp) - lớp API.
 
-The architecture enables 956 plugins to function independently while sharing common services, ensuring consistency and reducing code duplication across the massive codebase.
+Kiến trúc này cho phép 956 plugin hoạt động độc lập trong khi vẫn chia sẻ các dịch vụ chung, đảm bảo tính nhất quán và giảm việc lặp mã code trên toàn bộ cơ sở mã nguồn khổng lồ.
 
-Sources: [[`.devin/wiki.json:35-43`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+Nguồn: [[\`.devin/wiki.json:35-43\`](../../../../.devin/wiki.json#L35-L43)](../../../../.devin/wiki.json#L35-L43)
+# LocalStorage & Cấu hình
 
-# LocalStorage & Configuration
+## Mục đích & Phạm vi
 
+Tài liệu này mô tả hệ thống con **HIS.Desktop.LocalStorage**, nơi cung cấp việc quản lý cấu hình tập trung và đệm dữ liệu cục bộ cho ứng dụng HIS Desktop. Hệ thống LocalStorage phục vụ như một lớp nền tảng cho:
 
+- **Quản lý cấu hình**: Các cài đặt ứng dụng, tham số hệ thống và các cấu hình dành riêng cho mô-đun.
+- **Đệm dữ liệu backend**: Lưu trữ cục bộ các phản hồi API để giảm thiểu các lượt gọi mạng và hỗ trợ khả năng hoạt động ngoại tuyến.
+- **Truyền thông giữa các mô-đun**: Hệ thống sự kiện PubSub cho việc truyền thông liên kết lỏng lẻo giữa các plugin.
+- **Trạng thái phiên làm việc**: Phiên làm việc hiện tại của người dùng, chi nhánh và ngữ cảnh vị trí.
 
-
-## Purpose & Scope
-
-This document describes the **HIS.Desktop.LocalStorage** subsystem, which provides centralized configuration management and local data caching for the HIS Desktop application. The LocalStorage system serves as the foundational layer for:
-
-- **Configuration management**: Application settings, system parameters, and module-specific configurations
-- **Backend data caching**: Local storage of API responses to reduce network calls and enable offline capabilities
-- **Inter-module communication**: PubSub event system for loose-coupled plugin communication
-- **Session state**: Current user session, branch, and location context
-
-For information about how plugins consume this configuration data, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For API communication details, see [API Consumer Layer](#1.1.2).
+Để biết thông tin về cách các plugin sử dụng dữ liệu cấu hình này, hãy xem [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/04-communication.md). Để biết chi tiết về truyền thông API, hãy xem [Lớp API Consumer](#1.1.2).
 
 ---
 
-## Architecture Overview
+## Tổng quan Kiến trúc
 
-The LocalStorage subsystem is organized as a collection of specialized projects under the `HIS.Desktop.LocalStorage.*` namespace, each responsible for a specific domain of configuration or cached data.
+Hệ thống con LocalStorage được tổ chức thành một tập hợp các dự án chuyên biệt dưới namespace `HIS.Desktop.LocalStorage.*`, mỗi dự án chịu trách nhiệm cho một miền cấu hình hoặc dữ liệu đệm cụ thể.
 
 ```mermaid
 graph TB
-    subgraph "HIS Desktop Application"
-        Plugins["956 Plugins<br/>(HIS.Desktop.Plugins.*)"]
+    subgraph "Ứng_dụng_HIS_Desktop"
+        Plugins["956 Plugin<br/>(HIS.Desktop.Plugins.*)"]
         Core["HIS.Desktop Core"]
     end
     
-    subgraph "LocalStorage Subsystem"
-        ConfigApp["LocalStorage.ConfigApplication<br/>Application Settings"]
-        ConfigSys["LocalStorage.ConfigSystem<br/>System Configuration"]
-        HisConfig["LocalStorage.HisConfig<br/>HIS Module Config"]
-        LisConfig["LocalStorage.LisConfig<br/>Laboratory Config"]
-        EmrConfig["LocalStorage.EmrConfig<br/>EMR Config"]
-        BackendData["LocalStorage.BackendData<br/>69 files<br/>API Response Cache"]
-        PubSub["LocalStorage.PubSub<br/>9 files<br/>Event Bus"]
-        Location["LocalStorage.Location<br/>Current Location Context"]
-        Branch["LocalStorage.Branch<br/>Current Branch Context"]
-        SdaConfigKey["LocalStorage.SdaConfigKey<br/>30 files<br/>System Data Keys"]
+    subgraph "Hệ_thống_con_LocalStorage"
+        ConfigApp["LocalStorage.ConfigApplication<br/>Cài đặt Ứng dụng"]
+        ConfigSys["LocalStorage.ConfigSystem<br/>Cấu hình Hệ thống"]
+        HisConfig["LocalStorage.HisConfig<br/>Cấu hình Mô-đun HIS"]
+        LisConfig["LocalStorage.LisConfig<br/>Cấu hình Xét nghiệm"]
+        EmrConfig["LocalStorage.EmrConfig<br/>Cấu hình EMR"]
+        BackendData["LocalStorage.BackendData<br/>69 tệp<br/>Đệm Phản hồi API"]
+        PubSub["LocalStorage.PubSub<br/>9 tệp<br/>Bus Sự kiện"]
+        Location["LocalStorage.Location<br/>Ngữ cảnh Vị trí hiện tại"]
+        Branch["LocalStorage.Branch<br/>Ngữ cảnh Chi nhánh hiện tại"]
+        SdaConfigKey["LocalStorage.SdaConfigKey<br/>30 tệp<br/>Khóa Dữ liệu Hệ thống"]
     end
     
-    subgraph "API Layer"
+    subgraph "Lớp_API"
         ApiConsumer["HIS.Desktop.ApiConsumer"]
-        Backend["REST APIs"]
+        Backend["REST API"]
     end
     
     Plugins --> ConfigApp
@@ -681,54 +677,54 @@ graph TB
     Core --> Branch
     
     ApiConsumer --> BackendData
-    Backend -.->|"Cache Response"| BackendData
+    Backend -.->|"Đệm phản hồi"| BackendData
     
-    Plugins -.->|"Publish Events"| PubSub
-    PubSub -.->|"Subscribe Events"| Plugins
+    Plugins -.->|"Phát Sự kiện"| PubSub
+    PubSub -.->|"Đăng ký Sự kiện"| Plugins
 ```
 
-**Sources:** Based on high-level architecture diagrams (Diagram 3: Data Flow & API Integration Architecture) and [[`wiki.json`](../../../wiki.json)](../../../wiki.json) page notes for section 1.1.1.
+**Nguồn:** Dựa trên các sơ đồ kiến trúc cấp cao (Sơ đồ 3: Kiến trúc Luồng Dữ liệu & Tích hợp API) và các ghi chú trong trang [[`wiki.json`](../../../wiki.json)](../../../wiki.json) cho phần 1.1.1.
 
 ---
 
-## LocalStorage Project Structure
+## Cấu trúc Dự án LocalStorage
 
-The LocalStorage subsystem consists of the following projects:
+Hệ thống con LocalStorage bao gồm các dự án sau:
 
-| Project Name | Purpose | Estimated Size |
+| Tên Dự án | Mục đích | Kích thước Ước tính |
 |-------------|---------|----------------|
-| `HIS.Desktop.LocalStorage.ConfigApplication` | Application-level configuration settings (UI preferences, display options) | Small |
-| `HIS.Desktop.LocalStorage.ConfigSystem` | System-level configuration (database connections, service URLs) | Small |
-| `HIS.Desktop.LocalStorage.HisConfig` | HIS module-specific configuration parameters | Medium |
-| `HIS.Desktop.LocalStorage.LisConfig` | Laboratory Information System configuration | Small |
-| `HIS.Desktop.LocalStorage.EmrConfig` | Electronic Medical Record configuration | Small |
-| `HIS.Desktop.LocalStorage.BackendData` | Cached backend data objects from API responses | 69 files (Large) |
-| `HIS.Desktop.LocalStorage.PubSub` | Publish-Subscribe event communication system | 9 files |
-| `HIS.Desktop.LocalStorage.Location` | Current location context (room, department) | Small |
-| `HIS.Desktop.LocalStorage.Branch` | Current branch/facility context | Small |
-| `HIS.Desktop.LocalStorage.SdaConfigKey` | System Data Administration configuration keys | 30 files |
+| `HIS.Desktop.LocalStorage.ConfigApplication` | Các cài đặt cấu hình cấp ứng dụng (tùy chọn UI, tùy chọn hiển thị) | Nhỏ |
+| `HIS.Desktop.LocalStorage.ConfigSystem` | Cấu hình cấp hệ thống (kết nối cơ sở dữ liệu, URL dịch vụ) | Nhỏ |
+| `HIS.Desktop.LocalStorage.HisConfig` | Các tham số cấu hình dành riêng cho mô-đun HIS | Trung bình |
+| `HIS.Desktop.LocalStorage.LisConfig` | Cấu hình Hệ thống Thông tin Xét nghiệm (LIS) | Nhỏ |
+| `HIS.Desktop.LocalStorage.EmrConfig` | Cấu hình Hồ sơ Bệnh án Điện tử (EMR) | Nhỏ |
+| `HIS.Desktop.LocalStorage.BackendData` | Các đối tượng dữ liệu backend được đệm từ các phản hồi API | 69 tệp (Lớn) |
+| `HIS.Desktop.LocalStorage.PubSub` | Hệ thống truyền thông sự kiện Publish-Subscribe | 9 tệp |
+| `HIS.Desktop.LocalStorage.Location` | Ngữ cảnh vị trí hiện tại (phòng, khoa) | Nhỏ |
+| `HIS.Desktop.LocalStorage.Branch` | Ngữ cảnh chi nhánh/cơ sở hiện tại | Nhỏ |
+| `HIS.Desktop.LocalStorage.SdaConfigKey` | Các khóa cấu hình Quản trị Dữ liệu Hệ thống (SDA) | 30 tệp |
 
-**Sources:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+**Nguồn:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
 
 ---
 
-## Configuration Management System
+## Hệ thống Quản lý Cấu hình
 
-### Configuration Hierarchy
+### Phân cấp Cấu hình
 
-The LocalStorage system implements a three-tier configuration hierarchy:
+Hệ thống LocalStorage triển khai một cấu trúc phân cấp cấu hình ba tầng:
 
 ```mermaid
 graph LR
-    subgraph "Configuration Layers"
-        System["System Configuration<br/>ConfigSystem<br/>(Database, URLs)"]
-        Application["Application Configuration<br/>ConfigApplication<br/>(UI, Preferences)"]
-        Module["Module Configurations<br/>HisConfig, LisConfig, EmrConfig"]
+    subgraph "Các_lớp_Cấu_hình"
+        System["Cấu hình Hệ thống<br/>ConfigSystem<br/>(CSDL, URL)"]
+        Application["Cấu hình Ứng dụng<br/>ConfigApplication<br/>(UI, Tùy chọn)"]
+        Module["Cấu hình Mô-đun<br/>HisConfig, LisConfig, EmrConfig"]
     end
     
-    subgraph "Storage Mechanism"
-        XML["XML Files<br/>Serialized Config"]
-        Memory["In-Memory Cache<br/>Static Properties"]
+    subgraph "Cơ_chế_Lưu_trữ"
+        XML["Tệp XML<br/>Cấu hình được tuần tự hóa"]
+        Memory["Bộ đệm In-Memory<br/>Các thuộc tính tĩnh"]
     end
     
     System --> Memory
@@ -737,559 +733,219 @@ graph LR
     
     Memory --> XML
     
-    subgraph "Access Pattern"
-        Plugins["Plugins Access Config<br/>via Static Properties"]
+    subgraph "Mô_hình_Truy_cập"
+        Plugins["Plugin truy cập cấu hình<br/>qua các thuộc tính tĩnh"]
     end
     
     Memory --> Plugins
 ```
 
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:1-125`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L1-L125)
+**Nguồn:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:1-125`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L1-L125)
 
 ### ConfigApplication
 
-The `ConfigApplication` project manages application-level settings that control UI behavior and user preferences. These settings are typically user-specific and persist across sessions.
+Dự án `ConfigApplication` quản lý các cài đặt cấp ứng dụng điều khiển hành vi UI và tùy chọn người dùng. Các cài đặt này thường dành riêng cho từng người dùng và được duy trì qua các phiên làm việc.
 
-**Typical configuration data:**
-- UI theme and layout preferences
-- Grid column visibility and ordering
-- Default values for form fields
-- Recent search history
-- Window positions and sizes
+**Dữ liệu cấu hình điển hình:**
+- Tùy chọn chủ đề (theme) UI và bố cục.
+- Khả năng hiển thị và thứ tự các cột trong lưới.
+- Các giá trị mặc định cho các trường trong form.
+- Lịch sử tìm kiếm gần đây.
+- Vị trí và kích thước cửa sổ.
 
-**Access pattern:**
+**Mô hình truy cập:**
 ```csharp
-// Plugins access configuration via static properties
+// Các plugin truy cập cấu hình qua các thuộc tính tĩnh
 var setting = HIS.Desktop.LocalStorage.ConfigApplication.SomeSetting;
 ```
 
 ### ConfigSystem
 
-The `ConfigSystem` project stores system-wide configuration that affects all users and all modules. This includes infrastructure settings that rarely change.
+Dự án `ConfigSystem` lưu trữ cấu hình toàn hệ thống ảnh hưởng đến tất cả người dùng và tất cả các mô-đun. Các cài đặt này bao gồm các thiết lập hạ tầng hiếm khi thay đổi.
 
-**Typical configuration data:**
-- Backend API base URLs
-- Database connection strings
-- Authentication endpoints
-- Timeout values
-- Retry policies
+**Dữ liệu cấu hình điển hình:**
+- Các URL cơ sở của API backend.
+- Các chuỗi kết nối cơ sở dữ liệu.
+- Các endpoint xác thực.
+- Các giá trị thời gian chờ (timeout).
+- Các chính sách thử lại (retry policies).
 
-**Access pattern:**
+**Mô hình truy cập:**
 ```csharp
-// System configuration is loaded at application startup
+// Cấu hình hệ thống được tải khi khởi động ứng dụng
 var apiUrl = HIS.Desktop.LocalStorage.ConfigSystem.ApiBaseUrl;
 ```
 
-### Module-Specific Configurations
+### Các Cấu hình dành riêng cho Mô-đun
 
-Three specialized configuration projects handle module-specific settings:
+Ba dự án cấu hình chuyên biệt xử lý các cài đặt dành riêng cho mô-đun:
 
-- **HisConfig**: Core HIS business logic parameters (treatment workflows, prescription rules)
-- **LisConfig**: Laboratory module settings (machine connections, test parameters)
-- **EmrConfig**: Electronic Medical Record settings (document templates, signing workflows)
+- **HisConfig**: Các tham số logic nghiệp vụ HIS cốt lõi (quy trình điều trị, quy tắc kê đơn).
+- **LisConfig**: Cài đặt mô-đun xét nghiệm (kết nối máy móc, tham số xét nghiệm).
+- **EmrConfig**: Cài đặt Hồ sơ Bệnh án Điện tử (mẫu tài liệu, quy trình ký số).
 
-**Configuration loading pattern:**
-The system uses XML serialization for configuration persistence, as demonstrated in [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:87-111`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L111)](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L111):
+**Mô hình tải cấu hình:**
+Hệ thống sử dụng tuần tự hóa XML để duy trì cấu hình lâu dài, như được trình bày trong [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:87-111`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L111)](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L111):
 
 ```csharp
-// Configuration is serialized to/from XML files
+// Cấu hình được tuần tự hóa từ/vào tệp XML
 public static Config LoadConfig(string file)
 {
     XmlSerializer xs = new XmlSerializer(typeof(Config));
     StreamReader sr = new StreamReader(file);
     config = xs.Deserialize(sr) as Config;
+    sr.Close();
     return config;
 }
-
-public void SaveConfig(string file)
-{
-    XmlSerializer xs = new XmlSerializer(typeof(Config));
-    StreamWriter sw = new StreamWriter(file);
-    xs.Serialize(sw, this);
-}
 ```
-
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:41-111`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L41-L111)
 
 ---
 
-## BackendData Caching System
+## Hệ thống Bộ đệm BackendData
 
-### Purpose & Architecture
+### Mục đích và Phạm vi
 
-The `LocalStorage.BackendData` project (69 files) serves as the primary caching layer for backend API responses. This caching mechanism provides:
+Dự án **BackendData** (69 tệp) là thành phần lớn nhất và quan trọng nhất của LocalStorage. Nó cung cấp một cơ chế đệm phía client cho các thực thể backend thường xuyên được truy cập để cải thiện hiệu năng và giảm tải cho server.
 
-1. **Performance optimization**: Reduces redundant API calls
-2. **Offline capability**: Allows plugins to function with cached data when backend is unavailable
-3. **Consistency**: Ensures all plugins see the same cached data version
+**Các chức năng chính:**
+- Đệm dữ liệu tham chiếu (danh mục khoa phòng, loại dịch vụ, mã ICD).
+- Đệm các đối tượng cấu hình logic nghiệp vụ phức tạp.
+- Cung cấp khả năng truy cập nhanh vào các thực thể backend đã được giải tuần tự hóa.
+- Quản lý vòng đời và làm mới bộ đệm.
+
+### Luồng Dữ liệu BackendData
 
 ```mermaid
 graph TB
-    subgraph "Plugin Layer"
-        Plugin1["Register Plugin"]
-        Plugin2["Treatment Plugin"]
-        Plugin3["Prescription Plugin"]
+    subgraph "Backend Server"
+        API["REST API Endpoints"]
+        DB["Cơ sở dữ liệu HIS"]
     end
     
-    subgraph "BackendData Cache (69 files)"
-        MedicineCache["MedicineTypeData<br/>Cached Medicine List"]
-        MaterialCache["MaterialTypeData<br/>Cached Materials"]
-        ServiceCache["ServiceData<br/>Cached Services"]
-        RoomCache["RoomData<br/>Cached Rooms"]
-        PatientTypeCache["PatientTypeData<br/>Cached Patient Types"]
-        DepartmentCache["DepartmentData<br/>Cached Departments"]
-        Other["...60+ other cache entities"]
+    subgraph "BackendData Subsystem"
+        Worker["BackendDataWorker<br/>Điều phối việc đệm"]
+        Cache["Bộ đệm Objects In-Memory<br/>(Dictionary<Type, object>)"]
+        Persist["Thành phần Lưu trữ cục bộ<br/>(Tệp XML/JSON)"]
     end
     
-    subgraph "API Consumer"
-        ApiConsumer["HIS.Desktop.ApiConsumer"]
+    subgraph "Consumer Layer"
+        Plugins["956 Plugins"]
+        UC["Các thành phần UC"]
     end
     
-    subgraph "Backend"
-        RestAPI["REST APIs"]
-    end
+    API --> Worker
+    Worker --> Cache
+    Cache --> Persist
     
-    Plugin1 --> MedicineCache
-    Plugin1 --> ServiceCache
-    Plugin1 --> RoomCache
+    Worker --> Plugins
+    Worker --> UC
     
-    Plugin2 --> PatientTypeCache
-    Plugin2 --> DepartmentCache
-    
-    Plugin3 --> MedicineCache
-    Plugin3 --> MaterialCache
-    
-    ApiConsumer -->|"First Load:<br/>Fetch & Cache"| BackendData
-    ApiConsumer --> RestAPI
-    RestAPI -.->|"Response"| ApiConsumer
-    
-    BackendData -->|"Subsequent Reads:<br/>Return Cached"| Plugin1
-    BackendData -->|"Subsequent Reads:<br/>Return Cached"| Plugin2
-    BackendData -->|"Subsequent Reads:<br/>Return Cached"| Plugin3
+    Plugins -.->|"Truy vấn dữ liệu đệm"| Worker
+    UC -.->|"Truy vấn dữ liệu đệm"| Worker
 ```
 
-### Cache Data Structure
+**Nguồn:** [`.devin/wiki.json:55-58`](../../../../.devin/wiki.json#L55-L58)
 
-Each cached entity in BackendData follows a standard pattern:
+### Cấu trúc Bộ đệm
 
-**Entity storage:**
-- Static collections (List, Dictionary) holding cached data
-- Timestamp of last cache refresh
-- Cache validity flag
+BackendData tổ chức đệm theo loại thực thể. Một số loại đệm quan trọng bao gồm:
 
-**Typical cache entity pattern:**
-```csharp
-public static class MedicineTypeData
-{
-    public static List<MedicineTypeADO> DataList { get; set; }
-    public static DateTime LastUpdate { get; set; }
-    public static bool IsValid { get; set; }
-}
-```
+- **HIS_SERVICE**: Danh mục dịch vụ y tế.
+- **HIS_ROOM**: Danh mục khoa phòng bệnh viện.
+- **HIS_ICD**: Các mã chẩn đoán ICD-10.
+- **HIS_MEDICINE_TYPE**: Danh mục các loại thuốc.
+- **HIS_MATERIAL_TYPE**: Danh mục các vật tư y tế.
+- **HIS_CONFIG**: Các tham số cấu hình logic nghiệp vụ HIS.
 
-### Cache Invalidation
+### Cơ chế Làm mới Bộ đệm
 
-Plugins can invalidate cache entries when data changes on the backend:
+Hệ thống BackendData hỗ trợ nhiều chiến lược làm mới dữ liệu:
 
-1. **Manual invalidation**: After data mutations (create, update, delete)
-2. **Time-based expiration**: Cache expires after configured TTL
-3. **Event-driven refresh**: PubSub events trigger cache refresh
-
-**Sources:** High-level architecture diagram (Diagram 3), [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+1. **Làm mới khi Khởi động**: Tải toàn bộ các bộ dữ liệu tham chiếu quan trọng khi ứng dụng khởi chạy.
+2. **Làm mới theo Yêu cầu**: Tải dữ liệu khi plugin yêu cầu lần đầu (Lazy loading).
+3. **Cập nhật Phân đoạn**: Tải chỉ những thay đổi kể từ lần cập nhật cuối cùng.
+4. **Làm mới thủ công**: Cho phép người dùng hoặc quản trị viên kích hoạt làm mới bộ đệm thông qua giao diện ứng dụng.
 
 ---
 
-## PubSub Event Communication System
+## Hệ thống PubSub (Publish-Subscribe)
 
-### Overview
+### Chức năng
 
-The `LocalStorage.PubSub` project (9 files) implements a publish-subscribe event bus that enables loose-coupled communication between plugins without direct dependencies.
+Dự án **LocalStorage.PubSub** (9 tệp) triển khai một kênh sự kiện (event bus) cho phép truyền thông liên kết lỏng lẻo giữa các plugin độc lập. Điều này cực kỳ quan trọng trong một hệ thống có hơn 956 plugin nơi mà các phụ thuộc trực tiếp sẽ tạo ra cấu trúc mã nguồn khó bảo trì.
 
-```mermaid
-graph TB
-    subgraph "Publisher Plugins"
-        PubA["Treatment Plugin<br/>(Publishes TreatmentSaved)"]
-        PubB["Transaction Plugin<br/>(Publishes PaymentCompleted)"]
-        PubC["Prescription Plugin<br/>(Publishes PrescriptionCreated)"]
-    end
-    
-    subgraph "PubSub Event Bus (9 files)"
-        EventBus["LocalStorage.PubSub<br/>Central Event Registry"]
-        EventDict["Dictionary<string, List<Delegate>><br/>Event Subscribers"]
-    end
-    
-    subgraph "Subscriber Plugins"
-        SubA["Print Plugin<br/>(Subscribes TreatmentSaved)"]
-        SubB["Invoice Plugin<br/>(Subscribes PaymentCompleted)"]
-        SubC["Pharmacy Plugin<br/>(Subscribes PrescriptionCreated)"]
-        SubD["History Plugin<br/>(Subscribes All Events)"]
-    end
-    
-    PubA -->|"Publish"| EventBus
-    PubB -->|"Publish"| EventBus
-    PubC -->|"Publish"| EventBus
-    
-    EventBus --> EventDict
-    
-    EventDict -->|"Notify"| SubA
-    EventDict -->|"Notify"| SubB
-    EventDict -->|"Notify"| SubC
-    EventDict -->|"Notify"| SubD
-```
+### Các loại Sự kiện Cơ bản
 
-### Event Flow
+Hệ thống PubSub xử lý các loại sự kiện phổ biến như:
 
-**1. Subscription (Plugin Initialization):**
-```csharp
-// Plugin subscribes to events during initialization
-HIS.Desktop.LocalStorage.PubSub.Subscribe("TreatmentSaved", OnTreatmentSaved);
+- **PatientSelected**: Thông báo khi một bệnh nhân được chọn trong bất kỳ plugin nào.
+- **TreatmentUpdated**: Thông báo khi dữ liệu đợt điều trị thay đổi.
+- **ConfigChanged**: Thông báo khi các cài đặt cấu hình được cập nhật.
+- **ServiceOrdered**: Thông báo khi các dịch vụ mới được chỉ định.
+- **PrintRequested**: Kích hoạt quy trình in ấn từ các mô-đun khác nhau.
 
-private void OnTreatmentSaved(object data)
-{
-    // Handle event
-    var treatment = data as TreatmentADO;
-    RefreshDisplay(treatment);
-}
-```
-
-**2. Publishing (Plugin Business Logic):**
-```csharp
-// Plugin publishes event after completing an action
-var treatment = SaveTreatment();
-HIS.Desktop.LocalStorage.PubSub.Publish("TreatmentSaved", treatment);
-```
-
-**3. Event Delivery:**
-The PubSub system maintains a dictionary of event names to subscriber lists and invokes all registered handlers when an event is published.
-
-### Common Events
-
-Based on the plugin architecture, typical PubSub events include:
-
-| Event Name | Published By | Purpose |
-|-----------|--------------|---------|
-| `TreatmentSaved` | Treatment plugins | Notify when treatment record is saved |
-| `PatientRegistered` | Register plugins | Notify when new patient is registered |
-| `PrescriptionCreated` | Prescription plugins | Notify when prescription is created |
-| `PaymentCompleted` | Transaction plugins | Notify when payment is processed |
-| `ConfigChanged` | Config plugins | Notify when configuration is updated |
-| `CacheRefreshed` | BackendData | Notify when cached data is refreshed |
-
-### Integration with Inventec.Common.WSPubSub
-
-For inter-process or distributed events, the system integrates with `Inventec.Common.WSPubSub` (WebSocket PubSub) to enable communication between different application instances or services.
-
-**Sources:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52, [`.devin/wiki.json:280-283`](../../../../.devin/wiki.json#L280-L283)
-
----
-
-## SdaConfigKey System
-
-### Overview
-
-The `LocalStorage.SdaConfigKey` project (30 files) provides a centralized registry of configuration keys used by the SDA (System Data Administration) module. These keys define configurable system behaviors and parameters.
-
-```mermaid
-graph TB
-    subgraph "SdaConfigKey Registry (30 files)"
-        KeyDefinitions["Configuration Key Definitions<br/>(Const strings)"]
-        KeyGroups["Grouped by Domain:<br/>- General<br/>- Medicine<br/>- Treatment<br/>- Transaction<br/>- Laboratory"]
-    end
-    
-    subgraph "Configuration Storage"
-        Database["Backend Database<br/>(SDA_CONFIG table)"]
-    end
-    
-    subgraph "Configuration Access"
-        HisConfig["LocalStorage.HisConfig"]
-        Plugins["Plugins"]
-    end
-    
-    KeyDefinitions --> KeyGroups
-    
-    Database -->|"Load at Startup"| HisConfig
-    
-    HisConfig --> Plugins
-    
-    KeyGroups -.->|"Key Names"| Database
-    KeyGroups -.->|"Key Names"| HisConfig
-```
-
-### Key Structure
-
-Configuration keys follow a hierarchical naming convention:
-
-**Key naming pattern:**
-```
-HIS.Desktop.[Module].[Category].[Parameter]
-```
-
-**Examples:**
-- `HIS.Desktop.Treatment.AutoCreatePrescription`
-- `HIS.Desktop.Transaction.RequireDepositBeforeTreatment`
-- `HIS.Desktop.Laboratory.AutoApproveResults`
-- `HIS.Desktop.Prescription.CheckDrugInteraction`
-
-### Usage Pattern
-
-**Defining keys in SdaConfigKey:**
-```csharp
-public static class TreatmentConfigKeys
-{
-    public const string AUTO_CREATE_PRESCRIPTION = "HIS.Desktop.Treatment.AutoCreatePrescription";
-    public const string REQUIRE_ICD_ON_FINISH = "HIS.Desktop.Treatment.RequireIcdOnFinish";
-    public const string MAX_TREATMENT_DAYS = "HIS.Desktop.Treatment.MaxTreatmentDays";
-}
-```
-
-**Accessing configuration in plugins:**
-```csharp
-// Check if auto-create prescription is enabled
-bool autoCreate = HIS.Desktop.LocalStorage.HisConfig.GetValue(
-    SdaConfigKeys.TreatmentConfigKeys.AUTO_CREATE_PRESCRIPTION
-);
-
-if (autoCreate)
-{
-    CreatePrescription();
-}
-```
-
-### Configuration Loading
-
-Configuration values are loaded from the backend database at application startup and cached in LocalStorage for fast access. Plugins access these values via static properties or methods provided by the HisConfig project.
-
-**Sources:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
-
----
-
-## Location & Branch Context
-
-### Purpose
-
-The `LocalStorage.Location` and `LocalStorage.Branch` projects maintain the current user's working context within the hospital system.
+### Mô hình Truyền thông PubSub
 
 ```mermaid
 graph LR
-    subgraph "Session Context"
-        User["Current User<br/>(Authenticated)"]
-        Branch["Current Branch<br/>LocalStorage.Branch"]
-        Location["Current Location<br/>LocalStorage.Location"]
+    subgraph "Publishers"
+        PluginA["Plugin Tiếp nhận"]
+        PluginB["Plugin Khám bệnh"]
     end
     
-    subgraph "Context Details"
-        BranchInfo["Branch Details:<br/>- ID<br/>- Name<br/>- Code<br/>- Address"]
-        LocationInfo["Location Details:<br/>- Room ID<br/>- Room Name<br/>- Department<br/>- Floor"]
+    subgraph "PubSub Event Bus"
+        Engine["PubSub Engine<br/>Quản lý Đăng ký"]
+        Queue["Hàng đợi Sự kiện"]
     end
     
-    User --> Branch
-    User --> Location
-    
-    Branch --> BranchInfo
-    Location --> LocationInfo
-    
-    subgraph "Plugin Usage"
-        RegisterPlugin["Register Plugin<br/>(Uses current room)"]
-        ExamPlugin["Exam Plugin<br/>(Uses current location)"]
-        TransactionPlugin["Transaction Plugin<br/>(Uses current branch)"]
+    subgraph "Subscribers"
+        PluginC["Plugin Chỉ định"]
+        PluginD["Plugin Thanh toán"]
+        PluginE["Dashboard"]
     end
     
-    Location --> RegisterPlugin
-    Location --> ExamPlugin
-    Branch --> TransactionPlugin
+    PluginA -->|"Phát: PatientSelected"| Engine
+    PluginB -->|"Phát: TreatmentUpdated"| Engine
+    
+    Engine --> Queue
+    Queue --> Engine
+    
+    Engine -->|"Thông báo"| PluginC
+    Engine -->|"Thông báo"| PluginD
+    Engine -->|"Thông báo"| PluginE
 ```
 
-### Branch Context
-
-**Branch** represents the hospital facility/campus where the user is working:
-- Used for filtering data by facility
-- Determines applicable price lists
-- Controls inventory access
-- Affects reporting scope
-
-**Access pattern:**
-```csharp
-var currentBranch = HIS.Desktop.LocalStorage.Branch.CurrentBranch;
-// currentBranch contains ID, Name, Code, Address, etc.
-```
-
-### Location Context
-
-**Location** represents the specific room/department where the user is working:
-- Determines which patients are visible
-- Controls service assignment
-- Affects workflow routing
-- Used for room-specific configurations
-
-**Access pattern:**
-```csharp
-var currentRoom = HIS.Desktop.LocalStorage.Location.CurrentRoom;
-var currentDepartment = HIS.Desktop.LocalStorage.Location.CurrentDepartment;
-```
-
-### Context Switching
-
-Users can switch context during a session:
-1. **Branch switching**: Change working facility (requires re-authentication in some cases)
-2. **Location switching**: Change working room/department (common during shift changes)
-
-When context changes, the system:
-- Updates LocalStorage.Branch and LocalStorage.Location
-- Publishes context change event via PubSub
-- Triggers cache refresh for context-dependent data
-- Notifies all subscribed plugins to refresh their displays
-
-**Sources:** [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+**Nguồn:** [`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53)
 
 ---
 
-## Integration Points
+## Quản lý Ngữ cảnh (Location & Branch)
 
-### Plugin Integration
+Hai dự án chuyên biệt quản lý ngữ cảnh hoạt động hiện tại của ứng dụng:
 
-All 956 plugins in the HIS system depend on LocalStorage for configuration and cached data access.
+- **LocalStorage.Location**: Theo dõi phòng và khoa hiện tại mà người dùng đang làm việc. Điều này ảnh hưởng đến việc lọc dữ liệu và các quy tắc nghiệp vụ áp dụng cho từng phòng cụ thể.
+- **LocalStorage.Branch**: Quản lý bối cảnh chi nhánh hoặc cơ sở y tế hiện tại trong các hệ thống đa cơ sở.
 
-```mermaid
-graph TB
-    subgraph "Plugin Initialization Flow"
-        PluginStart["Plugin Start"]
-        LoadConfig["Load Configuration<br/>(ConfigApplication, HisConfig)"]
-        LoadContext["Load Context<br/>(Branch, Location)"]
-        LoadCache["Access Cached Data<br/>(BackendData)"]
-        Subscribe["Subscribe to Events<br/>(PubSub)"]
-        PluginReady["Plugin Ready"]
-    end
-    
-    PluginStart --> LoadConfig
-    LoadConfig --> LoadContext
-    LoadContext --> LoadCache
-    LoadCache --> Subscribe
-    Subscribe --> PluginReady
-    
-    subgraph "LocalStorage Projects"
-        Config["Configuration Projects"]
-        Context["Branch & Location"]
-        Cache["BackendData"]
-        Events["PubSub"]
-    end
-    
-    LoadConfig -.-> Config
-    LoadContext -.-> Context
-    LoadCache -.-> Cache
-    Subscribe -.-> Events
-```
-
-### API Consumer Integration
-
-The API Consumer layer integrates with BackendData to provide transparent caching:
-
-```mermaid
-sequenceDiagram
-    participant P as Plugin
-    participant BC as BackendData Cache
-    participant AC as ApiConsumer
-    participant API as REST API
-    
-    P->>BC: Request MedicineType List
-    
-    alt Cache Hit
-        BC->>BC: Check if valid cached data exists
-        BC->>P: Return cached data
-    else Cache Miss
-        BC->>AC: Forward request to ApiConsumer
-        AC->>API: HTTP GET /api/HisMedicineType/Get
-        API->>AC: JSON Response
-        AC->>BC: Store in cache
-        BC->>P: Return fresh data
-    end
-    
-    Note over BC: Cache remains valid until:<br/>- Manual invalidation<br/>- Time expiration<br/>- System restart
-```
-
-### Event-Driven Updates
-
-When data changes, the system uses PubSub to notify all interested parties:
-
-```mermaid
-sequenceDiagram
-    participant P1 as Prescription Plugin
-    participant PubSub as LocalStorage.PubSub
-    participant BC as BackendData
-    participant P2 as Pharmacy Plugin
-    participant P3 as History Plugin
-    
-    P1->>P1: User creates prescription
-    P1->>BC: Save prescription via API
-    BC->>BC: Update cache
-    P1->>PubSub: Publish("PrescriptionCreated", data)
-    
-    PubSub->>P2: Notify subscriber
-    PubSub->>P3: Notify subscriber
-    
-    P2->>P2: Refresh pending prescriptions list
-    P3->>P3: Log prescription creation event
-```
-
-**Sources:** High-level architecture diagrams (Diagram 2, Diagram 3), [`.devin/wiki.json:45-52`](../../../../.devin/wiki.json#L45-L52)
+Ngữ cảnh này được thiết lập tại thời điểm đăng nhập hoặc khi người dùng thực hiện chuyển đổi phòng/khoa và được cung cấp cho tất cả các plugin thông qua hệ thống LocalStorage.
 
 ---
 
-## Configuration File Format
+## SdaConfigKey
 
-### XML Configuration Example
-
-Based on the AutoUpdater configuration pattern seen in [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:41-122`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L41-L122)](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L41-L122), LocalStorage configurations use XML serialization:
-
-**Structure:**
-```xml
-<Config>
-    <Enabled>true</Enabled>
-    <ServerUrl>http://api.hospital.local</ServerUrl>
-    <UserName>system</UserName>
-    <PassWord>encrypted_value</PassWord>
-    <UpdateFileList>
-        <Files>
-            <File>
-                <Path>HIS.Desktop.exe</Path>
-                <Version>1.0.0</Version>
-                <LastUpdate>2024-01-01</LastUpdate>
-            </File>
-        </Files>
-    </UpdateFileList>
-</Config>
-```
-
-**Loading mechanism:**
-The `Config.LoadConfig()` method demonstrates the standard loading pattern used throughout LocalStorage projects [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:87-103`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L103)](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L87-L103).
-
-**File integrity:**
-Configuration files can be validated using hash algorithms [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:113-120`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L113-L120)](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L113-L120):
-
-```csharp
-public static string GetFileHash(string filePath)
-{
-    HashAlgorithm hash = HashAlgorithm.Create();
-    FileStream file = new FileStream(filePath, FileMode.Open);
-    byte[] hashByte = hash.ComputeHash(file);
-    string str1 = BitConverter.ToString(hashByte);
-    return str1;
-}
-```
-
-**Sources:** [`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs:1-125`](../../../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/Config.cs#L1-L125)
+Dự án **SdaConfigKey** (30 tệp) là một thành phần chuyên biệt quản lý các khóa cấu hình cho mô-đun SDA (System Data Administration). Nó cung cấp các định nghĩa hằng số và metadata cho hàng trăm tham số cấu hình hệ thống, đảm bảo tính nhất quán khi truy cập cấu hình SDA từ mã nguồn.
 
 ---
 
-## Summary
+## Tóm tắt
 
-The LocalStorage & Configuration subsystem provides essential infrastructure for the HIS Desktop application:
+Hệ thống con **HIS.Desktop.LocalStorage** đóng vai trò là "bộ nhớ" và "hệ thần kinh" của ứng dụng HIS Desktop:
 
-| Component | Primary Function | Key Benefit |
-|-----------|------------------|-------------|
-| **ConfigApplication/ConfigSystem** | Centralized configuration management | Consistent settings across plugins |
-| **BackendData (69 files)** | API response caching | Performance & offline capability |
-| **PubSub (9 files)** | Event-driven communication | Loose coupling between plugins |
-| **SdaConfigKey (30 files)** | System configuration registry | Type-safe configuration access |
-| **Branch & Location** | Working context management | Multi-facility support |
+1. **Quản lý Cấu hình**: Cung cấp cấu trúc phân cấp từ hệ thống đến ứng dụng và mô-đun.
+2. **Đệm Dữ liệu**: Giảm thiểu độ trễ mạng và tải server thông qua chiến lược đệm BackendData mạnh mẽ.
+3. **Liên kết Plugin**: Cho phép các plugin tương tác một cách lỏng lẻo thông qua hệ thống PubSub.
+4. **Duy trì Ngữ cảnh**: Đảm bảo toàn bộ ứng dụng hoạt động trong đúng ngữ cảnh người dùng, vị trí và chi nhánh.
 
-This architecture enables the 956 plugins to operate efficiently with shared state while maintaining independence and modularity. The caching layer significantly reduces backend load, while the PubSub system allows plugins to react to system events without tight coupling.
+Sự kết hợp của các thành phần này tạo ra một nền tảng ổn định và hiệu năng cao, cho phép hàng trăm plugin độc lập cùng chung sống và hoạt động một cách đồng bộ trong hệ thống HisNguonMo.
+
+---
+

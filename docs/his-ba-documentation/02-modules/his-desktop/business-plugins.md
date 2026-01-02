@@ -1,81 +1,85 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the **HIS.Desktop.Plugins.*** namespace plugins, which implement the core hospital business workflows in the HisNguonMo system. These plugins handle the primary clinical and administrative functions including patient registration, examination, treatment, prescription management, and care tracking.
+Tài liệu này đề mục các plugin nằm trong namespace **HIS.Desktop.Plugins.***, thực hiện các quy trình nghiệp vụ cốt lõi của bệnh viện trong hệ thống HisNguonMo. Các plugin này xử lý các chức năng lâm sàng và hành chính chính, bao gồm đăng ký bệnh nhân, khám bệnh, điều trị, quản lý đơn thuốc và theo dõi chăm sóc.
 
-This page focuses specifically on business logic plugins. For other plugin categories, see:
-- Transaction and billing plugins: [Transaction & Billing Plugins](../../02-modules/his-desktop/business-plugins.md#transaction-billing)
-- Medicine and material management: [Medicine & Material Plugins](../../03-business-domains/pharmacy/medicine-material.md)
-- Access control and security: [ACS Access Control Plugins](../../03-business-domains/administration/access-control.md)
-- Electronic medical records: [EMR Electronic Medical Record Plugins](../../02-modules/his-desktop/business-plugins.md#emr)
-- Overall plugin architecture and communication: [Plugin System Architecture](../../01-architecture/plugin-system.md)
+Trang này tập trung cụ thể vào các plugin logic nghiệp vụ. Đối với các danh mục plugin khác, hãy xem:
+- Các plugin giao dịch và thanh toán: [Các Plugin Giao dịch & Thanh toán](../../02-modules/his-desktop/business-plugins.md#transaction-billing)
+- Quản lý thuốc và vật tư: [Các Plugin Thuốc & Vật tư](../../03-business-domains/pharmacy/medicine-material.md)
+- Kiểm soát truy cập và bảo mật: [Các Plugin Kiểm soát Truy cập ACS](../../03-business-domains/administration/access-control.md)
+- Hồ sơ bệnh án điện tử: [Các Plugin Hồ sơ Bệnh án Điện tử EMR](../../02-modules/his-desktop/business-plugins.md#emr)
+- Kiến trúc plugin tổng thể và truyền thông: [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/01-overview.md)
 
-The HIS core business plugins represent approximately 600+ of the 956 total plugins in the system, making them the largest plugin category by count.
+Các plugin nghiệp vụ cốt lõi của HIS chiếm khoảng hơn 600 trong tổng số 956 plugin của hệ thống, khiến chúng trở thành danh mục plugin lớn nhất về số lượng.
 
-## Plugin Category Overview
+---
 
-The HIS core business plugins are organized into functional domains that mirror the hospital patient care workflow:
+## Tổng quan Danh mục Plugin
 
-```mermaid
+Các plugin nghiệp vụ cốt lõi của HIS được tổ chức thành các miền chức năng phản ánh quy trình chăm sóc bệnh nhân tại bệnh viện:
+
+\`\`\`mermaid
 graph TB
-    subgraph "Patient Journey Flow"
-        Register["Registration Plugins<br/>HIS.Desktop.Plugins.Register*<br/>HIS.Desktop.Plugins.Reception*<br/>81-102 files each"]
-        Exam["Examination Plugins<br/>HIS.Desktop.Plugins.ExamService*<br/>HIS.Desktop.Plugins.ServiceExecute<br/>119 files"]
-        Prescription["Prescription Plugins<br/>HIS.Desktop.Plugins.AssignPrescription*<br/>117-203 files each"]
-        Treatment["Treatment Plugins<br/>HIS.Desktop.Plugins.Treatment*<br/>HIS.Desktop.Plugins.TreatmentFinish<br/>56-101 files"]
-        Tracking["Tracking Plugins<br/>HIS.Desktop.Plugins.Tracking*<br/>59 files"]
+    subgraph "Luồng_Hành_trình_Bệnh_nhân"
+        Register["Các Plugin Đăng ký<br/>HIS.Desktop.Plugins.Register*<br/>HIS.Desktop.Plugins.Reception*<br/>81-102 tệp mỗi plugin"]
+        Exam["Các Plugin Khám bệnh<br/>HIS.Desktop.Plugins.ExamService*<br/>HIS.Desktop.Plugins.ServiceExecute<br/>119 tệp"]
+        Prescription["Các Plugin Đơn thuốc<br/>HIS.Desktop.Plugins.AssignPrescription*<br/>117-203 tệp mỗi plugin"]
+        Treatment["Các Plugin Điều trị<br/>HIS.Desktop.Plugins.Treatment*<br/>HIS.Desktop.Plugins.TreatmentFinish<br/>56-101 tệp"]
+        Tracking["Các Plugin Theo dõi<br/>HIS.Desktop.Plugins.Tracking*<br/>59 tệp"]
     end
     
     Register --> Exam
     Exam --> Prescription
     Prescription --> Treatment
     Treatment --> Tracking
-    Tracking -.->|Follow-up| Exam
+    Tracking -.->|Tái khám| Exam
     
-    subgraph "Supporting Functions"
-        Surgery["Surgery Plugins<br/>HIS.Desktop.Plugins.Surgery*"]
-        ICU["ICU Plugins<br/>HIS.Desktop.Plugins.ICU*"]
-        Appointment["Appointment Plugins<br/>HIS.Desktop.Plugins.Appointment*"]
+    subgraph "Các_Chức_năng_Hỗ_trợ"
+        Surgery["Các Plugin Phẫu thuật<br/>HIS.Desktop.Plugins.Surgery*"]
+        ICU["Các Plugin ICU<br/>HIS.Desktop.Plugins.ICU*"]
+        Appointment["Các Plugin Hẹn khám<br/>HIS.Desktop.Plugins.Appointment*"]
     end
     
     Exam --> Surgery
     Exam --> ICU
     Treatment --> Appointment
-```
+\`\`\`
 
-**Major Functional Groups:**
+**Các Nhóm Chức năng Chính:**
 
-| Domain | Plugin Prefix | File Count Range | Primary Function |
+| Miền | Tiền tố Plugin | Khoảng Số lượng Tệp | Chức năng Chính |
 |--------|--------------|------------------|------------------|
-| Registration | `Register*`, `Reception*` | 81-102 | Patient admission and registration |
-| Examination | `ExamService*`, `ServiceExecute` | 40-119 | Clinical examination and service execution |
-| Prescription | `AssignPrescription*` | 117-203 | Medication ordering and clinical service orders |
-| Treatment | `Treatment*`, `TreatmentFinish` | 56-101 | Inpatient care management and discharge |
-| Tracking | `Tracking*` | 59 | Patient monitoring and care tracking |
+| Đăng ký | \`Register*\`, \`Reception*\` | 81-102 | Tiếp nhận và đăng ký bệnh nhân |
+| Khám bệnh | \`ExamService*\`, \`ServiceExecute\` | 40-119 | Khám lâm sàng và thực hiện dịch vụ |
+| Đơn thuốc | \`AssignPrescription*\` | 117-203 | Kê đơn thuốc và chỉ định dịch vụ lâm sàng |
+| Điều trị | \`Treatment*\`, \`TreatmentFinish\` | 56-101 | Quản lý chăm sóc nội trú và ra viện |
+| Theo dõi | \`Tracking*\` | 59 | Giám sát bệnh nhân và theo dõi chăm sóc |
 
-Sources: [[`.devin/wiki.json:1-295`](../../../../.devin/wiki.json#L1-L295)](../../../../.devin/wiki.json#L1-L295)
+Nguồn: [[\`.devin/wiki.json:1-295\`](../../../../.devin/wiki.json#L1-295)](../../../../.devin/wiki.json#L1-295)
 
-## Registration and Admission Plugins
+---
 
-Registration plugins handle patient intake, demographic data capture, and initial case setup.
+## Các Plugin Đăng ký và Tiếp nhận
 
-**Key Plugins:**
+Các plugin đăng ký xử lý việc tiếp nhận bệnh nhân, thu thập dữ liệu nhân khẩu học và thiết lập hồ sơ bệnh ban đầu.
 
-| Plugin Name | File Count | Function |
+**Các Plugin Chính:**
+
+| Tên Plugin | Số lượng Tệp | Chức năng |
 |-------------|-----------|----------|
-| `HIS.Desktop.Plugins.Register` | 81-102 | New patient registration |
-| `HIS.Desktop.Plugins.RegisterExamKiosk` | Variable | Self-service kiosk registration |
-| `HIS.Desktop.Plugins.Reception` | 81-102 | Patient reception and check-in |
-| `HIS.Desktop.Plugins.RegisterV2` | Variable | Enhanced registration interface |
+| \`HIS.Desktop.Plugins.Register\` | 81-102 | Đăng ký bệnh nhân mới |
+| \`HIS.Desktop.Plugins.RegisterExamKiosk\` | thay đổi | Đăng ký tại kiosk tự phục vụ |
+| \`HIS.Desktop.Plugins.Reception\` | 81-102 | Tiếp nhận và check-in bệnh nhân |
+| \`HIS.Desktop.Plugins.RegisterV2\` | thay đổi | Giao diện đăng ký nâng cao |
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    Patient["Patient Arrival"]
+    Patient["Bệnh nhân đến"]
     
-    subgraph "Registration Flow"
+    subgraph "Luồng_Đăng_ký"
         Register["HIS.Desktop.Plugins.Register<br/>RegisterProcessor"]
-        ValidatePatient["Patient Validation<br/>Check Duplicates"]
-        CreateTreatment["Create Treatment Record<br/>V_HIS_TREATMENT"]
-        AssignRoom["Assign to Exam Room<br/>HIS_SERVICE_REQ"]
+        ValidatePatient["Xác thực Bệnh nhân<br/>Kiểm tra trùng lặp"]
+        CreateTreatment["Tạo hồ sơ điều trị<br/>V_HIS_TREATMENT"]
+        AssignRoom["Gán vào phòng khám<br/>HIS_SERVICE_REQ"]
     end
     
     Patient --> Register
@@ -83,126 +87,130 @@ graph LR
     ValidatePatient --> CreateTreatment
     CreateTreatment --> AssignRoom
     
-    AssignRoom --> ExamQueue["Examination Queue"]
-```
+    AssignRoom --> ExamQueue["Hàng đợi Khám bệnh"]
+\`\`\`
 
-**Registration Process:**
-1. Patient demographic data entry (name, DOB, address, insurance information)
-2. Duplicate patient detection and merge handling
-3. Treatment record creation with initial classification
-4. Service room assignment based on availability and specialty
-5. Queue position assignment for examination
+**Quy trình Đăng ký:**
+1. Nhập dữ liệu nhân khẩu học bệnh nhân (tên, ngày sinh, địa chỉ, thông tin bảo hiểm).
+2. Phát hiện bệnh nhân trùng lặp và xử lý hợp nhất hồ sơ.
+3. Tạo hồ sơ điều trị với phân loại ban đầu.
+4. Gán phòng dịch vụ dựa trên tính sẵn có và chuyên khoa.
+5. Gán vị trí trong hàng đợi khám bệnh.
 
-The registration plugins interact heavily with:
-- `HIS.UC.PatientSelect` - patient search and selection control
-- `HIS.UC.UCHein` - insurance information entry (153 files)
-- `HIS.Desktop.ADO` - patient and treatment data models
-- Backend API endpoints for patient data persistence
+Các plugin đăng ký tương tác mạnh mẽ với:
+- \`HIS.UC.PatientSelect\` - điều khiển tìm kiếm và chọn bệnh nhân.
+- \`HIS.UC.UCHein\` - nhập thông tin bảo hiểm y tế (153 tệp).
+- \`HIS.Desktop.ADO\` - mô hình dữ liệu bệnh nhân và điều trị.
+- Các endpoint API backend để lưu trữ dữ liệu bệnh nhân.
 
-Sources: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
+Nguồn: [[\`.devin/wiki.json:70-77\`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
 
-## Treatment Management Plugins
+---
 
-Treatment plugins manage the full lifecycle of patient care episodes, from admission through discharge.
+## Các Plugin Quản lý Điều trị
 
-**Major Treatment Plugins:**
+Các plugin điều trị quản lý toàn bộ vòng đời của các lượt chăm sóc bệnh nhân, từ lúc nhập viện đến khi ra viện.
 
-```mermaid
+**Các Plugin Điều trị Chính:**
+
+\`\`\`mermaid
 graph TB
-    subgraph "Treatment Lifecycle Plugins"
-        TreatmentCreate["HIS.Desktop.Plugins.Treatment*<br/>Treatment Creation<br/>56-80 files"]
-        TreatmentView["HIS.Desktop.Plugins.TreatmentList<br/>Treatment Viewing"]
-        TreatmentUpdate["HIS.Desktop.Plugins.TreatmentUpdate<br/>Treatment Modification"]
-        TreatmentFinish["HIS.Desktop.Plugins.TreatmentFinish<br/>Discharge Processing<br/>101 files"]
+    subgraph "Các_Plugin_Vòng_đời_Điều_trị"
+        TreatmentCreate["HIS.Desktop.Plugins.Treatment*<br/>Tạo điều trị<br/>56-80 tệp"]
+        TreatmentView["HIS.Desktop.Plugins.TreatmentList<br/>Xem danh sách điều trị"]
+        TreatmentUpdate["HIS.Desktop.Plugins.TreatmentUpdate<br/>Cập nhật điều trị"]
+        TreatmentFinish["HIS.Desktop.Plugins.TreatmentFinish<br/>Xử lý ra viện<br/>101 tệp"]
     end
     
-    subgraph "Treatment Types"
-        Outpatient["Outpatient Treatment<br/>TREATMENT_TYPE.ID__KHAM"]
-        Inpatient["Inpatient Treatment<br/>TREATMENT_TYPE.ID__DTNOITRU"]
-        Emergency["Emergency Treatment<br/>TREATMENT_TYPE.ID__DTBANNGAY"]
+    subgraph "Loại_Điều_trị"
+        Outpatient["Điều trị Ngoại trú<br/>TREATMENT_TYPE.ID__KHAM"]
+        Inpatient["Điều trị Nội trú<br/>TREATMENT_TYPE.ID__DTNOITRU"]
+        Emergency["Điều trị Cấp cứu<br/>TREATMENT_TYPE.ID__DTBANNGAY"]
     end
     
     TreatmentCreate --> TreatmentView
     TreatmentView --> TreatmentUpdate
     TreatmentUpdate --> TreatmentFinish
     
-    TreatmentCreate -.->|Type Selection| Outpatient
-    TreatmentCreate -.->|Type Selection| Inpatient
-    TreatmentCreate -.->|Type Selection| Emergency
-```
+    TreatmentCreate -.->|Chọn Loại| Outpatient
+    TreatmentCreate -.->|Chọn Loại| Inpatient
+    TreatmentCreate -.->|Chọn Loại| Emergency
+\`\`\`
 
-**Key Components:**
+**Các Thành phần Chính:**
 
-| Plugin | Files | Core Functionality |
+| Plugin | Số tệp | Chức năng Cốt lõi |
 |--------|-------|-------------------|
-| `HIS.Desktop.Plugins.TreatmentFinish` | 101 | Discharge processing, outcome recording |
-| `HIS.Desktop.Plugins.TreatmentLog` | 56 | Treatment event logging |
-| `HIS.Desktop.Plugins.TreatmentList` | Variable | Treatment record browsing and search |
+| \`HIS.Desktop.Plugins.TreatmentFinish\` | 101 | Xử lý ra viện, ghi nhận kết quả |
+| \`HIS.Desktop.Plugins.TreatmentLog\` | 56 | Ghi nhật ký sự kiện điều trị |
+| \`HIS.Desktop.Plugins.TreatmentList\` | thay đổi | Duyệt và tìm kiếm hồ sơ điều trị |
 
-**Treatment Day Calculation:**
+**Tính toán Ngày Điều trị:**
 
-The system implements complex business rules for calculating treatment duration, as seen in `HIS.Common.Treatment.Calculation`:
+Hệ thống triển khai các quy tắc nghiệp vụ phức tạp để tính toán thời gian điều trị, như được thấy trong \`HIS.Common.Treatment.Calculation\`:
 
-```mermaid
+\`\`\`mermaid
 graph TD
-    Start["Calculate Treatment Days"]
-    CheckSameDay["Same Day In/Out?"]
-    CheckDuration["Duration > 4 hours?"]
-    CheckDate["Before 2018-07-15?"]
-    CheckPatientType["Patient Type?"]
-    CheckOutcome["Treatment Outcome?"]
+    Start["Tính ngày điều trị"]
+    CheckSameDay["Vào/Ra cùng ngày?"]
+    CheckDuration["Thời gian > 4 giờ?"]
+    CheckDate["Trước ngày 15/07/2018?"]
+    CheckPatientType["Loại Bệnh nhân?"]
+    CheckOutcome["Kết quả Điều trị?"]
     
     Start --> CheckSameDay
-    CheckSameDay -->|Yes| CheckDuration
-    CheckSameDay -->|No| CheckDate
+    CheckSameDay -->|Có| CheckDuration
+    CheckSameDay -->|Không| CheckDate
     
-    CheckDuration -->|Yes| Result1["1 Day"]
-    CheckDuration -->|No| Result0["0 Days"]
+    CheckDuration -->|Có| Result1["1 Ngày"]
+    CheckDuration -->|Không| Result0["0 Ngày"]
     
-    CheckDate -->|Yes| OldRule["OUT_DATE - IN_DATE + 1<br/>Circular 37"]
-    CheckDate -->|No| CheckPatientType
+    CheckDate -->|Có| OldRule["NGÀY_RA - NGÀY_VÀO + 1<br/>Thông tư 37"]
+    CheckDate -->|Không| CheckPatientType
     
-    CheckPatientType -->|Fee Service| OldRule
-    CheckPatientType -->|Insurance BHYT| CheckOutcome
+    CheckPatientType -->|Dịch vụ/Viện phí| OldRule
+    CheckPatientType -->|Bảo hiểm (BHYT)| CheckOutcome
     
-    CheckOutcome -->|Transfer/Death/Worse| NewRulePlus1["OUT_DATE - IN_DATE + 1<br/>Circular 15"]
-    CheckOutcome -->|Other| NewRule["OUT_DATE - IN_DATE<br/>Circular 15"]
-```
+    CheckOutcome -->|Chuyển viện/Tử vong/Nặng hơn| NewRulePlus1["NGÀY_RA - NGÀY_VÀO + 1<br/>Thông tư 15"]
+    CheckOutcome -->|Khác| NewRule["NGÀY_RA - NGÀY_VÀO<br/>Thông tư 15"]
+\`\`\`
 
-Treatment day calculation rules are defined in [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs:52-109`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L52-L109)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L52-L109):
-- Same-day treatments with duration > 4 hours = 1 day
-- Different calculation rules for pre/post July 15, 2018 (regulatory change)
-- Insurance (BHYT) vs. fee-paying patients use different formulas
-- Outcome-dependent calculations for transfers, deaths, or worsening conditions
+Các quy tắc tính ngày điều trị được định nghĩa trong [[\`Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs:52-109\`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L52-L109)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L52-L109):
+- Điều trị cùng ngày với thời gian > 4 giờ = 1 ngày.
+- Các quy tắc tính toán khác nhau cho giai đoạn trước/sau ngày 15/07/2018 (thay đổi quy định).
+- Bệnh nhân BHYT và bệnh nhân viện phí sử dụng các công thức khác nhau.
+- Các tính toán phụ thuộc vào kết quả cho các trường hợp chuyển viện, tử vong hoặc tình trạng nặng hơn.
 
-Sources: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs:1-178`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178), [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
+Nguồn: [[\`Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs:1-178\`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178), [[\`.devin/wiki.json:70-77\`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
 
-## Examination and Service Execution Plugins
+---
 
-Examination plugins handle clinical encounters, diagnostic procedures, and service delivery.
+## Các Plugin Khám bệnh và Thực hiện Dịch vụ
 
-**Primary Examination Plugins:**
+Các plugin khám bệnh xử lý các lượt gặp gỡ lâm sàng, các thủ thuật chẩn đoán và cung cấp dịch vụ.
 
-| Plugin | Files | Purpose |
+**Các Plugin Khám bệnh Chính:**
+
+| Plugin | Số tệp | Mục đích |
 |--------|-------|---------|
-| `HIS.Desktop.Plugins.ServiceExecute` | 119 | Service execution and result recording |
-| `HIS.Desktop.Plugins.ExamServiceReqExecute` | Variable | Examination request processing |
-| `HIS.Desktop.Plugins.ServiceReqList` | Variable | Service request queue management |
+| \`HIS.Desktop.Plugins.ServiceExecute\` | 119 | Thực hiện dịch vụ và ghi nhận kết quả |
+| \`HIS.Desktop.Plugins.ExamServiceReqExecute\` | thay đổi | Xử lý yêu cầu khám bệnh |
+| \`HIS.Desktop.Plugins.ServiceReqList\` | thay đổi | Quản lý hàng đợi yêu cầu dịch vụ |
 
-```mermaid
+\`\`\`mermaid
 graph TB
-    subgraph "Examination Workflow"
-        Queue["Patient Queue<br/>SERVICE_REQ Status"]
-        Execute["HIS.Desktop.Plugins.ServiceExecute<br/>ServiceExecuteProcessor<br/>119 files"]
-        Record["Record Findings<br/>Clinical Data Entry"]
-        Diagnose["Diagnosis Entry<br/>ICD-10 Codes"]
-        Complete["Complete Service<br/>Update Status"]
+    subgraph "Quy_trình_Khám_bệnh"
+        Queue["Hàng đợi Bệnh nhân<br/>Trạng thái SERVICE_REQ"]
+        Execute["HIS.Desktop.Plugins.ServiceExecute<br/>ServiceExecuteProcessor<br/>119 tệp"]
+        Record["Ghi nhận Kết luận<br/>Nhập dữ liệu lâm sàng"]
+        Diagnose["Nhập Chẩn đoán<br/>Mã ICD-10"]
+        Complete["Hoàn thành Dịch vụ<br/>Cập nhật trạng thái"]
     end
     
-    subgraph "Supporting UCs"
-        ICDControl["HIS.UC.Icd<br/>Primary Diagnosis<br/>65 files"]
-        SecondaryICD["HIS.UC.SecondaryIcd<br/>Comorbidities<br/>61 files"]
-        DHST["HIS.UC.DHST<br/>Vital Signs<br/>54 files"]
+    subgraph "Các_UC_Hỗ_trợ"
+        ICDControl["HIS.UC.Icd<br/>Chẩn đoán chính<br/>65 tệp"]
+        SecondaryICD["HIS.UC.SecondaryIcd<br/>Bệnh kèm theo<br/>61 tệp"]
+        DHST["HIS.UC.DHST<br/>Dấu hiệu sinh tồn<br/>54 tệp"]
     end
     
     Queue --> Execute
@@ -213,129 +221,132 @@ graph TB
     Diagnose -.-> ICDControl
     Diagnose -.-> SecondaryICD
     Record -.-> DHST
-```
+\`\`\`
 
-**Service Execution Process:**
+**Quy trình Thực hiện Dịch vụ:**
 
-1. **Queue Management**: Patients waiting for services are displayed in priority order
-2. **Service Selection**: Clinician selects the service request to execute
-3. **Clinical Data Entry**: 
-   - Vital signs (DHST - Height, Weight, BP, Temperature)
-   - Chief complaint and history
-   - Physical examination findings
-4. **Diagnosis Assignment**:
-   - Primary diagnosis (ICD-10 code via `HIS.UC.Icd`)
-   - Secondary diagnoses (comorbidities via `HIS.UC.SecondaryIcd`)
-5. **Service Completion**: Status update and result documentation
+1. **Quản lý Hàng đợi**: Các bệnh nhân đang chờ dịch vụ được hiển thị theo thứ tự ưu tiên.
+2. **Chọn Dịch vụ**: Lâm sàng viên chọn yêu cầu dịch vụ để thực hiện.
+3. **Nhập Dữ liệu Lâm sàng**:
+   - Dấu hiệu sinh tồn (DHST - Chiều cao, Cân nặng, Huyết áp, Nhiệt độ).
+   - Lý do khám và tiền sử.
+   - Kết quả khám thực thể.
+4. **Gán Chẩn đoán**:
+   - Chẩn đoán chính (mã ICD-10 qua \`HIS.UC.Icd\`).
+   - Các chẩn đoán phụ (bệnh kèm theo qua \`HIS.UC.SecondaryIcd\`).
+5. **Hoàn thành Dịch vụ**: Cập nhật trạng thái và lưu trữ kết quả.
 
-The `ServiceExecute` plugin integrates with:
-- `HIS.UC.ExamTreatmentFinish` (103 files) - examination completion controls
-- `HIS.UC.FormType` (329 files) - dynamic form rendering for different service types
-- `HIS.Desktop.ADO` - service request and execution data models
+Plugin \`ServiceExecute\` tích hợp với:
+- \`HIS.UC.ExamTreatmentFinish\` (103 tệp) - các điều khiển hoàn thành khám bệnh.
+- \`HIS.UC.FormType\` (329 tệp) - hiển thị form động cho các loại dịch vụ khác nhau.
+- \`HIS.Desktop.ADO\` - mô hình dữ liệu yêu cầu và thực hiện dịch vụ.
 
-Sources: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77), [[`.devin/wiki.json:214-222`](../../../../.devin/wiki.json#L214-L222)](../../../../.devin/wiki.json#L214-L222), [[`.devin/wiki.json:225-232`](../../../../.devin/wiki.json#L225-L232)](../../../../.devin/wiki.json#L225-L232)
+Nguồn: [[\`.devin/wiki.json:70-77\`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77), [[\`.devin/wiki.json:214-222\`](../../../../.devin/wiki.json#L214-L222)](../../../../.devin/wiki.json#L214-L222), [[\`.devin/wiki.json:225-232\`](../../../../.devin/wiki.json#L225-L232)](../../../../.devin/wiki.json#L225-L232)
 
-## Prescription and Medication Ordering Plugins
+---
 
-Prescription plugins are among the largest and most complex in the system, handling medication orders, clinical service orders, and specialized treatments.
+## Các Plugin Đơn thuốc và Chỉ định Dịch vụ
 
-**Major Prescription Plugins:**
+Các plugin đơn thuốc nằm trong số những plugin lớn nhất và phức tạp nhất trong hệ thống, xử lý các đơn thuốc, chỉ định dịch vụ lâm sàng và các điều trị chuyên biệt.
 
-```mermaid
+**Các Plugin Đơn thuốc Chính:**
+
+\`\`\`mermaid
 graph LR
-    subgraph "Prescription Plugin Family"
-        AssignPK["HIS.Desktop.Plugins.AssignPrescriptionPK<br/>Outpatient Prescriptions<br/>203 files<br/>Largest Plugin"]
-        AssignCLS["HIS.Desktop.Plugins.AssignPrescriptionCLS<br/>Clinical Service Orders<br/>136 files"]
-        AssignKidney["HIS.Desktop.Plugins.AssignPrescriptionKidney<br/>Dialysis Orders<br/>132 files"]
-        AssignYHCT["HIS.Desktop.Plugins.AssignPrescriptionYHCT<br/>Traditional Medicine<br/>117 files"]
+    subgraph "Họ_Plugin_Kê_đơn"
+        AssignPK["HIS.Desktop.Plugins.AssignPrescriptionPK<br/>Đơn thuốc Ngoại trú<br/>203 tệp<br/>Plugin lớn nhất"]
+        AssignCLS["HIS.Desktop.Plugins.AssignPrescriptionCLS<br/>Chỉ định Cận lâm sàng<br/>136 tệp"]
+        AssignKidney["HIS.Desktop.Plugins.AssignPrescriptionKidney<br/>Chỉ định Chạy thận<br/>132 tệp"]
+        AssignYHCT["HIS.Desktop.Plugins.AssignPrescriptionYHCT<br/>Y học cổ truyền<br/>117 tệp"]
     end
     
-    subgraph "Supporting Controls"
-        MedicineType["HIS.UC.MedicineType<br/>Drug Selection<br/>82 files"]
-        MaterialType["HIS.UC.MaterialType<br/>Material Selection<br/>85 files"]
-        ServiceRoom["HIS.UC.ServiceRoom<br/>Service Selection<br/>48 files"]
+    subgraph "Các_Điều_khiển_Hỗ_trợ"
+        MedicineType["HIS.UC.MedicineType<br/>Chọn thuốc<br/>82 tệp"]
+        MaterialType["HIS.UC.MaterialType<br/>Chọn vật tư<br/>85 tệp"]
+        ServiceRoom["HIS.UC.ServiceRoom<br/>Chọn dịch vụ<br/>48 tệp"]
     end
     
     AssignPK --> MedicineType
     AssignYHCT --> MedicineType
     AssignCLS --> ServiceRoom
     AssignKidney --> MaterialType
-```
+\`\`\`
 
-**Plugin Details:**
+**Chi tiết Plugin:**
 
-| Plugin | Files | Specialization | Key Features |
+| Plugin | Số tệp | Chuyên khoa | Các Tính năng Chính |
 |--------|-------|----------------|--------------|
-| `AssignPrescriptionPK` | 203 | Outpatient pharmacy | Drug selection, dosing, interaction checking, prescription printing |
-| `AssignPrescriptionCLS` | 136 | Clinical lab/imaging services | Service ordering, sample collection, result tracking |
-| `AssignPrescriptionKidney` | 132 | Hemodialysis | Dialysis schedules, machine assignment, treatment parameters |
-| `AssignPrescriptionYHCT` | 117 | Traditional medicine | Herbal formulations, preparation methods |
+| \`AssignPrescriptionPK\` | 203 | Dược ngoại trú | Chọn thuốc, liều dùng, kiểm tra tương tác, in đơn thuốc |
+| \`AssignPrescriptionCLS\` | 136 | Dịch vụ xét nghiệm/chẩn đoán hình ảnh | Chỉ định dịch vụ, lấy mẫu, theo dõi kết quả |
+| \`AssignPrescriptionKidney\` | 132 | Chạy thận nhân tạo | Lịch chạy thận, gán máy, các tham số điều trị |
+| \`AssignYHCT\` | 117 | Y học cổ truyền | Các công thức thảo dược, phương pháp bào chế |
 
-**Prescription Workflow:**
+**Quy trình Kê đơn:**
 
-```mermaid
+\`\`\`mermaid
 sequenceDiagram
-    participant Doctor
-    participant AssignPlugin as AssignPrescription*
+    participant Doctor as Bác sĩ
+    participant AssignPlugin as Plugin AssignPrescription*
     participant MedicineUC as HIS.UC.MedicineType
-    participant Validation as Drug Interaction Check
-    participant API as Backend API
-    participant Printer as Print System
+    participant Validation as Kiểm tra Tương tác thuốc
+    participant API as API Backend
+    participant Printer as Hệ thống In
     
-    Doctor->>AssignPlugin: Open Prescription Form
-    AssignPlugin->>MedicineUC: Load Drug Catalog
-    MedicineUC-->>AssignPlugin: Available Medications
+    Doctor->>AssignPlugin: Mở Form Kê đơn
+    AssignPlugin->>MedicineUC: Tải danh mục thuốc
+    MedicineUC-->>AssignPlugin: Các loại thuốc có sẵn
     
-    Doctor->>AssignPlugin: Select Drug + Dosage
-    AssignPlugin->>Validation: Check Interactions
-    Validation-->>AssignPlugin: Validation Result
+    Doctor->>AssignPlugin: Chọn Thuốc + Liều dùng
+    AssignPlugin->>Validation: Kiểm tra tương tác
+    Validation-->>AssignPlugin: Kết quả xác thực
     
-    Doctor->>AssignPlugin: Add to Prescription
-    Doctor->>AssignPlugin: Submit Order
+    Doctor->>AssignPlugin: Thêm vào Đơn thuốc
+    Doctor->>AssignPlugin: Gửi y lệnh
     
-    AssignPlugin->>API: Save Prescription
-    API-->>AssignPlugin: Confirmation
+    AssignPlugin->>API: Lưu đơn thuốc
+    API-->>AssignPlugin: Xác nhận
     
-    AssignPlugin->>Printer: Generate Prescription Print
-    Printer-->>Doctor: Printed Prescription
-```
+    AssignPlugin->>Printer: Tạo bản in đơn thuốc
+    Printer-->>Doctor: Đơn thuốc đã in
+\`\`\`
 
-**Prescription Components:**
+**Các Thành phần của Đơn thuốc:**
 
-Each prescription plugin typically contains:
-- **Run/** folder: Main execution logic and form initialization
-- **ADO/** folder: Prescription-specific data objects
-- **Base/** folder: Base classes and interfaces
-- **Validation/** folder: Business rule validation
-- **Print/** folder: Integration with MPS print system
+Mỗi plugin kê đơn thường chứa:
+- Thư mục **Run/**: Logic thực thi chính và khởi tạo form.
+- Thư mục **ADO/**: Các đối tượng dữ liệu dành riêng cho đơn thuốc.
+- Thư mục **Base/**: Các lớp cơ sở và interface.
+- Thư mục **Validation/**: Xác thực các quy tắc nghiệp vụ.
+- Thư mục **Print/**: Tích hợp với hệ thống in MPS.
 
-The prescription plugins extensively use:
-- `HIS.UC.MedicineInStock` - real-time inventory checking
-- `HIS.UC.MaterialInStock` - consumable availability
-- Drug interaction databases for clinical decision support
-- Integration with pharmacy dispensing systems
+Các plugin đơn thuốc sử dụng rộng rãi:
+- \`HIS.UC.MedicineInStock\` - kiểm tra tồn kho theo thời gian thực.
+- \`HIS.UC.MaterialInStock\` - tính sẵn có của hàng tiêu dùng.
+- Cơ sở dữ liệu tương tác thuốc để hỗ trợ quyết định lâm sàng.
+- Tích hợp với hệ thống cấp phát của nhà thuốc.
 
-Sources: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
+Nguồn: [[\`.devin/wiki.json:70-77\`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
+---
 
-## Patient Tracking and Monitoring Plugins
+## Các Plugin Theo dõi và Giám sát Bệnh nhân
 
-Tracking plugins provide longitudinal views of patient care and enable clinical surveillance.
+Các plugin theo dõi cung cấp các góc nhìn tổng quát về quá trình chăm sóc bệnh nhân và cho phép giám sát lâm sàng.
 
-**Tracking Plugin Structure:**
+**Cấu trúc Plugin Theo dõi:**
 
 ```mermaid
 graph TB
-    subgraph "Tracking Plugins - 59 files"
-        TrackingCreate["HIS.Desktop.Plugins.TrackingCreate<br/>Create Tracking Entry"]
-        TrackingList["HIS.Desktop.Plugins.TrackingList<br/>View Tracking History"]
-        TrackingPrint["HIS.Desktop.Plugins.TrackingPrint<br/>Print Care Summary"]
+    subgraph "Các_Plugin_Theo_dõi_-_59_tệp"
+        TrackingCreate["HIS.Desktop.Plugins.TrackingCreate<br/>Tạo mục theo dõi"]
+        TrackingList["HIS.Desktop.Plugins.TrackingList<br/>Xem lịch sử theo dõi"]
+        TrackingPrint["HIS.Desktop.Plugins.TrackingPrint<br/>In tóm tắt chăm sóc"]
     end
     
-    subgraph "Tracking Data Sources"
-        ServiceReq["Service Requests<br/>HIS_SERVICE_REQ"]
-        SereServ["Service Executions<br/>HIS_SERE_SERV"]
-        Prescription["Prescriptions<br/>HIS_EXP_MEST"]
-        VitalSigns["Vital Signs<br/>HIS_DHST"]
+    subgraph "Nguồn_Dữ_liệu_Theo_dõi"
+        ServiceReq["Yêu cầu Dịch vụ<br/>HIS_SERVICE_REQ"]
+        SereServ["Thực hiện Dịch vụ<br/>HIS_SERE_SERV"]
+        Prescription["Đơn thuốc<br/>HIS_EXP_MEST"]
+        VitalSigns["Dấu hiệu sinh tồn<br/>HIS_DHST"]
     end
     
     TrackingCreate --> ServiceReq
@@ -351,122 +362,128 @@ graph TB
     TrackingList --> TrackingPrint
 ```
 
-**Tracking Functions:**
-- **Care Timeline**: Chronological view of all clinical events
-- **Progress Notes**: Daily nursing and physician notes
-- **Vital Sign Trends**: Graphical display of vital signs over time
-- **Medication Administration Records**: Drug administration tracking
-- **Care Plan Monitoring**: Track adherence to care protocols
+**Các Chức năng Theo dõi:**
+- **Dòng thời gian Chăm sóc**: Chế độ xem theo trình tự thời gian của tất cả các sự kiện lâm sàng.
+- **Ghi chú Tiến triển**: Các ghi chú điều dưỡng và bác sĩ hàng ngày.
+- **Xu hướng Dấu hiệu sinh tồn**: Hiển thị đồ thị các dấu hiệu sinh tồn theo thời gian.
+- **Hồ sơ Thực hiện Thuốc**: Theo dõi việc sử dụng thuốc.
+- **Giám sát Phác đồ Chăm sóc**: Theo dõi việc tuân thủ các quy trình chăm sóc.
 
-Tracking plugins integrate with:
-- `HIS.UC.TreatmentFinish` (94 files) - treatment summary generation
-- `HIS.UC.PlusInfo` (147 files) - additional clinical information
-- MPS print processors for tracking sheet generation
+Các plugin theo dõi tích hợp với:
+- `HIS.UC.TreatmentFinish` (94 tệp) - tạo tóm tắt điều trị.
+- `HIS.UC.PlusInfo` (147 tệp) - các thông tin lâm sàng bổ sung.
+- Các bộ xử lý in MPS để tạo các tờ theo dõi.
 
-Sources: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
+Nguồn: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77)
 
-## Supporting Business Plugins
+---
 
-Beyond the core workflow plugins, numerous supporting plugins provide specialized functions:
+## Các Plugin Nghiệp vụ Hỗ trợ
 
-**Specialty Area Plugins:**
+Bên cạnh các plugin quy trình cốt lõi, nhiều plugin hỗ trợ cung cấp các chức năng chuyên biệt:
 
-| Category | Examples | Function |
+**Các Plugin Khu vực Chuyên khoa:**
+
+| Danh mục | Ví dụ | Chức năng |
 |----------|----------|----------|
-| Surgery | `HIS.Desktop.Plugins.SurgerySchedule` | Operating room scheduling and management |
-| ICU | `HIS.Desktop.Plugins.IcuInfo` | Intensive care unit patient management |
-| Obstetrics | `HIS.Desktop.Plugins.FetusBorn`, `HIS.Desktop.Plugins.FetusAbortion` | Maternal and fetal care |
-| Emergency | `HIS.Desktop.Plugins.EmergencyWTime` | Emergency department workflow |
-| Imaging | `HIS.Desktop.Plugins.HisImportDicom` | Medical imaging integration |
+| Phẫu thuật | `HIS.Desktop.Plugins.SurgerySchedule` | Lập lịch và quản lý phòng mổ |
+| ICU | `HIS.Desktop.Plugins.IcuInfo` | Quản lý bệnh nhân đơn vị hồi sức tích cực |
+| Sản khoa | `HIS.Desktop.Plugins.FetusBorn`, `HIS.Desktop.Plugins.FetusAbortion` | Chăm sóc bà mẹ và thai nhi |
+| Cấp cứu | `HIS.Desktop.Plugins.EmergencyWTime` | Quy trình khoa cấp cứu |
+| Hình ảnh | `HIS.Desktop.Plugins.HisImportDicom` | Tích hợp hình ảnh y tế (DICOM) |
 
-**Administrative Support Plugins:**
+**Các Plugin Hỗ trợ Hành chính:**
 
-| Plugin | Purpose |
+| Plugin | Mục đích |
 |--------|---------|
-| `HIS.Desktop.Plugins.Appointment` | Appointment scheduling |
-| `HIS.Desktop.Plugins.BedRoom` | Bed management |
-| `HIS.Desktop.Plugins.RoomInfo` | Room configuration |
-| `HIS.Desktop.Plugins.PatientInfo` | Patient information viewer |
+| `HIS.Desktop.Plugins.Appointment` | Hẹn lịch khám bệnh |
+| `HIS.Desktop.Plugins.BedRoom` | Quản lý giường bệnh |
+| `HIS.Desktop.Plugins.RoomInfo` | Cấu hình phòng/buồng |
+| `HIS.Desktop.Plugins.PatientInfo` | Trình xem thông tin bệnh nhân |
 
-Sources: [[`.devin/wiki.json:1-295`](../../../../.devin/wiki.json#L1-L295)](../../../../.devin/wiki.json#L1-L295)
+Nguồn: [[`.devin/wiki.json:1-295`](../../../../.devin/wiki.json#L1-295)](../../../../.devin/wiki.json#L1-295)
 
-## Inter-Plugin Communication Patterns
+---
 
-HIS core business plugins communicate using two primary mechanisms:
+## Các Mô hình Truyền thông Giữa các Plugin
 
-**1. DelegateRegister Pattern (Tight Coupling):**
+Các plugin nghiệp vụ cốt lõi của HIS giao tiếp bằng hai cơ chế chính:
+
+**1. Mô hình DelegateRegister (Liên kết Chặt chẽ):**
 
 ```mermaid
 graph LR
-    PluginA["Plugin A<br/>Register Delegate"]
-    DelegateReg["HIS.Desktop.DelegateRegister<br/>Central Registry"]
-    PluginB["Plugin B<br/>Invoke Delegate"]
+    PluginA["Plugin A<br/>Đăng ký Delegate"]
+    DelegateReg["HIS.Desktop.DelegateRegister<br/>Sổ đăng ký tập trung"]
+    PluginB["Plugin B<br/>Gọi Delegate"]
     
     PluginA -->|"RegisterDelegate<br/>SendData()"| DelegateReg
     PluginB -->|"GetDelegate<br/>Invoke()"| DelegateReg
-    DelegateReg -.->|"Execute"| PluginA
+    DelegateReg -.->|"Thực thi"| PluginA
 ```
 
-**2. PubSub Pattern (Loose Coupling):**
+**2. Mô hình PubSub (Liên kết Lỏng lẻo):**
 
 ```mermaid
 graph TB
-    Publisher["Plugin Publisher<br/>TreatmentFinish"]
-    PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Event Bus<br/>9 files"]
-    Sub1["Subscriber 1<br/>TrackingList"]
-    Sub2["Subscriber 2<br/>PrintBordereau"]
-    Sub3["Subscriber 3<br/>ElectronicBill"]
+    Publisher["Plugin phát tin<br/>TreatmentFinish"]
+    PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Bus Sự kiện<br/>9 tệp"]
+    Sub1["Người đăng ký 1<br/>TrackingList"]
+    Sub2["Người đăng ký 2<br/>PrintBordereau"]
+    Sub3["Người đăng ký 3<br/>ElectronicBill"]
     
-    Publisher -->|"Publish<br/>TreatmentCompleted"| PubSub
-    PubSub -->|"Notify"| Sub1
-    PubSub -->|"Notify"| Sub2
-    PubSub -->|"Notify"| Sub3
+    Publisher -->|"Phát<br/>TreatmentCompleted"| PubSub
+    PubSub -->|"Thông báo"| Sub1
+    PubSub -->|"Thông báo"| Sub2
+    PubSub -->|"Thông báo"| Sub3
 ```
 
-**Common Communication Events:**
-- `PatientRegistered` - New patient admission
-- `ExaminationComplete` - Exam service finished
-- `PrescriptionCreated` - New medication order
-- `TreatmentFinished` - Patient discharge
-- `ServiceRequestUpdated` - Service status change
+**Các Sự kiện Truyền thông Phổ biến:**
+- `PatientRegistered` - Đăng ký bệnh nhân mới.
+- `ExaminationComplete` - Hoàn thành dịch vụ khám.
+- `PrescriptionCreated` - Kê đơn thuốc mới.
+- `TreatmentFinished` - Kết thúc điều trị bệnh nhân.
+- `ServiceRequestUpdated` - Thay đổi trạng thái yêu cầu dịch vụ.
 
-Plugins can:
-- Register event handlers for specific domain events
-- Publish events when state changes occur
-- Invoke delegates for synchronous cross-plugin operations
-- Access shared data through `HIS.Desktop.LocalStorage.BackendData` (69 files)
+Các plugin có thể:
+- Đăng ký các trình xử lý sự kiện cho các sự kiện thuộc miền cụ thể.
+- Phát các sự kiện khi có thay đổi trạng thái xảy ra.
+- Gọi các delegate cho các thao tác đồng bộ giữa các plugin.
+- Truy cập dữ liệu dùng chung thông qua `HIS.Desktop.LocalStorage.BackendData` (69 tệp).
 
-Sources: [[`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68)](../../../../.devin/wiki.json#L60-L68)
+Nguồn: [[`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68)](../../../../.devin/wiki.json#L60-L68)
 
-## Common Plugin Architecture Patterns
+---
 
-Most HIS core business plugins follow a consistent structure:
+## Các Mô hình Kiến trúc Plugin Chung
 
-**Standard Plugin File Organization:**
+Hầu hết các plugin nghiệp vụ cốt lõi của HIS tuân theo một cấu trúc nhất quán:
+
+**Tổ chức Tệp Plugin Tiêu chuẩn:**
 
 ```mermaid
 graph TB
-    subgraph "Plugin Root: HIS.Desktop.Plugins.PluginName"
-        Entry["PluginName.cs<br/>Plugin Entry Point<br/>Implements IPlugin"]
-        Processor["PluginNameProcessor.cs<br/>Business Logic"]
+    subgraph "Gốc_Plugin:_HIS.Desktop.Plugins.PluginName"
+        Entry["PluginName.cs<br/>Điểm thâm nhập Plugin<br/>Triển khai IPlugin"]
+        Processor["PluginNameProcessor.cs<br/>Logic Nghiệp vụ"]
         
-        subgraph "Run Folder"
-            Form["frmPluginName.cs<br/>Main Form"]
-            FormDesigner["frmPluginName.Designer.cs<br/>UI Layout"]
-            Presenter["PluginNamePresenter.cs<br/>Presenter Logic"]
+        subgraph "Thư_mục_Run"
+            Form["frmPluginName.cs<br/>Form chính"]
+            FormDesigner["frmPluginName.Designer.cs<br/>Bố cục UI"]
+            Presenter["PluginNamePresenter.cs<br/>Logic Presenter"]
         end
         
-        subgraph "ADO Folder"
-            ADO["PluginNameADO.cs<br/>Data Transfer Objects"]
+        subgraph "Thư_mục_ADO"
+            ADO["PluginNameADO.cs<br/>Các đối tượng truyền dữ liệu"]
         end
         
-        subgraph "Base Folder"
-            Interface["IPluginName.cs<br/>Plugin Interface"]
-            BaseClass["PluginNameBase.cs<br/>Base Implementation"]
+        subgraph "Thư_mục_Base"
+            Interface["IPluginName.cs<br/>Interface của Plugin"]
+            BaseClass["PluginNameBase.cs<br/>Triển khai cơ sở"]
         end
         
-        subgraph "Validation Folder"
-            Valid["PluginNameValidation.cs<br/>Business Rules"]
+        subgraph "Thư_mục_Validation"
+            Valid["PluginNameValidation.cs<br/>Các quy tắc nghiệp vụ"]
         end
     end
     
@@ -478,84 +495,86 @@ graph TB
     Form -.-> Interface
 ```
 
-**Key Components:**
+**Các Thành phần Chính:**
 
-| Component | Purpose | Typical Location |
+| Thành phần | Mục đích | Vị trí Điển hình |
 |-----------|---------|------------------|
-| Plugin Entry | Implements `IPlugin` interface, registration point | [`[PluginName].cs`](../../../[PluginName].cs) |
-| Processor | Core business logic, orchestrates operations | [`[PluginName]Processor.cs`](../../../[PluginName]Processor.cs) |
-| Main Form | WinForms UI, typically DevExpress controls | [`Run/frm[PluginName].cs`](../../../Run/frm[PluginName].cs) |
-| Presenter | MVP pattern presenter, separates UI from logic | [`Run/[PluginName]Presenter.cs`](../../../Run/[PluginName]Presenter.cs) |
-| ADO | Plugin-specific data objects | [`ADO/*.cs`](../../../ADO/*.cs) |
-| Validation | Business rule validation logic | [`Validation/*.cs`](../../../Validation/*.cs) |
+| Plugin Entry | Triển khai interface `IPlugin`, điểm đăng ký | [`[PluginName].cs`](../../../[PluginName].cs) |
+| Processor | Logic nghiệp vụ cốt lõi, điều phối hoạt động | [`[PluginName]Processor.cs`](../../../[PluginName]Processor.cs) |
+| Form chính | UI WinForms, thường dùng điều khiển DevExpress | [`Run/frm[PluginName].cs`](../../../Run/frm[PluginName].cs) |
+| Presenter | Presenter của mô hình MVP, tách biệt UI khỏi logic | [`Run/[PluginName]Presenter.cs`](../../../Run/[PluginName]Presenter.cs) |
+| ADO | Các đối tượng dữ liệu dành riêng cho plugin | [`ADO/*.cs`](../../../ADO/*.cs) |
+| Validation | Logic xác thực các quy tắc nghiệp vụ | [`Validation/*.cs`](../../../Validation/*.cs) |
 
-**Typical Plugin Lifecycle:**
+**Vòng đời Plugin Điển hình:**
 
 ```mermaid
 sequenceDiagram
     participant Core as Plugin Core
-    participant Plugin as Business Plugin
-    participant Form as UI Form
-    participant API as Backend API
+    participant Plugin as Plugin Nghiệp vụ
+    participant Form as Form UI
+    participant API as API Backend
     participant Storage as LocalStorage
     
-    Core->>Plugin: Load Plugin
-    Plugin->>Plugin: Initialize Processor
+    Core->>Plugin: Tải Plugin
+    Plugin->>Plugin: Khởi tạo Processor
     Core->>Plugin: Execute()
-    Plugin->>Form: Show Form
+    Plugin->>Form: Hiển thị Form
     
-    Form->>Storage: Load Cached Data
-    Storage-->>Form: Return Data
+    Form->>Storage: Tải dữ liệu đệm
+    Storage-->>Form: Trả về dữ liệu
     
-    Form->>API: Fetch Fresh Data
-    API-->>Form: Return Data
-    API-->>Storage: Update Cache
+    Form->>API: Lấy dữ liệu mới nhất
+    API-->>Form: Trả về dữ liệu
+    API-->>Storage: Cập nhật bộ đệm
     
-    Form->>Plugin: User Action
-    Plugin->>Plugin: Validate
-    Plugin->>API: Save Changes
-    API-->>Plugin: Confirmation
-    Plugin->>Core: Publish Event
+    Form->>Plugin: Hành động người dùng
+    Plugin->>Plugin: Xác thực
+    Plugin->>API: Lưu thay đổi
+    API-->>Plugin: Xác nhận
+    Plugin->>Core: Phát sự kiện
 ```
 
-**Shared Dependencies:**
+**Các Phụ thuộc dùng chung:**
 
-All HIS core business plugins typically reference:
-- `HIS.Desktop.Common` - Common interfaces and base classes
-- `HIS.Desktop.ADO` - Shared data models (74 files)
-- `HIS.Desktop.Utility` - Helper functions (55 files)
-- `HIS.Desktop.ApiConsumer` - Backend API client (13 files)
-- `HIS.Desktop.LocalStorage.*` - Configuration and caching
-- Multiple UC projects for reusable UI components
-- DevExpress controls for rich UI elements
-- `Inventec.Desktop.Core` - Plugin framework (208 files)
+Tất cả các plugin nghiệp vụ cốt lõi của HIS thường tham chiếu đến:
+- `HIS.Desktop.Common` - Các interface và lớp cơ sở dùng chung.
+- `HIS.Desktop.ADO` - Các mô hình dữ liệu dùng chung (74 tệp).
+- `HIS.Desktop.Utility` - Các hàm trợ giúp (55 tệp).
+- `HIS.Desktop.ApiConsumer` - Client API backend (13 tệp).
+- `HIS.Desktop.LocalStorage.*` - Cấu hình và đệm dữ liệu.
+- Nhiều dự án UC cho các thành phần UI có thể tái sử dụng.
+- Các điều khiển DevExpress cho các phần tử UI phong phú.
+- `Inventec.Desktop.Core` - Khung làm việc plugin (208 tệp).
 
-Sources: [[`.devin/wiki.json:34-43`](../../../../.devin/wiki.json#L34-L43)](../../../../.devin/wiki.json#L34-L43), [[`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68)](../../../../.devin/wiki.json#L60-L68)
+Nguồn: [[`.devin/wiki.json:34-43`](../../../../.devin/wiki.json#L34-L43)](../../../../.devin/wiki.json#L34-L43), [[`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68)](../../../../.devin/wiki.json#L60-L68)
 
-## Integration with MPS Print System
+---
 
-HIS core business plugins extensively integrate with the MPS (Medical Print System) to generate clinical documents:
+## Tích hợp với Hệ thống In MPS
+
+Các plugin nghiệp vụ cốt lõi của HIS tích hợp sâu rộng với MPS (Medical Print System) để tạo ra các tài liệu lâm sàng:
 
 ```mermaid
 graph LR
-    subgraph "Business Plugins"
-        RegPlugin["Registration Plugin"]
-        ExamPlugin["Examination Plugin"]
-        PrescPlugin["Prescription Plugin"]
-        TreatPlugin["Treatment Plugin"]
+    subgraph "Các_Plugin_Nghiệp_vụ"
+        RegPlugin["Plugin Đăng ký"]
+        ExamPlugin["Plugin Khám bệnh"]
+        PrescPlugin["Plugin Đơn thuốc"]
+        TreatPlugin["Plugin Điều trị"]
     end
     
-    subgraph "Print Integration"
-        PrintLib["HIS.Desktop.Plugins.Library.PrintOtherForm<br/>94 files"]
-        PrintBord["HIS.Desktop.Plugins.Library.PrintBordereau<br/>69 files"]
+    subgraph "Tích_hợp_In_ấn"
+        PrintLib["HIS.Desktop.Plugins.Library.PrintOtherForm<br/>94 tệp"]
+        PrintBord["HIS.Desktop.Plugins.Library.PrintBordereau<br/>69 tệp"]
         PrintTreat["HIS.Desktop.Plugins.Library.PrintTreatmentFinish"]
     end
     
-    subgraph "MPS Processors"
-        MPS001["Mps000001<br/>Registration Form"]
-        MPS002["Mps000002<br/>Exam Record"]
-        MPS033["Mps000033<br/>Prescription"]
-        MPS011["Mps000011<br/>Discharge Summary"]
+    subgraph "Bộ_xử_lý_MPS"
+        MPS001["Mps000001<br/>Phiếu đăng ký"]
+        MPS002["Mps000002<br/>Kết quả khám"]
+        MPS033["Mps000033<br/>Đơn thuốc"]
+        MPS011["Mps000011<br/>Tóm tắt ra viện"]
     end
     
     RegPlugin --> PrintLib
@@ -569,99 +588,76 @@ graph LR
     PrintTreat --> MPS011
 ```
 
-Each business plugin can trigger print operations for:
-- Patient registration forms
-- Examination records and reports
-- Prescriptions and medication labels
-- Treatment summaries and discharge papers
-- Invoice and billing documents
+Mỗi plugin nghiệp vụ có thể kích hoạt các thao tác in cho:
+- Biểu mẫu đăng ký bệnh nhân.
+- Hồ sơ và báo cáo kết quả khám.
+- Đơn thuốc và nhãn thuốc.
+- Tóm tắt điều trị và giấy ra viện.
+- Hóa đơn và các tài liệu thanh toán.
 
-The print library plugins (`HIS.Desktop.Plugins.Library.Print*`) serve as intermediaries, formatting data from business plugins into structures compatible with MPS print processors.
+Các plugin thư viện in (`HIS.Desktop.Plugins.Library.Print*`) đóng vai trò trung gian, định dạng lại dữ liệu từ các plugin nghiệp vụ thành các cấu trúc tương thích với các bộ xử lý in MPS.
 
-Sources: [[`.devin/wiki.json:170-178`](../../../../.devin/wiki.json#L170-L178)](../../../../.devin/wiki.json#L170-L178)
+Nguồn: [[`.devin/wiki.json:170-178`](../../../../.devin/wiki.json#L170-L178)](../../../../.devin/wiki.json#L170-L178)
 
-## Summary
+---
 
-HIS core business plugins implement the essential hospital workflows in the HisNguonMo system. The 600+ plugins in the `HIS.Desktop.Plugins.*` namespace represent:
+## Các Plugin Giao dịch & Thanh toán
 
-- **Registration & Admission**: 81-102 files per major plugin
-- **Examination & Services**: 119 files for `ServiceExecute`
-- **Prescriptions**: 117-203 files, with `AssignPrescriptionPK` being the largest at 203 files
-- **Treatment Management**: 56-101 files, with `TreatmentFinish` at 101 files
-- **Patient Tracking**: 59 files for monitoring and surveillance
+### Mục đích và Phạm vi
 
-These plugins follow consistent architectural patterns:
-- MVP (Model-View-Presenter) design pattern
-- Plugin interface implementation
-- Integration with shared UC components
-- Communication via DelegateRegister and PubSub
-- Backend API consumption through `HIS.Desktop.ApiConsumer`
-- Print integration through MPS system
+Phần này giới thiệu các plugin giao dịch và thanh toán trong hệ thống HIS, chịu trách nhiệm xử lý việc thanh toán của bệnh nhân, quản lý tạm ứng, thu nợ, tạo hóa đơn và tích hợp hóa đơn điện tử. Các plugin này xử lý các giao dịch tài chính tại các điểm khác nhau trong quy trình chăm sóc bệnh nhân, từ tạm ứng khi đăng ký đến thanh toán cuối cùng và truyền hóa đơn điện tử tới cơ quan thuế.
 
-The modular design allows independent development and deployment of clinical features while maintaining system cohesion through well-defined interfaces and communication patterns.
+Để biết thông tin về quy trình đăng ký và điều trị cốt lõi của bệnh nhân, hãy xem [Các Plugin Nghiệp vụ Cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md). Đối với quản lý tồn kho dược và vật tư, hãy xem [Các Plugin Thuốc & Vật tư](../../03-business-domains/pharmacy/medicine-material.md). Để biết chi tiết về kiến trúc (cách tải plugin, giao tiếp), xem [Tổng quan Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
-Sources: [[`.devin/wiki.json:1-295`](../../../../.devin/wiki.json#L1-L295)](../../../../.devin/wiki.json#L1-L295), [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs:1-178`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Calculation.cs#L1-L178)
+### Tổng quan Danh mục Plugin
 
-# Transaction & Billing Plugins
+Hệ thống con giao dịch và thanh toán bao gồm khoảng 20 plugin chuyên biệt được tổ chức thành năm danh mục chức năng:
 
-
-
-
-## Purpose and Scope
-
-This page documents the transaction and billing plugins within the HIS system, responsible for handling patient payments, deposit management, debt collection, invoice generation, and electronic billing integration. These plugins process financial transactions at various points in the patient care workflow, from registration deposits to final payment and electronic invoice transmission to tax authorities.
-
-For information about core patient registration and treatment workflows, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md). For pharmacy and material inventory management, see [Medicine & Material Plugins](../../03-business-domains/pharmacy/medicine-material.md). For general plugin architecture patterns, see [Plugin System Architecture](../../01-architecture/plugin-system.md).
-
-## Plugin Category Overview
-
-The transaction and billing subsystem consists of approximately 20 specialized plugins organized into five functional categories:
-
-| Category | Primary Plugins | File Count | Purpose |
+| Danh mục | Các Plugin Chính | Số lượng Tệp | Mục đích |
 |----------|----------------|------------|---------|
-| Payment Transactions | `TransactionBill`, `TransactionBillKiosk` | 48, 36 | Process hospital fee payments at cashier and kiosk stations |
-| Deposit Management | `TransactionDeposit`, `DepositRequest` | ~30, 30 | Handle patient deposits and prepayments |
-| Debt Collection | `TransactionDebt`, `TransactionDebtCollect` | ~39 | Manage outstanding balances and debt recovery |
-| Invoice Generation | `InvoiceCreate`, `EInvoiceCreate`, `ElectronicBillTotal` | ~40+ | Create and manage invoices, including electronic invoices |
-| Pharmacy Cashier | `PharmacyCashier` | 31 | Process medication sales at pharmacy counters |
+| Thanh toán Giao dịch | `TransactionBill`, `TransactionBillKiosk` | 48, 36 | Xử lý thanh toán viện phí tại quầy thu ngân và kiosk |
+| Quản lý Tạm ứng | `TransactionDeposit`, `DepositRequest` | ~30, 30 | Xử lý các khoản tạm ứng và thanh toán trước của bệnh nhân |
+| Thu hồi Nợ | `TransactionDebt`, `TransactionDebtCollect` | ~39 | Quản lý số dư còn nợ và thu hồi nợ |
+| Tạo Hóa đơn | `InvoiceCreate`, `EInvoiceCreate`, `ElectronicBillTotal` | ~40+ | Tạo và quản lý hóa đơn, bao gồm hóa đơn điện tử |
+| Thu ngân Nhà thuốc | `PharmacyCashier` | 31 | Xử lý bán thuốc tại quầy nhà thuốc |
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionBillKiosk](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionDebtCollect](), [HIS/Plugins/HIS.Desktop.Plugins.PharmacyCashier](), [HIS/Plugins/HIS.Desktop.Plugins.DepositRequest]()
+---
 
-## System Architecture
+### Kiến trúc Hệ thống
 
-### Transaction Processing Flow
+#### Luồng Xử lý Giao dịch
 
 ```mermaid
 graph TB
-    subgraph "Patient Entry Points"
-        Reception["Reception<br/>(Register Plugins)"]
-        Pharmacy["Pharmacy Counter<br/>(PharmacyCashier)"]
-        Kiosk["Self-Service Kiosk<br/>(TransactionBillKiosk)"]
+    subgraph "Các_Điểm_Tiếp_nhận_Bệnh_nhân"
+        Reception["Tiếp nhận<br/>(Các plugin Register)"]
+        Pharmacy["Quầy Nhà thuốc<br/>(PharmacyCashier)"]
+        Kiosk["Kiosk Tự phục vụ<br/>(TransactionBillKiosk)"]
     end
     
-    subgraph "Transaction Plugins - HIS.Desktop.Plugins.*"
-        DepositReq["DepositRequest<br/>30 files"]
+    subgraph "Các_Plugin_Giao_dịch_-_HIS.Desktop.Plugins.*"
+        DepositReq["DepositRequest<br/>30 tệp"]
         TransDeposit["TransactionDeposit"]
-        TransBill["TransactionBill<br/>48 files"]
-        TransKiosk["TransactionBillKiosk<br/>36 files"]
-        PharmaCash["PharmacyCashier<br/>31 files"]
+        TransBill["TransactionBill<br/>48 tệp"]
+        TransKiosk["TransactionBillKiosk<br/>36 tệp"]
+        PharmaCash["PharmacyCashier<br/>31 tệp"]
         TransDebt["TransactionDebt"]
-        DebtCollect["TransactionDebtCollect<br/>39 files"]
+        DebtCollect["TransactionDebtCollect<br/>39 tệp"]
     end
     
-    subgraph "Invoice Generation"
+    subgraph "Tạo_Hóa_đơn"
         InvCreate["InvoiceCreate"]
         EInvCreate["EInvoiceCreate"]
         ElecBillTotal["ElectronicBillTotal"]
     end
     
-    subgraph "Data & API Layer"
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>Transaction APIs"]
-        LocalStorage["HIS.Desktop.LocalStorage<br/>BackendData Cache"]
+    subgraph "Lớp_Dữ_liệu_&_API"
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>Các API Giao dịch"]
+        LocalStorage["HIS.Desktop.LocalStorage<br/>Bộ đệm BackendData"]
     end
     
-    subgraph "External Integration"
-        ElecBillLib["Inventec.Common.ElectronicBill<br/>319 files<br/>Tax Authority Integration"]
+    subgraph "Tích_hợp_Bên_ngoài"
+        ElecBillLib["Inventec.Common.ElectronicBill<br/>319 tệp<br/>Tích hợp với cơ quan Thuế"]
     end
     
     Reception --> DepositReq
@@ -690,27 +686,27 @@ graph TB
     ApiConsumer --> LocalStorage
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionBillKiosk](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionDeposit](), [HIS/Plugins/HIS.Desktop.Plugins.DepositRequest](), [HIS/Plugins/HIS.Desktop.Plugins.PharmacyCashier](), [HIS/Plugins/HIS.Desktop.Plugins.InvoiceCreate](), [HIS/Plugins/HIS.Desktop.Plugins.EInvoiceCreate](), [HIS/Desktop/HIS.Desktop.ApiConsumer](), [Common/Inventec.Common/Inventec.Common.ElectronicBill]()
+---
 
-### Plugin Communication Pattern
+#### Mô hình Truyền thông Plugin
 
 ```mermaid
 graph LR
-    subgraph "Transaction Plugins"
+    subgraph "Các_Plugin_Giao_dịch"
         TransBill["TransactionBill"]
         TransDeposit["TransactionDeposit"]
         DebtCollect["TransactionDebtCollect"]
     end
     
-    subgraph "Communication Layer"
-        DelegateReg["HIS.Desktop.DelegateRegister<br/>Direct Plugin Communication"]
-        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Event-Driven Messaging"]
+    subgraph "Lớp_Truyền_thông"
+        DelegateReg["HIS.Desktop.DelegateRegister<br/>Truyền thông Plugin trực tiếp"]
+        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Truyền tin dựa trên sự kiện"]
     end
     
-    subgraph "Related Plugins"
-        Treatment["TreatmentFinish<br/>101 files"]
-        Prescription["AssignPrescription*<br/>Plugins"]
-        ServiceExec["ServiceExecute<br/>119 files"]
+    subgraph "Các_Plugin_Liên_quan"
+        Treatment["TreatmentFinish<br/>101 tệp"]
+        Prescription["Các plugin<br/>AssignPrescription*"]
+        ServiceExec["ServiceExecute<br/>119 tệp"]
     end
     
     TransBill <--> DelegateReg
@@ -728,443 +724,96 @@ graph LR
     PubSub -.-> Prescription
 ```
 
-**Sources:** [HIS/Desktop/HIS.Desktop.Common/DelegateRegister](), [HIS/Desktop/HIS.Desktop.LocalStorage.PubSub](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill](), [HIS/Plugins/HIS.Desktop.Plugins.TreatmentFinish]()
+---
 
-## Core Transaction Plugins
+### Các Plugin Giao dịch Cốt lõi
 
-### TransactionBill Plugin (48 files)
+#### Plugin TransactionBill (48 tệp)
 
-The `TransactionBill` plugin is the primary cashier interface for processing hospital fee payments at reception desks and payment counters. This is the most comprehensive transaction plugin, handling complex payment scenarios including partial payments, insurance co-payments, and multi-service billing.
+Plugin `TransactionBill` là giao diện thu ngân chính để xử lý việc thanh toán viện phí tại quầy đăng ký và quầy thanh toán. Đây là plugin giao dịch toàn diện nhất, xử lý các tình huống thanh toán phức tạp bao gồm thanh toán từng phần, đồng chi trả bảo hiểm và thanh toán nhiều dịch vụ.
 
-**Key Components:**
+**Các Thành phần Chính:**
 
-| Component | Purpose |
+| Thành phần | Mục đích |
 |-----------|---------|
-| `TransactionBillProcessor` | Main payment processing logic |
-| `frmTransactionBill` | Primary cashier UI form |
-| `TransactionBillBehavior` | Business rule validation |
-| ADO Models | Data transfer objects for transaction data |
-| Run/ folder | Plugin entry point and initialization |
+| `TransactionBillProcessor` | Logic xử lý thanh toán chính |
+| `frmTransactionBill` | Form UI thu ngân chính |
+| `TransactionBillBehavior` | Xác thực các quy tắc nghiệp vụ |
+| Các mô hình ADO | Các đối tượng truyền dữ liệu cho dữ liệu giao dịch |
+| Thư mục Run/ | Điểm thâm nhập plugin và khởi tạo |
 
-**Typical Workflow:**
-1. Cashier selects patient treatment or service record
-2. System calculates total charges from `ServiceExecute` records
-3. Plugin displays itemized billing with insurance deductions
-4. Cashier processes payment (cash, card, or mixed)
-5. System generates receipt and updates patient balance
-6. Triggers invoice creation if required
+**Quy trình Điển hình:**
+1. Thu ngân chọn hồ sơ điều trị hoặc dịch vụ của bệnh nhân.
+2. Hệ thống tính toán tổng chi phí từ hồ sơ `ServiceExecute`.
+3. Plugin hiển thị chi tiết thanh toán kèm theo các khoản khấu trừ bảo hiểm.
+4. Thu ngân xử lý thanh toán (tiền mặt, thẻ, hoặc hỗn hợp).
+5. Hệ thống tạo biên lai và cập nhật số dư bệnh nhân.
+6. Kích hoạt việc tạo hóa đơn nếu được yêu cầu.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill]()
+#### Plugin TransactionBillKiosk (36 tệp)
 
-### TransactionBillKiosk Plugin (36 files)
+Plugin `TransactionBillKiosk` cung cấp một giao diện màn hình cảm ứng đơn giản cho các kiosk thanh toán tự phục vụ. Nó triển khai một tập con các chức năng của `TransactionBill` được tối ưu hóa cho việc tự phục vụ của bệnh nhân với sự can thiệp tối thiểu của nhân viên.
 
-The `TransactionBillKiosk` plugin provides a simplified, touch-screen interface for self-service payment kiosks. It implements a subset of `TransactionBill` functionality optimized for patient self-service with minimal staff intervention.
+**Các Tính năng Dành riêng cho Kiosk:**
+- UI đơn giản hóa với các mục tiêu cảm ứng lớn hơn.
+- Tích hợp thanh toán qua mã QR.
+- Tự động in biên lai.
+- Xác thực bệnh nhân qua thẻ căn cước hoặc mã QR.
+- Các loại giao dịch bị hạn chế (chỉ thanh toán cuối cùng, không thanh toán từng phần).
 
-**Kiosk-Specific Features:**
-- Simplified UI with larger touch targets
-- QR code payment integration
-- Automatic receipt printing
-- Patient verification via ID card or QR code
-- Limited transaction types (final payments only, no partial payments)
+**Các Điểm Tích hợp:**
+- Chia sẻ các lời gọi API backend với `TransactionBill`.
+- Sử dụng cùng một bộ máy xử lý thanh toán.
+- Tích hợp với các phần cứng ngoại vi (máy đọc thẻ, máy in, máy quét ID).
 
-**Integration Points:**
-- Shares backend API calls with `TransactionBill`
-- Uses same payment processing engine
-- Integrates with peripheral hardware (card readers, printers, ID scanners)
+#### Plugin PharmacyCashier (31 tệp)
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBillKiosk]()
+Plugin `PharmacyCashier` xử lý các giao dịch tại điểm bán hàng ở quầy thuốc bệnh viện, xử lý cả đơn thuốc được cấp phát và bán thuốc không kê đơn.
 
-### PharmacyCashier Plugin (31 files)
+**Xử lý Dành riêng cho Nhà thuốc:**
+- Xác thực phê duyệt đơn thuốc trước khi thanh toán.
+- Kiểm tra tính sẵn có của tồn kho thuốc.
+- Tính toán mức hưởng bảo hiểm cho các loại thuốc.
+- Tạo biên lai dành riêng cho nhà thuốc kèm theo hướng dẫn sử dụng thuốc.
+- Cập nhật tồn kho thuốc thông qua tích hợp với các plugin `ExpMest*`.
 
-The `PharmacyCashier` plugin handles point-of-sale transactions at hospital pharmacy counters, processing both dispensed prescriptions and over-the-counter medication sales.
-
-**Pharmacy-Specific Processing:**
-- Validates prescription approval before payment
-- Checks medication inventory availability
-- Calculates insurance coverage for medications
-- Generates pharmacy-specific receipts with medication instructions
-- Updates medication inventory via `ExpMest*` plugin integration
-
-**Data Flow:**
+**Luồng Dữ liệu:**
 ```mermaid
 graph LR
-    Prescription["AssignPrescriptionPK<br/>203 files<br/>Prescription Creation"]
-    Approval["Prescription Approval<br/>Pharmacy Review"]
-    PharmaCash["PharmacyCashier<br/>31 files<br/>Payment Processing"]
-    ExpMest["ExpMest Plugins<br/>Inventory Export"]
+    Prescription["AssignPrescriptionPK<br/>203 tệp<br/>Tạo đơn thuốc"]
+    Approval["Phê duyệt Đơn thuốc<br/>Dược sĩ xem xét"]
+    PharmaCash["PharmacyCashier<br/>31 tệp<br/>Xử lý thanh toán"]
+    ExpMest["Các plugin ExpMest<br/>Xuất kho vật tư"]
     
     Prescription --> Approval
     Approval --> PharmaCash
     PharmaCash --> ExpMest
     
-    PharmaCash --> Receipt["Receipt Printing<br/>MPS.Processor"]
-    PharmaCash --> EInv["Electronic Invoice<br/>If Required"]
+    PharmaCash --> Receipt["In biên lai<br/>MPS.Processor"]
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.PharmacyCashier](), [HIS/Plugins/HIS.Desktop.Plugins.AssignPrescriptionPK]()
+---
 
-## Deposit and Debt Management
+## Tóm tắt
 
-### Deposit Management Plugins
+Các plugin nghiệp vụ cốt lõi của HIS triển khai các quy trình bệnh viện thiết yếu trong hệ thống HisNguonMo. Hơn 600 plugin trong namespace `HIS.Desktop.Plugins.*` đại diện cho:
 
-The deposit system uses two primary plugins working in tandem:
+- **Đăng ký & Tiếp nhận**: 81-102 tệp cho mỗi plugin lớn.
+- **Khám bệnh & Dịch vụ**: 119 tệp cho `ServiceExecute`.
+- **Đơn thuốc**: 117-203 tệp, với `AssignPrescriptionPK` là plugin lớn nhất với 203 tệp.
+- **Quản lý Điều trị**: 56-101 tệp, với `TreatmentFinish` có 101 tệp.
+- **Theo dõi Bệnh nhân**: 59 tệp cho việc giám sát và theo dõi chăm sóc.
+- **Giao dịch & Thanh toán**: ~20 plugin xử lý các khía cạnh tài chính từ tạm ứng đến hóa đơn điện tử.
 
-**DepositRequest Plugin (30 files)**
-- Creates deposit requests during registration or admission
-- Allows staff to specify required deposit amounts
-- Generates deposit request documents
-- Routes requests to payment processing
+Các plugin này tuân theo các mô hình kiến trúc nhất quán:
+- Mô hình thiết kế MVP (Model-View-Presenter).
+- Triển khai interface plugin.
+- Tích hợp với các thành phần UC dùng chung.
+- Truyền thông qua DelegateRegister và PubSub.
+- Sử dụng API backend thông qua `HIS.Desktop.ApiConsumer`.
+- Tích hợp in ấn qua hệ thống MPS.
 
-**TransactionDeposit Plugin**
-- Processes actual deposit payments
-- Tracks deposit balances by treatment
-- Handles deposit refunds at discharge
-- Applies deposits to final billing
+Thiết kế mô-đun cho phép phát triển và triển khai độc lập các tính năng lâm sàng và tài chính trong khi vẫn duy trì sự gắn kết của hệ thống thông qua các interface và mô hình truyền thông được định nghĩa rõ ràng.
 
-**Deposit Workflow:**
-```mermaid
-graph TB
-    Register["Patient Registration<br/>Register Plugins"]
-    DepReq["DepositRequest<br/>30 files<br/>Create Deposit Request"]
-    TransDep["TransactionDeposit<br/>Process Payment"]
-    Balance["LocalStorage.BackendData<br/>Cache Deposit Balance"]
-    FinalBill["TransactionBill<br/>Apply Deposit<br/>to Final Bill"]
-    Refund["Refund Processing<br/>If Excess Deposit"]
-    
-    Register --> DepReq
-    DepReq --> TransDep
-    TransDep --> Balance
-    Balance --> FinalBill
-    FinalBill --> Refund
-```
+---
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.DepositRequest](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionDeposit](), [HIS/Desktop/HIS.Desktop.LocalStorage.BackendData]()
-
-### Debt Collection Plugins
-
-**TransactionDebt Plugin**
-- Tracks unpaid balances from completed treatments
-- Records partial payments on outstanding debts
-- Maintains debt aging reports
-- Flags patients with outstanding balances
-
-**TransactionDebtCollect Plugin (39 files)**
-- Provides dedicated interface for debt collection activities
-- Allows batch processing of debt payments
-- Generates debt collection reports
-- Supports payment plans and installment tracking
-
-**Debt Management Features:**
-- Automatic debt creation when patient leaves with unpaid balance
-- Integration with patient registration (blocks new admissions if configured)
-- Debt aging analysis
-- Collection activity tracking
-- Payment history by debt account
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionDebt](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionDebtCollect]()
-
-## Invoice Generation and Electronic Billing
-
-### Invoice Plugin Architecture
-
-```mermaid
-graph TB
-    subgraph "Invoice Creation"
-        InvCreate["InvoiceCreate<br/>Manual Invoice Entry"]
-        AutoInv["Automatic Invoice<br/>Triggered by TransactionBill"]
-    end
-    
-    subgraph "Electronic Invoice Processing"
-        EInvCreate["EInvoiceCreate<br/>Electronic Invoice Generation"]
-        Validation["XML Validation<br/>Invoice Format Check"]
-        Signing["Digital Signature<br/>Invoice Signing"]
-    end
-    
-    subgraph "Tax Authority Integration"
-        ElecBillLib["Inventec.Common.ElectronicBill<br/>319 files"]
-        TaxAPI["Tax Authority API<br/>Submit to GDT"]
-        ElecBillTotal["ElectronicBillTotal<br/>Batch Submission Summary"]
-    end
-    
-    subgraph "Storage & Reporting"
-        LocalStore["LocalStorage.BackendData<br/>Cache Invoice Data"]
-        SAR["SAR Report Plugins<br/>Invoice Reports"]
-    end
-    
-    InvCreate --> EInvCreate
-    AutoInv --> EInvCreate
-    
-    EInvCreate --> Validation
-    Validation --> Signing
-    Signing --> ElecBillLib
-    
-    ElecBillLib --> TaxAPI
-    EInvCreate --> ElecBillTotal
-    ElecBillTotal --> TaxAPI
-    
-    EInvCreate --> LocalStore
-    LocalStore --> SAR
-```
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.InvoiceCreate](), [HIS/Plugins/HIS.Desktop.Plugins.EInvoiceCreate](), [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBill](), [Common/Inventec.Common/Inventec.Common.ElectronicBill]()
-
-### InvoiceCreate Plugin
-
-The `InvoiceCreate` plugin provides manual invoice creation and management capabilities:
-
-- **Manual Invoice Entry**: Staff can create invoices for services not processed through standard payment flow
-- **Invoice Templates**: Supports multiple invoice formats (VAT, non-VAT, simplified)
-- **Batch Invoicing**: Create multiple invoices for recurring services
-- **Invoice Corrections**: Handle invoice cancellations and adjustments
-- **Print Integration**: Generates invoice printouts via MPS system
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.InvoiceCreate]()
-
-### EInvoiceCreate Plugin
-
-The `EInvoiceCreate` plugin manages electronic invoice generation and submission to Vietnam's General Department of Taxation (GDT):
-
-**Electronic Invoice Process:**
-1. **Data Collection**: Gathers transaction data from `TransactionBill` or `InvoiceCreate`
-2. **XML Generation**: Formats data per Ministry of Finance specifications
-3. **Validation**: Validates XML against official schema
-4. **Digital Signing**: Applies hospital's digital certificate
-5. **Submission**: Transmits to tax authority via `Inventec.Common.ElectronicBill`
-6. **Acknowledgment**: Receives and stores tax authority confirmation code
-
-**Key Features:**
-- Real-time invoice submission
-- Batch processing for high-volume periods
-- Automatic retry on submission failures
-- Invoice lookup by tax code
-- Electronic invoice cancellation workflow
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.EInvoiceCreate](), [Common/Inventec.Common/Inventec.Common.ElectronicBill]()
-
-### ElectronicBillTotal Plugin
-
-The `ElectronicBillTotal` plugin provides summary and reporting capabilities for electronic invoice submissions:
-
-- Aggregates daily/monthly electronic invoice statistics
-- Tracks submission success/failure rates
-- Generates reports for tax compliance auditing
-- Provides dashboard of electronic billing status
-- Facilitates batch resubmission of failed invoices
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBillTotal]()
-
-### Inventec.Common.ElectronicBill Library (319 files)
-
-This is the largest component in the `Inventec.Common` utilities, providing comprehensive electronic billing infrastructure:
-
-**Library Components:**
-
-| Component | Purpose |
-|-----------|---------|
-| XML Serialization | Convert transaction data to tax authority XML format |
-| Schema Validation | Validate against Ministry of Finance XML schemas |
-| Digital Signature | Sign invoices with hospital certificate |
-| API Client | HTTP communication with tax authority servers |
-| Error Handling | Process and classify submission errors |
-| Invoice Storage | Cache submitted invoices locally |
-
-**Supported Invoice Types:**
-- VAT invoices (Hóa đơn GTGT)
-- Sales invoices (Hóa đơn bán hàng)
-- Service invoices (Hóa đơn dịch vụ)
-- Adjustment invoices (Hóa đơn điều chỉnh)
-
-**Sources:** [Common/Inventec.Common/Inventec.Common.ElectronicBill]()
-
-## Plugin Structure and Development Patterns
-
-### Standard Transaction Plugin Structure
-
-All transaction plugins follow a consistent structural pattern:
-
-```
-HIS.Desktop.Plugins.TransactionXxx/
-├── Run/
-│   ├── TransactionXxxProcessor.cs          # Main processor class
-│   └── TransactionXxxBehavior.cs           # Behavior implementation
-├── ADO/
-│   ├── TransactionXxxADO.cs                # Data transfer objects
-│   └── TransactionXxxInputADO.cs           # Input parameters
-├── Base/
-│   ├── TransactionXxxBase.cs               # Base classes
-│   └── TransactionXxxValidator.cs          # Validation logic
-├── frmTransactionXxx.cs                     # Main UI form
-├── frmTransactionXxx.Designer.cs            # Generated designer code
-├── UCTransactionXxx.cs                      # User controls (if applicable)
-└── Properties/
-    └── Resources.resx                       # Localization resources
-```
-
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionDeposit]()
-
-### Common Base Classes and Interfaces
-
-Transaction plugins typically implement or inherit from:
-
-| Interface/Class | Purpose | Location |
-|----------------|---------|----------|
-| `IModule` | Plugin lifecycle interface | `Inventec.Desktop.Core` |
-| `FormBase` | Base form with common UI features | `HIS.Desktop.Utility` |
-| `ApiConsumerBase` | API communication base | `HIS.Desktop.ApiConsumer` |
-| `ValidationRule` | Input validation framework | `DevExpress.XtraEditors.DXErrorProvider` |
-
-**Sources:** [Common/Inventec.Desktop/Inventec.Desktop.Core](), [HIS/Desktop/HIS.Desktop.Utility](), [HIS/Desktop/HIS.Desktop.ApiConsumer]()
-
-## API Integration
-
-### Transaction API Endpoints
-
-Transaction plugins communicate with backend services through `HIS.Desktop.ApiConsumer`:
-
-**Common API Calls:**
-
-```
-ApiConsumer/
-├── TransactionApiConsumer.cs
-│   ├── GetTransaction()              # Retrieve transaction by ID
-│   ├── CreateTransaction()           # Create new transaction
-│   ├── UpdateTransaction()           # Update existing transaction
-│   ├── DeleteTransaction()           # Cancel transaction
-│   └── GetTransactionByTreatment()  # Get all transactions for treatment
-│
-├── DepositApiConsumer.cs
-│   ├── CreateDeposit()               # Process deposit payment
-│   ├── RefundDeposit()               # Refund excess deposit
-│   └── GetDepositsByTreatment()     # Query deposit balance
-│
-└── InvoiceApiConsumer.cs
-    ├── CreateInvoice()               # Generate invoice
-    ├── CancelInvoice()               # Cancel invoice
-    └── SubmitElectronicInvoice()    # Submit to tax authority
-```
-
-**Sources:** [HIS/Desktop/HIS.Desktop.ApiConsumer]()
-
-### Response Handling and Caching
-
-Transaction data is cached locally for offline operation and performance:
-
-**Caching Strategy:**
-- Recent transactions cached in `HIS.Desktop.LocalStorage.BackendData`
-- Cache invalidation on successful API updates
-- Offline queue for failed submissions with automatic retry
-- Redis cache integration for multi-user scenarios via `Inventec.Common.RedisCache`
-
-**Sources:** [HIS/Desktop/HIS.Desktop.LocalStorage.BackendData](), [Common/Inventec.Common/Inventec.Common.RedisCache]()
-
-## Print Integration
-
-Transaction plugins integrate with the MPS (Medical Print System) to generate receipts and financial documents:
-
-### Common Print Templates
-
-| Template ID | Purpose | Triggered By |
-|-------------|---------|--------------|
-| Mps000102 | Payment Receipt | `TransactionBill`, `TransactionBillKiosk` |
-| Mps000106 | Deposit Receipt | `TransactionDeposit` |
-| Mps000112 | Invoice | `InvoiceCreate` |
-| Mps000129 | Debt Collection Receipt | `TransactionDebtCollect` |
-| Mps000256 | Pharmacy Sales Receipt | `PharmacyCashier` |
-
-**Print Invocation Pattern:**
-```
-Transaction Plugin
-  → Prepare print data (PDO object)
-  → Call MPS.Processor.MpsXXXXXX
-  → Generate FlexCell template
-  → Output to printer or PDF
-```
-
-**Sources:** [MPS/MPS.Processor](), [MPS/MPS.ProcessorBase](), [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill]()
-
-## Configuration and Customization
-
-### Transaction Configuration Keys
-
-Transaction behavior is controlled through system configuration stored in `HIS.Desktop.LocalStorage.HisConfig`:
-
-**Key Configuration Options:**
-
-| Config Key | Purpose | Plugin Impact |
-|-----------|---------|---------------|
-| `ALLOW_NEGATIVE_BALANCE` | Allow treatments with negative balance | `TransactionBill` |
-| `AUTO_CREATE_EINVOICE` | Automatically generate e-invoices | `EInvoiceCreate` |
-| `REQUIRE_DEPOSIT_AMOUNT` | Minimum deposit required | `DepositRequest` |
-| `DEBT_COLLECTION_LIMIT` | Maximum outstanding debt before blocking | `TransactionDebt` |
-| `KIOSK_PAYMENT_METHODS` | Allowed payment methods at kiosk | `TransactionBillKiosk` |
-
-**Sources:** [HIS/Desktop/HIS.Desktop.LocalStorage.HisConfig](), [HIS/Desktop/HIS.Desktop.LocalStorage.SdaConfigKey]()
-
-## Security and Permissions
-
-Transaction plugins implement role-based access control through the ACS (Access Control System):
-
-**Required Permissions:**
-
-| Plugin | Required Module | Required Action |
-|--------|----------------|-----------------|
-| `TransactionBill` | `HIS.Desktop.Plugins.TransactionBill` | `CREATE`, `UPDATE`, `DELETE` |
-| `TransactionDeposit` | `HIS.Desktop.Plugins.TransactionDeposit` | `CREATE`, `REFUND` |
-| `TransactionDebtCollect` | `HIS.Desktop.Plugins.TransactionDebtCollect` | `CREATE`, `VIEW_HISTORY` |
-| `EInvoiceCreate` | `HIS.Desktop.Plugins.EInvoiceCreate` | `CREATE`, `CANCEL`, `SUBMIT` |
-
-**Audit Logging:**
-- All financial transactions logged via `Inventec.Desktop.Plugins.EventLog`
-- User actions tracked in `HIS.Desktop.LocalStorage.BackendData`
-- Electronic invoice submissions logged to tax authority systems
-
-**Sources:** [HIS/Plugins/ACS.Desktop.Plugins](), [Common/Inventec.Desktop/Inventec.Desktop.Plugins.EventLog]()
-
-## Error Handling and Recovery
-
-### Common Error Scenarios
-
-Transaction plugins implement comprehensive error handling for financial operation safety:
-
-**Error Categories:**
-
-1. **Validation Errors**
-   - Insufficient deposit balance
-   - Invalid insurance coverage data
-   - Missing required patient information
-   - Blocked by outstanding debt
-
-2. **API Communication Errors**
-   - Backend service unavailable
-   - Network timeout
-   - Authentication failures
-   - Transaction already processed
-
-3. **Electronic Invoice Errors**
-   - XML validation failures
-   - Digital signature errors
-   - Tax authority rejection
-   - Certificate expiration
-
-4. **Printing Errors**
-   - Printer offline
-   - Template missing
-   - PDF generation failure
-
-**Recovery Mechanisms:**
-- Automatic API retry with exponential backoff
-- Offline transaction queuing
-- Manual transaction resubmission interface
-- Transaction rollback on critical failures
-
-**Sources:** [HIS/Desktop/HIS.Desktop.ApiConsumer](), [HIS/Plugins/HIS.Desktop.Plugins.EInvoiceCreate]()
-
-## Related Documentation
-
-For additional context on transaction and billing plugins:
-
-- **[Plugin System Architecture](../../01-architecture/plugin-system.md)**: General plugin patterns and communication
-- **[HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md)**: Treatment and service execution workflows that generate billing data
-- **[Medicine & Material Plugins](../../03-business-domains/pharmacy/medicine-material.md)**: Pharmacy inventory integration with `PharmacyCashier`
-- **[MPS Print System](../../02-modules/his-desktop/business-plugins.md#mps-print)**: Receipt and invoice printing templates
-- **[Inventec Common Utilities](../../02-modules/common-libraries/libraries.md#inventec-common)**: Electronic billing library and payment processing utilities

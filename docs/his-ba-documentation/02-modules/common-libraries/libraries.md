@@ -1,64 +1,64 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-The `Common/` directory contains foundational utility libraries and frameworks that provide core functionality for all HIS modules. This page provides an overview of the 12 major component groups, their architecture, and dependencies. The Common libraries form a three-tier foundation: core utilities (Inventec.Common), desktop framework (Inventec.Desktop), and shared UI controls (Inventec.UC), plus specialized libraries for medical imaging, file storage, and voice recognition.
+Thư mục `Common/` chứa các thư viện tiện ích và khung (framework) nền tảng, cung cấp các chức năng cốt lõi cho tất cả các mô-đun của hệ thống HIS. Trang này cung cấp cái nhìn tổng quan về 12 nhóm thành phần chính, kiến trúc và các phụ thuộc (dependencies) của chúng. Các thư viện Common tạo nên một nền tảng ba tầng: các tiện ích cốt lõi (Inventec.Common), khung công việc cho ứng dụng desktop (Inventec.Desktop), và các điều khiển giao diện (UI controls) dùng chung (Inventec.UC), cùng với các thư viện chuyên dụng cho chẩn đoán hình ảnh y khoa, lưu trữ tệp tin và nhận dạng giọng nói.
 
-For detailed coverage of specific subsystems:
-- Inventec.Common utilities (46 projects) - see [Inventec Common Utilities](../../02-modules/common-libraries/libraries.md#inventec-common)
-- Inventec.Desktop framework (27 projects) - see [Inventec Desktop Framework](../../02-modules/common-libraries/libraries.md#inventec-desktop)  
-- Inventec.UC shared controls (1,060 files) - see [Inventec UC Shared Controls](../../02-modules/common-libraries/libraries.md#inventec-uc)
+Để biết thêm chi tiết về các phân hệ cụ thể:
+- Tiện ích Inventec.Common (46 dự án) - xem [Tiện ích Inventec Common](../../02-modules/common-libraries/libraries.md#inventec-common)
+- Khung công việc Inventec.Desktop (27 dự án) - xem [Khung công việc Inventec Desktop](../../02-modules/common-libraries/libraries.md#inventec-desktop)  
+- Các điều khiển dùng chung Inventec.UC (1,060 tệp) - xem [Điều khiển dùng chung Inventec UC](../../02-modules/common-libraries/libraries.md#inventec-uc)
 
-## Component Inventory
+## Danh mục thành phần
 
-The Common/ directory contains 12 major component groups organized by functionality:
+Thư mục `Common/` chứa 12 nhóm thành phần chính được tổ chức theo chức năng:
 
-| Component | File Count | Primary Purpose | Key Projects |
+| Thành phần | Số lượng tệp | Mục đích chính | Các dự án then chốt |
 |-----------|------------|-----------------|--------------|
-| `Inventec.UC` | 1,060 files | Shared UI controls foundation | TreatmentRecord, TreeSereServHein |
-| `Inventec.Common` | 890 files (46 projects) | General-purpose utilities | ElectronicBill, QRCoder, FlexCelPrint, WebApiClient, Logging |
-| `Inventec.Desktop` | 455 files (27 projects) | Desktop application framework | Core (208 files), plugin system, base plugins |
-| `Inventec.DicomViewer` | 134 files | Medical imaging viewer | DICOM format support, image manipulation |
-| `Inventec.DrawTools` | 86 files | Drawing and annotation tools | Graphics utilities |
-| `Inventec.Aup.Client` | 40 files | Auto-update client | Download manager, version control, process lifecycle |
-| `Inventec.Speech` | 31 files | Voice recognition | Speech-to-text for medical dictation |
-| `Inventec.Fss.Client` | Variable | File storage service client | Remote file upload/download |
-| `Inventec.WCF` | Variable | WCF communication layer | Service contracts |
-| `HIS.Common.*` | Variable | HIS-specific utilities | Treatment calculations, domain logic |
+| `Inventec.UC` | 1,060 tệp | Nền tảng các điều khiển UI dùng chung | TreatmentRecord, TreeSereServHein |
+| `Inventec.Common` | 890 tệp (46 dự án) | Các tiện ích đa mục đích | ElectronicBill, QRCoder, FlexCelPrint, WebApiClient, Logging |
+| `Inventec.Desktop` | 455 tệp (27 dự án) | Khung công việc cho ứng dụng desktop | Core (208 tệp), hệ thống plugin, các plugin cơ bản |
+| `Inventec.DicomViewer` | 134 tệp | Trình xem hình ảnh y tế | Hỗ trợ định dạng DICOM, xử lý hình ảnh |
+| `Inventec.DrawTools` | 86 tệp | Công cụ vẽ và chú thích | Các tiện ích đồ họa |
+| `Inventec.Aup.Client` | 40 tệp | Client tự động cập nhật | Quản lý tải xuống, kiểm soát phiên bản, vòng đời tiến trình |
+| `Inventec.Speech` | 31 tệp | Nhận dạng giọng nói | Chuyển giọng nói thành văn bản cho ghi chép y tế |
+| `Inventec.Fss.Client` | Thay đổi | Client dịch vụ lưu trữ tệp | Tải lên/tải xuống tệp từ xa |
+| `Inventec.WCF` | Thay đổi | Lớp giao tiếp WCF | Các hợp đồng dịch vụ (Service contracts) |
+| `HIS.Common.*` | Thay đổi | Các tiện ích đặc thù cho HIS | Tính toán điều trị, logic nghiệp vụ |
 
-Sources: [[`.devin/wiki.json:243-246`](../../../../.devin/wiki.json#L243-L246)](../../../../.devin/wiki.json#L243-L246)
+Nguồn: [[`.devin/wiki.json:243-246`](../../../../.devin/wiki.json#L243-L246)](../../../../.devin/wiki.json#L243-L246)
 
-## Architectural Layers
+## Các lớp Kiến trúc
 
-### Dependency Flow Between Layers
+### Luồng phụ thuộc giữa các lớp
 
 ```mermaid
 graph TB
-    subgraph "Application_Layer"
-        HIS["HIS.Desktop<br/>Main Application"]
-        MPS["MPS<br/>Print System"]
-        UC_App["UC<br/>User Controls"]
+    subgraph "Lớp_Ứng_dụng"
+        HIS["HIS.Desktop<br/>Ứng dụng chính"]
+        MPS["MPS<br/>Hệ thống in ấn"]
+        UC_App["UC<br/>Điều khiển người dùng"]
     end
     
-    subgraph "Desktop_Framework_Layer"
-        Desktop_Core["Inventec.Desktop.Core<br/>208 files<br/>Plugin engine"]
-        Desktop_Plugins["Base Plugins:<br/>ChangePassword<br/>ConfigApplication<br/>EventLog<br/>Updater"]
+    subgraph "Lớp_Khung_Công_việc_Desktop"
+        Desktop_Core["Inventec.Desktop.Core<br/>208 tệp<br/>Plugin engine"]
+        Desktop_Plugins["Plugin cơ bản:<br/>ChangePassword<br/>ConfigApplication<br/>EventLog<br/>Updater"]
         Desktop_Custom["CustomControl<br/>ExportXML<br/>MenuButton"]
     end
     
-    subgraph "Utility_Libraries_Layer"
-        Common_API["WebApiClient<br/>HTTP layer"]
+    subgraph "Lớp_Thư_viện_Tiện_ích"
+        Common_API["WebApiClient<br/>Lớp HTTP"]
         Common_Print["FlexCelPrint<br/>FlexCelExport<br/>BarcodeLib"]
         Common_Data["Logging<br/>RedisCache<br/>Sqlite"]
         Common_Util["DateTime<br/>String<br/>Number<br/>QRCoder"]
-        Common_EBill["ElectronicBill<br/>319 files"]
-        Common_Word["WordContent<br/>60 files"]
+        Common_EBill["ElectronicBill<br/>319 tệp"]
+        Common_Word["WordContent<br/>60 tệp"]
     end
     
-    subgraph "Specialized_Services"
-        DicomViewer["Inventec.DicomViewer<br/>134 files"]
-        Speech["Inventec.Speech<br/>31 files"]
-        Fss["Inventec.Fss.Client<br/>File storage"]
-        DrawTools["Inventec.DrawTools<br/>86 files"]
-        AupClient["Inventec.Aup.Client<br/>40 files"]
+    subgraph "Các_Dịch_vụ_Chuyên_biệt"
+        DicomViewer["Inventec.DicomViewer<br/>134 tệp"]
+        Speech["Inventec.Speech<br/>31 tệp"]
+        Fss["Inventec.Fss.Client<br/>Lưu trữ tệp"]
+        DrawTools["Inventec.DrawTools<br/>86 tệp"]
+        AupClient["Inventec.Aup.Client<br/>40 tệp"]
     end
     
     HIS --> Desktop_Core
@@ -84,67 +84,67 @@ graph TB
     Common_API --> Common_Data
 ```
 
-The diagram illustrates a bottom-up dependency structure:
-- **Application modules** (HIS, MPS, UC) depend on both framework and utility layers
-- **Desktop framework layer** provides plugin infrastructure and application lifecycle management
-- **Utility libraries layer** supplies cross-cutting concerns (logging, caching, API communication)
-- **Specialized services** are consumed directly by application modules for domain-specific needs
+Sơ đồ minh họa cấu trúc phụ thuộc từ dưới lên:
+- **Các mô-đun ứng dụng** (HIS, MPS, UC) phụ thuộc vào cả lớp khung công việc (framework) và lớp tiện ích (utility).
+- **Lớp khung công việc desktop** cung cấp hạ tầng plugin và quản lý vòng đời ứng dụng.
+- **Lớp thư viện tiện ích** cung cấp các tính năng xuyên suốt (logging, caching, giao tiếp API).
+- **Các dịch vụ chuyên biệt** được các mô-đun ứng dụng sử dụng trực tiếp cho các nhu cầu đặc thù của nghiệp vụ.
 
-Sources: [[`.devin/wiki.json:240-247`](../../../../.devin/wiki.json#L240-L247)](../../../../.devin/wiki.json#L240-L247)
+Nguồn: [[`.devin/wiki.json:240-247`](../../../../.devin/wiki.json#L240-L247)](../../../../.devin/wiki.json#L240-L247)
 
-## Inventec.Common - Utility Libraries (46 Projects)
+## Inventec.Common - Thư viện Tiện ích (46 Dự án)
 
-The `Inventec.Common` namespace contains 46 discrete projects totaling 890 files, providing general-purpose utilities across multiple domains.
+Namespace `Inventec.Common` chứa 46 dự án riêng biệt với tổng cộng 890 tệp, cung cấp các tiện ích đa mục đích trên nhiều lĩnh vực khác nhau.
 
-### Communication & Integration
+### Giao tiếp & Tích hợp
 
-| Project | Files | Purpose |
+| Dự án | Số tệp | Mục đích |
 |---------|-------|---------|
-| `Inventec.Common.WebApiClient` | Variable | REST API client with authentication, retry logic, error handling |
-| `Inventec.Common.ElectronicBill` | 319 files | Electronic invoice integration with Vietnam tax authorities |
-| `Inventec.Common.RedisCache` | 26 files | Redis caching layer for performance optimization |
-| `Inventec.Common.Sqlite` | 32 files | Local SQLite database utilities |
-| `Inventec.Common.WitAI` | 25 files | Wit.ai natural language processing integration |
+| `Inventec.Common.WebApiClient` | Thay đổi | Client REST API với xác thực, logic thử lại (retry), và xử lý lỗi |
+| `Inventec.Common.ElectronicBill` | 319 tệp | Tích hợp hóa đơn điện tử với các cơ quan thuế Việt Nam |
+| `Inventec.Common.RedisCache` | 26 tệp | Lớp đệm (caching) Redis để tối ưu hóa hiệu suất |
+| `Inventec.Common.Sqlite` | 32 tệp | Các tiện ích cơ sở dữ liệu SQLite cục bộ |
+| `Inventec.Common.WitAI` | 25 tệp | Tích hợp xử lý ngôn ngữ tự nhiên Wit.ai |
 
-### Document Generation
+### Tạo Tài liệu
 
-| Project | Files | Purpose |
+| Dự án | Số tệp | Mục đích |
 |---------|-------|---------|
-| `Inventec.Common.FlexCelPrint` | 38 files | Print document generation using FlexCell library |
-| `Inventec.Common.FlexCelExport` | 23 files | Excel/PDF export functionality |
-| `Inventec.Common.WordContent` | 60 files | Microsoft Word document manipulation |
-| `Inventec.Common.QRCoder` | 51 files | QR code generation and decoding |
-| `Inventec.Common.BarcodeLib` | 32 files | Barcode generation (multiple formats) |
+| `Inventec.Common.FlexCelPrint` | 38 tệp | Tạo tài liệu in ấn sử dụng thư viện FlexCell |
+| `Inventec.Common.FlexCelExport` | 23 tệp | Chức năng xuất dữ liệu Excel/PDF |
+| `Inventec.Common.WordContent` | 60 tệp | Thao tác với tài liệu Microsoft Word |
+| `Inventec.Common.QRCoder` | 51 tệp | Tạo và giải mã mã QR |
+| `Inventec.Common.BarcodeLib` | 32 tệp | Tạo mã vạch (nhiều định dạng) |
 
-### Data Manipulation & Core Utilities
+### Thao tác Dữ liệu & Tiện ích Cốt lõi
 
-| Project | Purpose |
+| Dự án | Mục đích |
 |---------|---------|
-| `Inventec.Common.Logging` | System-wide logging framework with multiple output targets |
-| `Inventec.Common.DateTime` | Date/time utilities with Vietnamese calendar support |
-| `Inventec.Common.String` | String manipulation and validation |
-| `Inventec.Common.Number` | Numeric formatting and calculations |
+| `Inventec.Common.Logging` | Khung ghi nhật ký (logging) toàn hệ thống với nhiều đích đầu ra |
+| `Inventec.Common.DateTime` | Các tiện ích ngày/giờ hỗ trợ lịch Việt Nam |
+| `Inventec.Common.String` | Thao tác và kiểm tra (validation) chuỗi văn bản |
+| `Inventec.Common.Number` | Định dạng và tính toán số học |
 
-Sources: [[`.devin/wiki.json:250-256`](../../../../.devin/wiki.json#L250-L256)](../../../../.devin/wiki.json#L250-L256)
+Nguồn: [[`.devin/wiki.json:250-256`](../../../../.devin/wiki.json#L250-L256)](../../../../.devin/wiki.json#L250-L256)
 
-## Inventec.Desktop - Application Framework (27 Projects)
+## Inventec.Desktop - Khung công việc Ứng dụng (27 Dự án)
 
-The `Inventec.Desktop` namespace provides the foundational framework for the desktop application, comprising 27 projects and 455 files.
+Namespace `Inventec.Desktop` cung cấp khung công việc nền tảng cho ứng dụng desktop, bao gồm 27 dự án và 455 tệp.
 
-### Core Framework Components
+### Các Thành phần Cốt lõi của Framework
 
 ```mermaid
 graph TB
-    Desktop_Core["Inventec.Desktop.Core<br/>208 files"]
+    Desktop_Core["Inventec.Desktop.Core<br/>208 tệp"]
     
-    subgraph "Core_Responsibilities"
-        Discovery["Plugin Discovery<br/>Assembly scanning"]
-        Registration["Plugin Registration<br/>Module registry"]
-        Lifecycle["Lifecycle Management<br/>Init, Start, Stop"]
-        Loading["Module Loading<br/>Dynamic assembly loading"]
+    subgraph "Trách_nhiệm_Cốt_lõi"
+        Discovery["Khám phá Plugin<br/>Quét các assembly"]
+        Registration["Đăng ký Plugin<br/>Sổ đăng ký mô-đun"]
+        Lifecycle["Quản lý Vòng đời<br/>Khởi tạo, Bắt đầu, Dừng"]
+        Loading["Tải Mô-đun<br/>Tải assembly động"]
     end
     
-    subgraph "Base_Plugins"
+    subgraph "Plugin_Cơ_bản"
         ChangePass["ChangePassword"]
         ConfigApp["ConfigApplication"]
         EventLog["EventLog"]
@@ -152,12 +152,12 @@ graph TB
         TrackUser["TrackingUser"]
         PrintLog["PrintLog"]
         ProductVer["ProductVersion"]
-        Developer["Deverloper"]
+        Developer["Developer"]
     end
     
-    subgraph "UI_Components"
-        CustomControl["CustomControl<br/>26 files"]
-        ExportXML["ExportXML<br/>30 files"]
+    subgraph "Thành_phần_UI"
+        CustomControl["CustomControl<br/>26 tệp"]
+        ExportXML["ExportXML<br/>30 tệp"]
         MenuButton["MenuButton"]
     end
     
@@ -180,174 +180,174 @@ graph TB
     Desktop_Core --> MenuButton
 ```
 
-### Base Plugins (8 Built-in Plugins)
+### Các Plugin Cơ bản (8 Plugin tích hợp sẵn)
 
-| Plugin Name | Purpose |
+| Tên Plugin | Mục đích |
 |-------------|---------|
-| `ChangePassword` | User password change interface |
-| `ConfigApplication` | Application configuration management UI |
-| `Deverloper` | Developer tools and debugging utilities |
-| `EventLog` | System event logging viewer |
-| `Plugin` | Plugin management interface |
-| `PrintLog` | Print operation logging and history |
-| `ProductVersion` | Version information display |
-| `TrackingUser` | User activity tracking and audit |
-| `Updater` | Application auto-update mechanism |
+| `ChangePassword` | Giao diện đổi mật khẩu người dùng |
+| `ConfigApplication` | UI quản lý cấu hình ứng dụng |
+| `Developer` | Công cụ dành cho lập trình viên và các tiện ích gỡ lỗi |
+| `EventLog` | Trình xem nhật ký sự kiện hệ thống |
+| `Plugin` | Giao diện quản lý plugin |
+| `PrintLog` | Ghi nhật ký và lịch sử thao tác in ấn |
+| `ProductVersion` | Hiển thị thông tin phiên bản |
+| `TrackingUser` | Theo dõi hoạt động người dùng và kiểm tra (audit) |
+| `Updater` | Cơ chế tự động cập nhật ứng dụng |
 
-Sources: [[`.devin/wiki.json:260-267`](../../../../.devin/wiki.json#L260-L267)](../../../../.devin/wiki.json#L260-L267)
+Nguồn: [[`.devin/wiki.json:260-267`](../../../../.devin/wiki.json#L260-L267)](../../../../.devin/wiki.json#L260-L267)
 
-## Inventec.UC - Shared Control Library (1,060 Files)
+## Inventec.UC - Thư viện Điều khiển Dùng chung (1,060 Tệp)
 
-The `Inventec.UC` project is the largest single Common component with 1,060 files, providing foundational UI controls used throughout the application.
+Dự án `Inventec.UC` là thành phần Common lớn nhất với 1,060 tệp, cung cấp các điều khiển UI nền tảng được sử dụng trong toàn bộ ứng dụng.
 
-### Key Components
+### Các Thành phần Chính
 
-| Component | Files | Purpose |
+| Thành phần | Số tệp | Mục đích |
 |-----------|-------|---------|
-| `TreatmentRecord` | 29 files | Treatment record display and editing controls |
-| `TreeSereServHein` | 29 files | Service tree with insurance information display |
+| `TreatmentRecord` | 29 tệp | Các điều khiển hiển thị và chỉnh sửa hồ sơ điều trị |
+| `TreeSereServHein` | 29 tệp | Cây dịch vụ với hiển thị thông tin bảo hiểm |
 
-These controls form the base layer upon which HIS-specific UC library builds. The HIS.UC.* projects (131 components) extend these foundation controls with domain-specific functionality.
+Các điều khiển này tạo thành lớp cơ sở mà thư viện HIS.UC.* (131 thành phần) xây dựng dựa trên đó. Các dự án HIS.UC.* mở rộng các điều khiển nền tảng này với các chức năng đặc thù của nghiệp vụ.
 
-For complete coverage of UC components, see [UC Components Library](../../02-modules/uc-controls/form-type-controls.md) and [Inventec UC Shared Controls](../../02-modules/common-libraries/libraries.md#inventec-uc).
+Để biết đầy đủ về các thành phần UC, xem [Thư viện Thành phần UC](../../02-modules/uc-controls/form-type-controls.md) và [Các điều khiển dùng chung Inventec UC](../../02-modules/common-libraries/libraries.md#inventec-uc).
 
-Sources: [[`.devin/wiki.json:270-272`](../../../../.devin/wiki.json#L270-L272)](../../../../.devin/wiki.json#L270-L272)
+Nguồn: [[`.devin/wiki.json:270-272`](../../../../.devin/wiki.json#L270-L272)](../../../../.devin/wiki.json#L270-L272)
 
-## Specialized Components
+## Các Thành phần Chuyên biệt
 
-### Inventec.DicomViewer (134 Files)
+### Inventec.DicomViewer (134 Tệp)
 
-Medical imaging viewer supporting DICOM standard format:
+Trình xem hình ảnh y tế hỗ trợ định dạng tiêu chuẩn DICOM:
 
-**Capabilities:**
-- DICOM image loading and rendering
-- Windowing/leveling operations for contrast adjustment
-- Measurement tools (distance, angle, area)
-- Multi-frame and multi-series support
-- Integration with PACS (Picture Archiving and Communication System)
-- Annotation and markup tools
+**Khả năng:**
+- Tải và hiển thị hình ảnh DICOM
+- Các thao tác windowing/leveling để điều chỉnh độ tương phản
+- Các công cụ đo lường (khoảng cách, góc, diện tích)
+- Hỗ trợ đa khung hình (multi-frame) và đa chuỗi hình (multi-series)
+- Tích hợp với PACS (Hệ thống lưu trữ và truyền thông hình ảnh)
+- Các công cụ chú thích và đánh dấu
 
-**Integration:** Used by HIS imaging plugins to display X-rays, CT scans, MRI, and other medical images.
+**Tích hợp:** Được sử dụng bởi các plugin chẩn đoán hình ảnh của HIS để hiển thị kết quả X-quang, CT scan, MRI và các hình ảnh y tế khác.
 
-### Inventec.Speech (31 Files)
+### Inventec.Speech (31 Tệp)
 
-Voice recognition integration for medical dictation workflows:
+Tích hợp nhận dạng giọng nói cho quy trình ghi chép y tế:
 
-**Features:**
-- Speech-to-text conversion
-- Medical terminology vocabulary support
-- Voice command recognition
-- Dictation workflow integration
-- Support for Vietnamese medical terminology
+**Tính năng:**
+- Chuyển đổi giọng nói thành văn bản
+- Hỗ trợ từ vựng thuật ngữ y tế
+- Nhận dạng lệnh thoại
+- Tích hợp quy trình đọc ghi chú
+- Hỗ trợ thuật ngữ y tế tiếng Việt
 
-**Use Cases:** 
-- Clinical note dictation
-- Prescription entry via voice
-- Diagnostic report generation
+**Các trường hợp sử dụng:** 
+- Đọc ghi chú lâm sàng
+- Nhập đơn thuốc bằng giọng nói
+- Tạo báo cáo chẩn đoán
 
 ### Inventec.Fss.Client
 
-File Storage Service client for remote file operations:
+Client Dịch vụ Lưu trữ Tệp (File Storage Service) cho các thao tác tệp từ xa:
 
-**Functionality:**
-- File upload/download with progress tracking
-- Metadata management (file size, type, upload date)
-- Version control for document revisions
-- Access permission handling
-- Integration with backend FSS service
+**Chức năng:**
+- Tải lên/tải xuống tệp với tính năng theo dõi tiến trình
+- Quản lý siêu dữ liệu (metadata) (kích thước tệp, loại tệp, ngày tải lên)
+- Kiểm soát phiên bản cho các lần sửa đổi tài liệu
+- Xử lý quyền truy cập
+- Tích hợp với dịch vụ FSS ở backend
 
-**Used By:** Document management plugins, EMR document storage, attachment handling
+**Được sử dụng bởi:** Các plugin quản lý tài liệu, lưu trữ tài liệu EMR, xử lý tệp đính kèm.
 
-### Inventec.Aup.Client (40 Files)
+### Inventec.Aup.Client (40 Tệp)
 
-Auto-update client system managing application updates:
+Hệ thống client tự động cập nhật quản lý việc cập nhật ứng dụng:
 
 ```mermaid
 graph LR
-    MainApp["HIS.Desktop<br/>Main Application"]
+    MainApp["HIS.Desktop<br/>Ứng dụng chính"]
     
-    subgraph "Aup_Client_Components"
-        Config["Config System<br/>XML-based state"]
-        DownloadMgr["DownloadProgress<br/>File downloader"]
-        FileInfo["LocalFile & RemoteFile<br/>Metadata tracking"]
-        OperProcess["OperProcess<br/>Process lifecycle"]
+    subgraph "Thành_phần_Aup_Client"
+        Config["Hệ thống Cấu hình<br/>Trạng thái dựa trên XML"]
+        DownloadMgr["DownloadProgress<br/>Trình tải tệp"]
+        FileInfo["LocalFile & RemoteFile<br/>Theo dõi siêu dữ liệu"]
+        OperProcess["OperProcess<br/>Vòng đời tiến trình"]
     end
     
-    UpdateServer["Update Server<br/>File repository"]
-    Manifest["Update Manifest<br/>XML configuration"]
+    UpdateServer["Máy chủ Cập nhật<br/>Kho lưu trữ tệp"]
+    Manifest["Update Manifest<br/>Cấu hình XML"]
     
     MainApp --> Config
     MainApp --> DownloadMgr
     MainApp --> FileInfo
     MainApp --> OperProcess
     
-    Config -.->|"Persist state"| MainApp
-    DownloadMgr -->|"HTTP download"| UpdateServer
-    FileInfo -->|"Parse metadata"| Manifest
-    OperProcess -->|"Terminate/Restart"| MainApp
+    Config -.->|"Lưu trạng thái"| MainApp
+    DownloadMgr -->|"Tải xuống HTTP"| UpdateServer
+    FileInfo -->|"Phân tích siêu dữ liệu"| Manifest
+    OperProcess -->|"Dừng/Khởi động lại"| MainApp
 ```
 
-**Update Process:**
-1. Check for updates via manifest XML
-2. Download new files with progress tracking
-3. Terminate application
-4. Replace files
-5. Restart application
+**Quy trình Cập nhật:**
+1. Kiểm tra cập nhật thông qua tệp manifest XML
+2. Tải xuống các tệp mới với tính năng theo dõi tiến trình
+3. Dừng ứng dụng
+4. Thay thế các tệp
+5. Khởi động lại ứng dụng
 
-Sources: [[`.devin/wiki.json:243-246`](../../../../.devin/wiki.json#L243-L246)](../../../../.devin/wiki.json#L243-L246)
+Nguồn: [[`.devin/wiki.json:243-246`](../../../../.devin/wiki.json#L243-L246)](../../../../.devin/wiki.json#L243-L246)
 
-## HIS.Common Libraries
+## Các Thư viện HIS.Common
 
 ### HIS.Common.Treatment
 
-Treatment calculation utilities providing domain-specific logic.
+Các tiện ích tính toán điều trị cung cấp logic đặc thù của nghiệp vụ.
 
-**Project Structure:**
+**Cấu trúc Dự án:**
 
 ```mermaid
 graph LR
     Solution["HIS.Common.Treatment.sln"]
     Project["HIS.Common.Treatment.csproj"]
-    Calculation["Calculation.cs<br/>Treatment calculations"]
-    DbConfig["IMSys.DbConfig.HIS_RS<br/>Database configuration"]
+    Calculation["Calculation.cs<br/>Tính toán điều trị"]
+    DbConfig["IMSys.DbConfig.HIS_RS<br/>Cấu hình cơ sở dữ liệu"]
     
     Solution --> Project
     Project --> Calculation
     Project --> DbConfig
 ```
 
-**File Locations:**
+**Vị trí Tệp:**
 - Solution: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment.sln:1-20`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20)
 - Project: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:1-57`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)
 - Assembly: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:1-37`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)
 
-**Dependencies:**
-- `IMSys.DbConfig.HIS_RS` - Database configuration access
+**Phụ thuộc:**
+- `IMSys.DbConfig.HIS_RS` - Truy cập cấu hình cơ sở dữ liệu
 - .NET Framework 4.5 ([[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:12`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L12)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L12))
 
-**Purpose:** Provides treatment-related calculation logic (e.g., dosage calculations, treatment duration) used across HIS modules.
+**Mục đích:** Cung cấp logic tính toán liên quan đến điều trị (ví dụ: tính toán liều lượng, thời gian điều trị) được sử dụng trong các mô-đun HIS.
 
-Sources: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment.sln:1-20`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20), [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:1-57`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57), [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:1-37`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)
+Nguồn: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment.sln:1-20`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment.sln#L1-L20), [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:1-57`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57), [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:1-37`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)
 
-## Code Entity Mapping
+## Ánh xạ Thực thể Mã nguồn
 
-### Natural Language to Code Entities
+### Khái niệm Ngôn ngữ Tự nhiên sang Thực thể mã nguồn
 
 ```mermaid
 graph TB
-    subgraph "Domain_Concepts"
-        API["API Communication"]
-        EInvoice["Electronic Invoicing"]
-        Printing["Document Printing"]
-        Caching["Data Caching"]
-        Logging["System Logging"]
-        Plugins["Plugin System"]
-        Updates["Auto Updates"]
-        Imaging["Medical Imaging"]
-        Voice["Voice Input"]
+    subgraph "Khái_niệm_Nghiệp_vụ"
+        API["Giao tiếp API"]
+        EInvoice["Hóa đơn điện tử"]
+        Printing["In ấn Tài liệu"]
+        Caching["Đệm dữ liệu (Caching)"]
+        Logging["Ghi nhật ký hệ thống"]
+        Plugins["Hệ thống Plugin"]
+        Updates["Tự động Cập nhật"]
+        Imaging["Hình ảnh Y tế"]
+        Voice["Đầu vào Giọng nói"]
     end
     
-    subgraph "Code_Namespaces"
+    subgraph "Namespaces_Mã_nguồn"
         NS_WebAPI["Inventec.Common.WebApiClient"]
         NS_EBill["Inventec.Common.ElectronicBill"]
         NS_FlexCel["Inventec.Common.FlexCelPrint<br/>Inventec.Common.FlexCelExport"]
@@ -370,32 +370,32 @@ graph TB
     Voice --> NS_Speech
 ```
 
-### Key Classes and Interfaces
+### Các Lớp và Interface Chính
 
-| Domain Concept | Namespace | Key Classes/Interfaces |
+| Khái niệm Nghiệp vụ | Namespace | Các Lớp/Interface Chính |
 |----------------|-----------|------------------------|
-| API Communication | `Inventec.Common.WebApiClient` | `ApiConsumer`, `WebApiRequest`, `WebApiResponse` |
-| Electronic Invoicing | `Inventec.Common.ElectronicBill` | `BillProcessor`, `TaxAuthorityClient`, `InvoiceData` |
-| Document Printing | `Inventec.Common.FlexCelPrint` | `PrintManager`, `TemplateProcessor`, `ExportFormat` |
-| Data Caching | `Inventec.Common.RedisCache` | `RedisCacheManager`, `CacheKey`, `CacheValue` |
-| Logging | `Inventec.Common.Logging` | `LogSystem`, `LogAction`, `LogLevel` |
-| Plugin System | `Inventec.Desktop.Core` | `IModule`, `ModuleLoader`, `PluginRegistry` |
-| Auto Updates | `Inventec.Aup.Client` | `DownloadProgress`, `OperProcess`, `UpdateManifest` |
-| Medical Imaging | `Inventec.DicomViewer` | `DicomImage`, `ViewerControl`, `ImageProcessor` |
-| Voice Recognition | `Inventec.Speech` | `SpeechRecognizer`, `DictationEngine`, `VoiceCommand` |
+| Giao tiếp API | `Inventec.Common.WebApiClient` | `ApiConsumer`, `WebApiRequest`, `WebApiResponse` |
+| Hóa đơn điện tử | `Inventec.Common.ElectronicBill` | `BillProcessor`, `TaxAuthorityClient`, `InvoiceData` |
+| In ấn Tài liệu | `Inventec.Common.FlexCelPrint` | `PrintManager`, `TemplateProcessor`, `ExportFormat` |
+| Đệm dữ liệu | `Inventec.Common.RedisCache` | `RedisCacheManager`, `CacheKey`, `CacheValue` |
+| Ghi nhật ký | `Inventec.Common.Logging` | `LogSystem`, `LogAction`, `LogLevel` |
+| Hệ thống Plugin | `Inventec.Desktop.Core` | `IModule`, `ModuleLoader`, `PluginRegistry` |
+| Tự động Cập nhật | `Inventec.Aup.Client` | `DownloadProgress`, `OperProcess`, `UpdateManifest` |
+| Hình ảnh Y tế | `Inventec.DicomViewer` | `DicomImage`, `ViewerControl`, `ImageProcessor` |
+| Nhận dạng Giọng nói | `Inventec.Speech` | `SpeechRecognizer`, `DictationEngine`, `VoiceCommand` |
 
-Sources: [[`.devin/wiki.json:243-267`](../../../../.devin/wiki.json#L243-L267)](../../../../.devin/wiki.json#L243-L267)
+Nguồn: [[`.devin/wiki.json:243-267`](../../../../.devin/wiki.json#L243-L267)](../../../../.devin/wiki.json#L243-L267)
 
-## Integration Patterns
+## Các Mô hình Tích hợp
 
-### Cross-Module Communication
+### Giao tiếp Liên mô-đun
 
 ```mermaid
 graph LR
-    HIS_Plugin["HIS Plugin<br/>Business logic"]
-    MPS_Processor["MPS Processor<br/>Print logic"]
+    HIS_Plugin["HIS Plugin<br/>Logic nghiệp vụ"]
+    MPS_Processor["MPS Processor<br/>Logic in ấn"]
     
-    subgraph "Common_Layer"
+    subgraph "Lớp_Common"
         WebAPI["WebApiClient"]
         Cache["RedisCache"]
         Log["Logging"]
@@ -412,37 +412,37 @@ graph LR
     MPS_Processor --> Log
     
     WebAPI --> Backend
-    Cache -.-> |"Cached data"| HIS_Plugin
-    Cache -.-> |"Cached data"| MPS_Processor
+    Cache -.-> |"Dữ liệu đã đệm"| HIS_Plugin
+    Cache -.-> |"Dữ liệu đã đệm"| MPS_Processor
 ```
 
-**Communication Flow:**
-1. HIS plugins and MPS processors use the same `WebApiClient` instance for consistent API communication
-2. `RedisCache` provides shared cache accessible to all modules
-3. `Logging` ensures unified logging across application boundaries
+**Luồng Giao tiếp:**
+1. Các plugin HIS và bộ xử lý MPS sử dụng cùng một instance `WebApiClient` để giao tiếp API nhất quán.
+2. `RedisCache` cung cấp bộ nhớ đệm dùng chung cho tất cả các mô-đun.
+3. `Logging` đảm bảo việc ghi nhật ký thống nhất qua các ranh giới ứng dụng.
 
-**Benefits:**
-- Single point of API configuration (base URL, authentication)
-- Shared cache reduces redundant API calls
-- Centralized logging for troubleshooting
+**Lợi ích:**
+- Điểm cấu hình API duy nhất (URL gốc, xác thực).
+- Bộ nhớ đệm dùng chung giảm các lời gọi API dư thừa.
+- Ghi nhật ký tập trung để dễ dàng xử lý sự cố.
 
-### Plugin Access to Common Libraries
+### Truy cập của Plugin vào các Thư viện Common
 
-Plugins access Common libraries through three mechanisms:
+Các plugin truy cập thư viện Common thông qua ba cơ chế:
 
-1. **Direct Reference:** Plugin project references Common DLL
+1. **Tham chiếu Trực tiếp:** Dự án plugin tham chiếu đến DLL của Common.
    ```xml
    <Reference Include="Inventec.Common.Logging">
      <HintPath>..\..\Common\bin\Inventec.Common.Logging.dll</HintPath>
    </Reference>
    ```
 
-2. **Static Access:** Singleton patterns for utilities
+2. **Truy cập Tĩnh:** Các mô hình Singleton cho các tiện ích.
    ```csharp
    Inventec.Common.Logging.LogSystem.Info("Message");
    ```
 
-3. **Dependency Injection:** Framework-provided instances
+3. **Tiêm phụ thuộc (Dependency Injection):** Các instance do Framework cung cấp.
    ```csharp
    public MyPlugin(ILoggingService logger, IApiClient apiClient)
    {
@@ -451,39 +451,39 @@ Plugins access Common libraries through three mechanisms:
    }
    ```
 
-Sources: [[`.devin/wiki.json:240-247`](../../../../.devin/wiki.json#L240-L247)](../../../../.devin/wiki.json#L240-L247)
+Nguồn: [[`.devin/wiki.json:240-247`](../../../../.devin/wiki.json#L240-L247)](../../../../.devin/wiki.json#L240-L247)
 
-## External Dependencies
+## Các Phụ thuộc Bên ngoài
 
-### Third-Party Libraries
+### Thư viện của Bên thứ ba
 
-Common libraries integrate with commercial and open-source components:
+Các thư viện Common tích hợp với các thành phần thương mại và mã nguồn mở:
 
-| Library | Version | Used By | Purpose |
+| Thư viện | Phiên bản | Được dùng bởi | Mục đích |
 |---------|---------|---------|---------|
-| FlexCell | 5.7.6.0 | `FlexCelPrint`, `FlexCelExport` | Excel document generation |
-| BarTender | 10.1.0 | `BarcodeLib` | Barcode printing |
-| Redis | Variable | `RedisCache` | Distributed caching |
-| SQLite | Variable | `Sqlite` | Local database |
-| Wit.ai | Variable | `WitAI` | Natural language processing |
+| FlexCell | 5.7.6.0 | `FlexCelPrint`, `FlexCelExport` | Tạo tài liệu Excel |
+| BarTender | 10.1.0 | `BarcodeLib` | In mã vạch |
+| Redis | Thay đổi | `RedisCache` | Bộ nhớ đệm phân tán |
+| SQLite | Thay đổi | `Sqlite` | Cơ sở dữ liệu cục bộ |
+| Wit.ai | Thay đổi | `WitAI` | Xử lý ngôn ngữ tự nhiên |
 
-### External Services
+### Các Dịch vụ Bên ngoài
 
-| Service | Client Library | Purpose |
+| Dịch vụ | Thư viện Client | Mục đích |
 |---------|----------------|---------|
-| Vietnam General Department of Taxation | `ElectronicBill` | Electronic invoice submission and validation |
-| PACS Systems | `DicomViewer` | Medical imaging integration (DICOM protocol) |
-| File Storage Service | `Fss.Client` | Remote file storage and retrieval |
-| Update Server | `Aup.Client` | Application version management |
+| Tổng cục Thuế Việt Nam | `ElectronicBill` | Gửi và xác thực hóa đơn điện tử |
+| Hệ thống PACS | `DicomViewer` | Tích hợp hình ảnh y tế (giao thức DICOM) |
+| Dịch vụ lưu trữ tệp | `Fss.Client` | Lưu trữ và truy xuất tệp từ xa |
+| Máy chủ cập nhật | `Aup.Client` | Quản lý phiên bản ứng dụng |
 
-Sources: [[`.devin/wiki.json:12-14`](../../../../.devin/wiki.json#L12-L14)](../../../../.devin/wiki.json#L12-L14)
+Nguồn: [[`.devin/wiki.json:12-14`](../../../../.devin/wiki.json#L12-L14)](../../../../.devin/wiki.json#L12-L14)
 
-## Usage Examples
+## Các Ví dụ Sử dụng
 
-### API Communication
+### Giao tiếp API
 
 ```csharp
-// Using WebApiClient for REST API calls
+// Sử dụng WebApiClient cho các lời gọi REST API
 using Inventec.Common.WebApiClient;
 
 var apiClient = new ApiConsumer();
@@ -495,39 +495,39 @@ var result = await apiClient.Get<List<PatientDTO>>(
 if (result.Success)
 {
     var patients = result.Data;
-    // Process patients
+    // Xử lý dữ liệu bệnh nhân
 }
 ```
 
-### Logging
+### Logging (Ghi nhật ký)
 
 ```csharp
-// System-wide logging using LogSystem
+// Ghi nhật ký toàn hệ thống sử dụng LogSystem
 using Inventec.Common.Logging;
 
 public class MyPlugin
 {
     public void ProcessData()
     {
-        LogSystem.Info("Processing started");
+        LogSystem.Info("Bắt đầu xử lý");
         
         try
         {
-            // Business logic
-            LogSystem.Debug("Processing patient record 12345");
+            // Logic nghiệp vụ
+            LogSystem.Debug("Đang xử lý hồ sơ bệnh nhân 12345");
         }
         catch (Exception ex)
         {
-            LogSystem.Error("Processing failed", ex);
+            LogSystem.Error("Xử lý thất bại", ex);
         }
     }
 }
 ```
 
-### Caching
+### Caching (Bộ nhớ đệm)
 
 ```csharp
-// Using RedisCache for data caching
+// Sử dụng RedisCache để đệm dữ liệu
 using Inventec.Common.RedisCache;
 
 public class DataService
@@ -550,10 +550,10 @@ public class DataService
 }
 ```
 
-### Document Generation
+### Tạo Tài liệu
 
 ```csharp
-// Generate Excel report using FlexCelPrint
+// Tạo báo cáo Excel bằng FlexCelPrint
 using Inventec.Common.FlexCelPrint;
 
 public void GeneratePrescriptionReport(PrescriptionData data)
@@ -568,10 +568,10 @@ public void GeneratePrescriptionReport(PrescriptionData data)
 }
 ```
 
-### Electronic Bill Creation
+### Tạo Hóa đơn Điện tử
 
 ```csharp
-// Generate e-invoice for tax authority
+// Tạo hóa đơn điện tử cho cơ quan thuế
 using Inventec.Common.ElectronicBill;
 
 public void CreateElectronicInvoice(InvoiceData invoiceData)
@@ -585,93 +585,97 @@ public void CreateElectronicInvoice(InvoiceData invoiceData)
     
     if (result.Success)
     {
-        LogSystem.Info($"E-invoice created: {result.InvoiceNumber}");
+        LogSystem.Info($"Hóa đơn điện tử đã được tạo: {result.InvoiceNumber}");
     }
 }
 ```
 
-## Configuration Management
+## Quản lý Cấu hình
 
-### Configuration Sources
+### Các Nguồn Cấu hình
 
-Common libraries read configuration from multiple sources with the following precedence:
+Các thư viện Common đọc cấu hình từ nhiều nguồn với thứ tự ưu tiên sau:
 
-1. **Environment variables** (highest priority) - sensitive data like API keys
-2. **XML configuration files** - application-level settings
-3. **Database configuration** - user and system preferences
-4. **Default values** (lowest priority) - built-in fallbacks
+1. **Biến môi trường** (ưu tiên cao nhất) - dành cho dữ liệu nhạy cảm như khóa API.
+2. **Các tệp cấu hình XML** - các cài đặt cấp ứng dụng.
+3. **Cấu hình cơ sở dữ liệu** - các tùy chọn của người dùng và hệ thống.
+4. **Giá trị mặc định** (ưu tiên thấp nhất) - các giá trị dự phòng tích hợp sẵn.
 
-### Configuration Storage
+### Lưu trữ Cấu hình
 
-| Configuration Type | Storage Location | Access Method |
+| Loại Cấu hình | Vị trí Lưu trữ | Phương thức Truy cập |
 |-------------------|------------------|---------------|
-| Application settings | `HIS.Desktop.LocalStorage.ConfigApplication` | Static properties |
-| System settings | `HIS.Desktop.LocalStorage.ConfigSystem` | Config keys |
-| User preferences | Database via `BackendData` | API calls with caching |
-| Sensitive data | Environment variables | `Environment.GetEnvironmentVariable()` |
+| Cài đặt ứng dụng | `HIS.Desktop.LocalStorage.ConfigApplication` | Các thuộc tính tĩnh (Static properties) |
+| Cài đặt hệ thống | `HIS.Desktop.LocalStorage.ConfigSystem` | Các khóa cấu hình (Config keys) |
+| Tùy chọn người dùng | Cơ sở dữ liệu thông qua `BackendData` | Các lời gọi API với cơ chế đệm |
+| Dữ liệu nhạy cảm | Biến môi trường | `Environment.GetEnvironmentVariable()` |
 
-For detailed configuration management, see [LocalStorage & Configuration](../../02-modules/his-desktop/core.md).
+Để biết chi tiết về quản lý cấu hình, xem [LocalStorage & Cấu hình](../../02-modules/his-desktop/core.md).
 
-## Version Management
+## Quản lý Phiên bản
 
-### Assembly Versioning
+### Đánh phiên bản Assembly
 
-Common libraries follow semantic versioning with versions stored in [[`AssemblyInfo.cs`](../../../AssemblyInfo.cs)](../../../AssemblyInfo.cs) files:
+Các thư viện Common tuân theo cách đánh số phiên bản ngữ nghĩa (semantic versioning) với thông tin được lưu trong các tệp [[`AssemblyInfo.cs`](../../../AssemblyInfo.cs)](../../../AssemblyInfo.cs):
 
 ```csharp
-// Example from HIS.Common.Treatment
+// Ví dụ từ HIS.Common.Treatment
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 ```
 
-**Version Format:** `Major.Minor.Build.Revision`
-- **Major:** Breaking API changes
-- **Minor:** New features, backward compatible
-- **Build:** Bug fixes
-- **Revision:** Hotfixes
+**Định dạng phiên bản:** `Major.Minor.Build.Revision`
+- **Major:** Các thay đổi API gây phá vỡ (Breaking changes).
+- **Minor:** Các tính năng mới, có khả năng tương thích ngược.
+- **Build:** Sửa lỗi.
+- **Revision:** Các bản vá nóng (Hotfixes).
 
-Example: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:35-36`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L35-L36)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L35-L36)
+Ví dụ: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:35-36`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L35-L36)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L35-L36)
 
-### Dependency Management
+### Quản lý Phụ thuộc
 
-Common libraries maintain compatibility through:
-- **Strong naming** - Assembly signing for versioning
-- **NuGet packages** - External dependencies managed in `packages/` folder
-- **Assembly redirects** - Binding redirects for version conflicts
+Các thư viện Common duy trì tính tương thích thông qua:
+- **Strong naming** - Ký tên assembly để quản lý phiên bản.
+- **Gói NuGet** - Các phụ thuộc bên ngoài được quản lý trong thư mục `packages/`.
+- **Chuyển hướng assembly (Assembly redirects)** - Ràng buộc chuyển hướng cho các xung đột phiên bản.
 
-Sources: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:1-37`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)
+Nguồn: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs:1-37`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/Properties/AssemblyInfo.cs#L1-L37)
 
-## Build Process
+## Quy trình Build
 
-### Build Order
+### Thứ tự Build
 
-Common libraries build before dependent modules:
+Các thư viện Common được build trước các mô-đun phụ thuộc:
 
 ```mermaid
 graph TB
-    Step1["1. Inventec.Common.sln<br/>Build 46 utility projects"]
-    Step2["2. Inventec.Desktop.sln<br/>Build 27 framework projects"]
-    Step3["3. Inventec.UC.sln<br/>Build shared controls"]
-    Step4["4. HIS.Desktop.sln<br/>Build main application"]
+    Step1["1. Inventec.Common.sln<br/>Build 46 dự án tiện ích"]
+    Step2["2. Inventec.Desktop.sln<br/>Build 27 dự án framework"]
+    Step3["3. Inventec.UC.sln<br/>Build các điều khiển dùng chung"]
+    Step4["4. HIS.Desktop.sln<br/>Build ứng dụng chính"]
     
     Step1 --> Step2
     Step2 --> Step3
     Step3 --> Step4
     
-    Output["Output: bin/ directory<br/>Common DLLs"]
+    Output["Đầu ra: thư mục bin/<br/>Các DLL của Common"]
     
     Step1 --> Output
     Step2 --> Output
     Step3 --> Output
 ```
 
-### Build Configuration
+### Cấu hình Build
 
 - **Target Framework:** .NET Framework 4.5 ([[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:12`](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L12)](../../../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L12))
 - **Platform:** AnyCPU
-- **Configuration:** Debug or Release
-- **Output:** Compiled DLLs in shared `bin/` directory
+- **Configuration:** Debug hoặc Release
+- **Đầu ra:** Các DLL đã biên dịch trong thư mục `bin/` dùng chung
 
-### Build Commands
+### Lệnh Build
 
 ```bash
+msbuild Inventec.Common.sln /p:Configuration=Release
+msbuild Inventec.Desktop.sln /p:Configuration=Release
+msbuild Inventec.UC.sln /p:Configuration=Release
+```

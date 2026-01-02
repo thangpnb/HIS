@@ -1,28 +1,28 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the plugins responsible for medicine and material management in the HIS system, located in `HIS/Plugins/`. These plugins handle pharmaceutical inventory operations including medicine type definitions, warehouse import/export transactions, stock management, procurement/bidding processes, and blood product operations.
+Tài liệu này trình bày về các plugin chịu trách nhiệm quản lý thuốc và vật tư y tế trong hệ thống HIS, nằm trong thư mục `HIS/Plugins/`. Các plugin này xử lý các hoạt động kho dược bao gồm định nghĩa loại thuốc, giao dịch nhập/xuất kho, quản lý tồn kho, quy trình đấu thầu/mua sắm và các hoạt động liên quan đến chế phẩm máu.
 
-This page focuses on inventory and pharmacy-related plugins. For prescription and medication administration workflows, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md). For billing and payment of medicine sales, see [Transaction & Billing Plugins](../../02-modules/his-desktop/business-plugins.md#transaction-billing). For reusable UI components related to medicine selection, see [Medicine & ICD UCs](#1.3.3).
+Trang này tập trung vào các plugin liên quan đến kho và dược. Để biết quy trình kê đơn và quản lý dùng thuốc, xem [Các Plugin Nghiệp vụ Cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md). Để biết về thanh toán và hóa đơn bán thuốc, xem [Các Plugin Giao dịch & Hóa đơn](../../02-modules/his-desktop/business-plugins.md#transaction-billing). Đối với các thành phần giao diện (UC) dùng chung liên quan đến chọn thuốc, xem [Các UC Thuốc & ICD](#1.3.3).
 
-## Plugin Categories Overview
+## Tổng quan các Danh mục Plugin
 
-The medicine and material management subsystem consists of approximately 40+ plugins organized into six functional categories:
+Phân hệ quản lý thuốc và vật tư y tế bao gồm khoảng hơn 40 plugin được tổ chức thành sáu danh mục chức năng:
 
 ```mermaid
 graph TB
-    subgraph "Medicine & Material Plugin System"
-        MasterData["Master Data Plugins<br/>MedicineType<br/>MaterialType<br/>MedicineBean"]
-        Import["Import Operations<br/>ImpMest* Plugins<br/>80 files (ImpMestCreate)"]
-        Export["Export Operations<br/>ExpMest* Plugins<br/>78 files (ExpMestSaleCreate)"]
-        Stock["Stock Management<br/>MediStock* Plugins<br/>49 files (MediStockSummary)"]
-        Bid["Procurement & Bidding<br/>Bid* Plugins<br/>47 files (BidCreate)"]
-        Blood["Blood Management<br/>Import/Export Blood<br/>Blood Product Tracking"]
+    subgraph "Hệ thống Plugin Thuốc & Vật tư"
+        MasterData["Plugin Dữ liệu Danh mục<br/>MedicineType<br/>MaterialType<br/>MedicineBean"]
+        Import["Hoạt động Nhập kho<br/>Các plugin ImpMest*<br/>80 tệp (ImpMestCreate)"]
+        Export["Hoạt động Xuất kho<br/>Các plugin ExpMest*<br/>78 tệp (ExpMestSaleCreate)"]
+        Stock["Quản lý Tồn kho<br/>Các plugin MediStock*<br/>49 tệp (MediStockSummary)"]
+        Bid["Mua sắm & Đấu thầu<br/>Các plugin Bid*<br/>47 tệp (BidCreate)"]
+        Blood["Quản lý Máu<br/>Nhập/Xuất Máu<br/>Theo dõi Chế phẩm Máu"]
     end
     
-    subgraph "Supporting Systems"
-        UC["HIS.UC.MedicineType<br/>HIS.UC.MaterialType<br/>Selection Controls"]
-        API["HIS.Desktop.ApiConsumer<br/>Backend Communication"]
-        MPS["MPS Print System<br/>Export Documents<br/>Import Documents"]
+    subgraph "Các Hệ thống Hỗ trợ"
+        UC["Các Điều khiển Lựa chọn<br/>HIS.UC.MedicineType<br/>HIS.UC.MaterialType"]
+        API["Giao tiếp Backend<br/>HIS.Desktop.ApiConsumer"]
+        MPS["Hệ thống In MPS<br/>Chứng từ Xuất/Nhập"]
     end
     
     MasterData --> Import
@@ -34,10 +34,10 @@ graph TB
     Import --> MPS
     Export --> MPS
     
-    MasterData -.->|Uses| UC
-    Import -.->|Uses| UC
-    Export -.->|Uses| UC
-    Bid -.->|Uses| UC
+    MasterData -.->|Sử dụng| UC
+    Import -.->|Sử dụng| UC
+    Export -.->|Sử dụng| UC
+    Bid -.->|Sử dụng| UC
     
     Import --> API
     Export --> API
@@ -45,157 +45,157 @@ graph TB
     Bid --> API
 ```
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
 
-## Master Data Management Plugins
+## Các Plugin Quản lý Dữ liệu Danh mục (Master Data)
 
-These plugins manage the fundamental definitions of medicines and materials in the system:
+Các plugin này quản lý các định nghĩa cơ bản về thuốc và vật tư trong hệ thống:
 
-| Plugin Name | File Count | Primary Function | Key Features |
+| Tên Plugin | Số lượng Tệp | Chức năng Chính | Các Tính năng Key |
 |-------------|-----------|------------------|--------------|
-| `MedicineType` | ~40-50 | Medicine catalog management | Type definitions, dosage forms, active ingredients |
-| `MaterialType` | ~40-50 | Medical material catalog | Equipment, supplies, consumables |
-| `MedicineBean` | ~30-40 | Medicine packaging units | Conversion ratios, packaging hierarchies |
-| `MedicinePaty` | ~25-35 | Medicine patient type pricing | Patient type-specific pricing rules |
-| `ActiveIngredient` | ~20-30 | Drug ingredient management | Active ingredient tracking |
+| `MedicineType` | ~40-50 | Quản lý danh mục thuốc | Định nghĩa loại, đường dùng, hoạt chất |
+| `MaterialType` | ~40-50 | Danh mục vật tư y tế | Thiết bị, đồ dùng, vật tư tiêu hao |
+| `MedicineBean` | ~30-40 | Đơn vị đóng gói thuốc | Tỷ lệ quy đổi, phân cấp đóng gói |
+| `MedicinePaty` | ~25-35 | Giá thuốc theo đối tượng | Quy tắc giá cho từng loại bệnh nhân |
+| `ActiveIngredient` | ~20-30 | Quản lý hoạt chất thuốc | Theo dõi các thành phần hoạt chất |
 
-### Medicine Type Structure
+### Cấu trúc Loại Thuốc (Medicine Type)
 
 ```mermaid
 graph LR
     Plugin["HIS.Desktop.Plugins.MedicineType"]
-    Run["Run/<br/>frmMedicineType.cs<br/>Main Form"]
-    ADO["ADO/<br/>MedicineTypeADO.cs<br/>Data Transfer Objects"]
-    Processor["Processor/<br/>Business Logic"]
-    Base["Base/<br/>RequestUriStore.cs<br/>API Endpoints"]
+    Run["Form Chính<br/>Run/<br/>frmMedicineType.cs"]
+    ADO["Đối tượng Chuyển đổi Dữ liệu<br/>ADO/<br/>MedicineTypeADO.cs"]
+    Processor["Logic Nghiệp vụ<br/>Processor/"]
+    Base["Các Endpoint API<br/>Base/<br/>RequestUriStore.cs"]
     
     Plugin --> Run
     Plugin --> ADO
     Plugin --> Processor
     Plugin --> Base
     
-    Run --> UCMedicine["HIS.UC.MedicineType<br/>82 files<br/>Grid & Selection UI"]
-    ADO --> APIConsumer["HIS.Desktop.ApiConsumer<br/>REST Calls"]
+    Run --> UCMedicine["Giao diện Lưới & Chọn UI<br/>HIS.UC.MedicineType<br/>82 tệp"]
+    ADO --> APIConsumer["Các lệnh gọi REST<br/>HIS.Desktop.ApiConsumer"]
     
     style Plugin fill:#f9f9f9
     style UCMedicine fill:#e8f5e9
 ```
 
-**Sources:** [`.devin/wiki.json:225-232`](../../../../.devin/wiki.json#L225-L232, high-level architecture diagrams
+**Nguồn:** [`.devin/wiki.json:225-232`](../../../../.devin/wiki.json#L225-L232), sơ đồ kiến trúc cấp cao
 
-## Warehouse Import Operations (ImpMest*)
+## Hoạt động Nhập kho (ImpMest*)
 
-Import operations handle receiving medicines and materials into warehouse inventory. The `ImpMest*` plugin family manages various import scenarios:
+Hoạt động nhập kho xử lý việc tiếp nhận thuốc và vật tư vào kho lưu trữ. Nhóm plugin `ImpMest*` quản lý các kịch bản nhập kho khác nhau:
 
-### Major Import Plugins
+### Các Plugin Nhập kho Chính
 
-| Plugin Name | Files | Purpose | Workflow Type |
+| Tên Plugin | Số tệp | Mục đích | Loại Quy trình |
 |-------------|-------|---------|---------------|
-| `ImpMestCreate` | 80 | General warehouse import | Purchase orders, donations, transfers |
-| `ImpMestEdit` | ~50-60 | Modify import records | Edit quantities, expiry dates |
-| `ImpMestView` | ~40-50 | View import history | Search, filter, detail view |
-| `ImpMestApproval` | ~35-45 | Import approval workflow | Multi-level approval |
-| `ImpMestDeduct` | ~30-40 | Import deductions | Damaged goods, returns |
+| `ImpMestCreate` | 80 | Nhập kho chung | Đơn mua hàng, tài trợ, điều chuyển |
+| `ImpMestEdit` | ~50-60 | Sửa đổi bản ghi nhập | Sửa số lượng, hạn sử dụng |
+| `ImpMestView` | ~40-50 | Xem lịch sử nhập | Tìm kiếm, lọc, xem chi tiết |
+| `ImpMestApproval` | ~35-45 | Quy trình duyệt nhập | Phê duyệt nhiều cấp |
+| `ImpMestDeduct` | ~30-40 | Giảm trừ nhập kho | Hàng hỏng, hàng trả lại |
 
-### ImpMest Data Flow
+### Luồng Dữ liệu ImpMest
 
 ```mermaid
 graph TB
-    Supplier["Supplier/Vendor<br/>External Entity"]
+    Supplier["Nhà cung cấp<br/>Thực thể bên ngoài"]
     
-    CreatePlugin["HIS.Desktop.Plugins.ImpMestCreate<br/>80 files<br/>frmImpMestCreate.cs"]
+    CreatePlugin["HIS.Desktop.Plugins.ImpMestCreate<br/>80 tệp<br/>frmImpMestCreate.cs"]
     
-    subgraph "Data Layer"
-        ADO["ImpMestCreateADO.cs<br/>Import Request DTO"]
-        Validation["Validation Logic<br/>Stock Rules<br/>Expiry Checks"]
+    subgraph "Lớp Dữ liệu"
+        ADO["ImpMestCreateADO.cs<br/>DTO Yêu cầu Nhập"]
+        Validation["Logic Kiểm tra<br/>Quy tắc Kho<br/>Kiểm tra Hạn dùng"]
     end
     
-    subgraph "API Communication"
+    subgraph "Giao tiếp API"
         Consumer["HIS.Desktop.ApiConsumer<br/>ApiConsumerStore.cs"]
         Backend["Backend API<br/>/api/HisImpMest/Create"]
     end
     
-    subgraph "Stock Update"
-        MediStock["HIS_MEDI_STOCK<br/>Warehouse Entity"]
-        MediStockPeriod["HIS_MEDI_STOCK_PERIOD<br/>Period Balance"]
+    subgraph "Cập nhật Tồn kho"
+        MediStock["HIS_MEDI_STOCK<br/>Thực thể Kho"]
+        MediStockPeriod["HIS_MEDI_STOCK_PERIOD<br/>Cân đối Kỳ"]
     end
     
-    subgraph "Print Output"
-        MPS["MPS.Processor.Mps000074<br/>Import Document Print"]
+    subgraph "Đầu ra In ấn"
+        MPS["MPS.Processor.Mps000074<br/>In Chứng từ Nhập kho"]
     end
     
-    Supplier -->|"Delivery Note"| CreatePlugin
+    Supplier -->|"Phiếu giao hàng"| CreatePlugin
     CreatePlugin --> ADO
     ADO --> Validation
     Validation --> Consumer
     Consumer --> Backend
-    Backend -->|"Update"| MediStock
-    Backend -->|"Update"| MediStockPeriod
+    Backend -->|"Cập nhật"| MediStock
+    Backend -->|"Cập nhật"| MediStockPeriod
     CreatePlugin --> MPS
 ```
 
-### ImpMestCreate Plugin Structure
+### Cấu trúc Plugin ImpMestCreate
 
-The `ImpMestCreate` plugin follows the standard plugin architecture with 80 files:
+Plugin `ImpMestCreate` tuân theo kiến trúc plugin chuẩn với 80 tệp:
 
-- `HIS.Desktop.Plugins.ImpMestCreate.Run/` - Main form implementation
-  - [[`frmImpMestCreate.cs`](../../../frmImpMestCreate.cs)](../../../frmImpMestCreate.cs) - Primary UI form
-  - [[`frmImpMestCreate.Designer.cs`](../../../frmImpMestCreate.Designer.cs)](../../../frmImpMestCreate.Designer.cs) - UI designer file
-  - Grid configuration and event handlers
-- `HIS.Desktop.Plugins.ImpMestCreate.ADO/` - Data objects
-  - [[`ImpMestCreateADO.cs`](../../../ImpMestCreateADO.cs)](../../../ImpMestCreateADO.cs) - Import request model
-  - [[`MedicineImportADO.cs`](../../../MedicineImportADO.cs)](../../../MedicineImportADO.cs) - Medicine line items
-  - [[`MaterialImportADO.cs`](../../../MaterialImportADO.cs)](../../../MaterialImportADO.cs) - Material line items
-- `HIS.Desktop.Plugins.ImpMestCreate.Processor/` - Business logic
-  - Validation processors
-  - Calculation logic (quantities, prices)
-- `HIS.Desktop.Plugins.ImpMestCreate.Base/` - Configuration
-  - [[`RequestUriStore.cs`](../../../RequestUriStore.cs)](../../../RequestUriStore.cs) - API endpoint definitions
-  - [[`ResourceLangManager.cs`](../../../ResourceLangManager.cs)](../../../ResourceLangManager.cs) - Localization keys
+- `HIS.Desktop.Plugins.ImpMestCreate.Run/` - Triển khai form chính
+  - [[`frmImpMestCreate.cs`](../../../frmImpMestCreate.cs)](../../../frmImpMestCreate.cs) - Form giao diện chính
+  - [[`frmImpMestCreate.Designer.cs`](../../../frmImpMestCreate.Designer.cs)](../../../frmImpMestCreate.Designer.cs) - Tệp designer UI
+  - Cấu hình lưới (Grid) và các trình xử lý sự kiện
+- `HIS.Desktop.Plugins.ImpMestCreate.ADO/` - Các đối tượng dữ liệu
+  - [[`ImpMestCreateADO.cs`](../../../ImpMestCreateADO.cs)](../../../ImpMestCreateADO.cs) - Mô hình yêu cầu nhập kho
+  - [[`MedicineImportADO.cs`](../../../MedicineImportADO.cs)](../../../MedicineImportADO.cs) - Các dòng hàng hóa thuốc
+  - [[`MaterialImportADO.cs`](../../../MaterialImportADO.cs)](../../../MaterialImportADO.cs) - Các dòng hàng hóa vật tư
+- `HIS.Desktop.Plugins.ImpMestCreate.Processor/` - Logic nghiệp vụ
+  - Các bộ xử lý kiểm tra (Validation)
+  - Logic tính toán (số lượng, giá)
+- `HIS.Desktop.Plugins.ImpMestCreate.Base/` - Cấu hình
+  - [[`RequestUriStore.cs`](../../../RequestUriStore.cs)](../../../RequestUriStore.cs) - Định nghĩa các endpoint API
+  - [[`ResourceLangManager.cs`](../../../ResourceLangManager.cs)](../../../ResourceLangManager.cs) - Các khóa đa ngôn ngữ
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
 
-## Warehouse Export Operations (ExpMest*)
+## Hoạt động Xuất kho (ExpMest*)
 
-Export operations handle dispensing medicines and materials from warehouse inventory. The `ExpMest*` plugin family manages various export scenarios:
+Hoạt động xuất kho xử lý việc cấp phát thuốc và vật tư từ kho lưu trữ. Nhóm plugin `ExpMest*` quản lý các kịch bản xuất kho khác nhau:
 
-### Major Export Plugins
+### Các Plugin Xuất kho Chính
 
-| Plugin Name | Files | Purpose | Workflow Type |
+| Tên Plugin | Số tệp | Mục đích | Loại Quy trình |
 |-------------|-------|---------|---------------|
-| `ExpMestSaleCreate` | 78 | Direct pharmacy sales | Over-the-counter sales |
-| `ExpMestDepaCreate` | ~60-70 | Department requisitions | Ward/department stock requests |
-| `ExpMestChmsCreate` | ~55-65 | Consumables export | Medical supplies, equipment |
-| `ExpMestActualCreate` | ~50-60 | Actual dispensing | Fulfill prescriptions |
-| `ExpMestEdit` | ~45-55 | Modify export records | Quantity adjustments |
+| `ExpMestSaleCreate` | 78 | Bán thuốc trực tiếp | Bán lẻ tại quầy |
+| `ExpMestDepaCreate` | ~60-70 | Lĩnh về khoa phòng | Yêu cầu vật tư của khoa/phòng |
+| `ExpMestChmsCreate` | ~55-65 | Xuất vật tư tiêu hao | Vật tư y tế, thiết bị |
+| `ExpMestActualCreate` | ~50-60 | Cấp phát thực tế | Hoàn thành đơn thuốc |
+| `ExpMestEdit` | ~45-55 | Sửa đổi bản ghi xuất | Điều chỉnh số lượng |
 
-### ExpMestSaleCreate Flow
+### Luồng ExpMestSaleCreate (Bán lẻ)
 
 ```mermaid
 graph TB
-    Patient["Patient/Customer<br/>Walk-in Purchase"]
+    Patient["Bệnh nhân/Khách hàng<br/>Mua trực tiếp"]
     
-    SalePlugin["HIS.Desktop.Plugins.ExpMestSaleCreate<br/>78 files<br/>frmExpMestSaleCreate.cs"]
+    SalePlugin["HIS.Desktop.Plugins.ExpMestSaleCreate<br/>78 tệp<br/>frmExpMestSaleCreate.cs"]
     
-    subgraph "Medicine Selection"
-        UCMed["HIS.UC.MedicineInStock<br/>Available Stock Grid"]
-        StockCheck["Stock Availability Check<br/>Batch/Lot Selection"]
+    subgraph "Lựa chọn Thuốc"
+        UCMed["HIS.UC.MedicineInStock<br/>Lưới Tồn kho Sẵn có"]
+        StockCheck["Kiểm tra Khả năng Cung ứng<br/>Chọn Lô/Hạn dùng"]
     end
     
-    subgraph "Transaction Processing"
-        ExpADO["ExpMestSaleADO.cs<br/>Sale Transaction DTO"]
-        PriceCalc["Price Calculation<br/>VAT, Discounts"]
-        StockDeduct["Stock Deduction Logic"]
+    subgraph "Xử lý Giao dịch"
+        ExpADO["ExpMestSaleADO.cs<br/>DTO Giao dịch Bán"]
+        PriceCalc["Tính giá<br/>VAT, Giết khấu"]
+        StockDeduct["Logic Trừ tồn kho"]
     end
     
-    subgraph "Payment Integration"
-        Transaction["HIS.Desktop.Plugins.Transaction<br/>Payment Collection"]
-        Invoice["Electronic Invoice Generation"]
+    subgraph "Tích hợp Thanh toán"
+        Transaction["HIS.Desktop.Plugins.Transaction<br/>Thu tiền Thanh toán"]
+        Invoice["Tạo Hóa đơn Điện tử"]
     end
     
-    subgraph "Print & Records"
-        MPSBill["MPS.Processor.Mps000085<br/>Sale Receipt"]
-        MPSLabel["MPS.Processor.Mps000086<br/>Medicine Labels"]
+    subgraph "In ấn & Hồ sơ"
+        MPSBill["MPS.Processor.Mps000085<br/>Biên lai Bán hàng"]
+        MPSLabel["MPS.Processor.Mps000086<br/>Nhãn Thuốc"]
     end
     
     Patient --> SalePlugin
@@ -210,54 +210,54 @@ graph TB
     SalePlugin --> MPSLabel
 ```
 
-### Export Document Types
+### Các Loại Chứng từ Xuất kho
 
-The export plugins support multiple document types mapped to different MPS processors:
+Các plugin xuất hỗ trợ nhiều loại chứng từ tương ứng với các bộ xử lý MPS khác nhau:
 
-| Export Type | Document Code | MPS Processor | Plugin Integration |
+| Loại Xuất | Mã Chứng từ | Bộ xử lý MPS | Tích hợp Plugin |
 |-------------|---------------|---------------|-------------------|
-| Prescription Export | `TT` | Mps000078-Mps000082 | `ExpMestActualCreate` |
-| Sale Export | `BAN` | Mps000085-Mps000086 | `ExpMestSaleCreate` |
-| Department Export | `DEPA` | Mps000088-Mps000090 | `ExpMestDepaCreate` |
-| Return Export | `TRA` | Mps000091-Mps000092 | `ExpMestReturnCreate` |
+| Xuất Đơn thuốc | `TT` | Mps000078-Mps000082 | `ExpMestActualCreate` |
+| Xuất Bán | `BAN` | Mps000085-Mps000086 | `ExpMestSaleCreate` |
+| Xuất Khoa phòng | `DEPA` | Mps000088-Mps000090 | `ExpMestDepaCreate` |
+| Xuất Trả lại | `TRA` | Mps000091-Mps000092 | `ExpMestReturnCreate` |
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97, MPS architecture overview
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97), tổng quan kiến trúc MPS
 
-## Stock Management & Inventory (MediStock*)
+## Quản lý Tồn kho & Kiểm kê (MediStock*)
 
-The `MediStock*` plugins provide comprehensive warehouse and inventory management:
+Các plugin `MediStock*` cung cấp khả năng quản lý kho và tồn kho toàn diện:
 
-### Core Stock Management Plugins
+### Các Plugin Quản lý Kho Chính
 
-| Plugin Name | Files | Primary Function | Key Capabilities |
+| Tên Plugin | Số tệp | Chức năng Chính | Các Khả năng Key |
 |-------------|-------|------------------|------------------|
-| `MediStockSummary` | 49 | Inventory summary reports | Real-time balance, expiry alerts |
-| `MedicalStoreV2` | 49 | Pharmacy store management | Multi-location inventory |
-| `MediStockPeriod` | ~40-45 | Period closing/opening | Monthly reconciliation |
-| `MediStockBalance` | ~35-40 | Stock balance inquiry | Batch-level tracking |
-| `MediStockExport` | ~30-35 | Export stock data | Excel/CSV reporting |
+| `MediStockSummary` | 49 | Báo cáo tổng hợp tồn kho | Cân đối thời gian thực, cảnh báo hạn dùng |
+| `MedicalStoreV2` | 49 | Quản lý cửa hàng dược | Tồn kho đa vị trí |
+| `MediStockPeriod` | ~40-45 | Đóng/Mở kỳ kho | Đối soát hàng tháng |
+| `MediStockBalance` | ~35-40 | Truy vấn số dư kho | Theo dõi theo từng lô |
+| `MediStockExport` | ~30-35 | Xuất dữ liệu kho | Báo cáo Excel/CSV |
 
-### MediStockSummary Architecture
+### Kiến trúc MediStockSummary
 
 ```mermaid
 graph TB
-    Plugin["HIS.Desktop.Plugins.MediStockSummary<br/>49 files"]
+    Plugin["HIS.Desktop.Plugins.MediStockSummary<br/>49 tệp"]
     
-    subgraph "UI Components"
-        MainForm["frmMediStockSummary.cs<br/>Main Grid Display"]
-        FilterPanel["Filter Panel<br/>Date Range, Stock Type"]
-        GridConfig["GridControl Configuration<br/>Columns, Grouping"]
+    subgraph "Thành phần UI"
+        MainForm["frmMediStockSummary.cs<br/>Hiển thị Lưới Chính"]
+        FilterPanel["Bảng điều khiển Bộ lọc<br/>Khoảng ngày, Loại kho"]
+        GridConfig["Cấu hình GridControl<br/>Cột, Nhóm"]
     end
     
-    subgraph "Data Aggregation"
-        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>Cached Stock Data"]
-        Calculator["Stock Calculator<br/>Beginning + Import - Export"]
-        ExpiryCheck["Expiry Date Checker<br/>Alert Generation"]
+    subgraph "Tổng hợp Dữ liệu"
+        BackendData["Dữ liệu Kho được Lưu đệm<br/>HIS.Desktop.LocalStorage.BackendData"]
+        Calculator["Bộ tính toán Kho<br/>Đầu kỳ + Nhập - Xuất"]
+        ExpiryCheck["Kiểm tra Hạn dùng<br/>Tạo Cảnh báo"]
     end
     
-    subgraph "Reporting"
-        MPSReport["MPS.Processor.Mps000155<br/>Stock Summary Report"]
-        ExcelExport["FlexCel Export<br/>Excel Workbook"]
+    subgraph "Báo cáo"
+        MPSReport["MPS.Processor.Mps000155<br/>Báo cáo Tổng hợp Kho"]
+        ExcelExport["Xuất FlexCel<br/>Sổ làm việc Excel"]
     end
     
     Plugin --> MainForm
@@ -273,61 +273,61 @@ graph TB
     style BackendData fill:#fff4e1
 ```
 
-### MedicalStoreV2 Multi-Location Support
+### Hỗ trợ Đa chi nhánh trong MedicalStoreV2
 
-The `MedicalStoreV2` plugin (49 files) extends stock management to support multiple physical locations:
+Plugin `MedicalStoreV2` (49 tệp) mở rộng việc quản lý kho để hỗ trợ nhiều vị trí vật lý:
 
-- **Branch Support**: `HIS.Desktop.LocalStorage.Branch` integration for multi-branch hospitals
-- **Stock Transfer**: Inter-location transfer workflows
-- **Location-Specific Inventory**: Separate balances per location
-- **Consolidated Reporting**: Cross-location inventory views
+- **Hỗ trợ Chi nhánh**: Tích hợp `HIS.Desktop.LocalStorage.Branch` cho các bệnh viện đa cơ sở
+- **Điều chuyển Kho**: Quy trình điều chuyển giữa các vị trí
+- **Tồn kho theo Vị trí**: Số dư riêng biệt cho mỗi vị trí
+- **Báo cáo Hợp nhất**: Xem tồn kho trên toàn bộ các vị trí
 
-**Key Classes:**
-- [[`HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs`](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs)](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs) - Main form
-- [[`HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs`](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs)](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs) - Stock location model
-- `HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Processor/` - Multi-location business logic
+**Các Lớp Chính:**
+- [[`HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs`](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs)](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Run/frmMedicalStoreV2.cs) - Form chính
+- [[`HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs`](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs)](../../../../HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/ADO/MediStockADO.cs) - Mô hình vị trí kho
+- `HIS/Plugins/HIS.Desktop.Plugins.MedicalStoreV2/Processor/` - Logic nghiệp vụ đa vị trí
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
 
-## Bidding & Procurement (Bid*)
+## Đấu thầu & Mua sắm (Bid*)
 
-The `Bid*` plugin family manages the procurement and bidding process for medicines and materials:
+Nhóm plugin `Bid*` quản lý quy trình mua sắm và đấu thầu thuốc và vật tư y tế:
 
-### Bid Management Plugins
+### Các Plugin Quản lý Thầu
 
-| Plugin Name | Files | Purpose | Process Stage |
+| Tên Plugin | Số tệp | Mục đích | Giai đoạn Quy trình |
 |-------------|-------|---------|---------------|
-| `BidCreate` | 47 | Create bid packages | Planning & specification |
-| `BidEdit` | ~35-40 | Modify bid details | Pre-award changes |
-| `BidSupplier` | ~30-35 | Supplier management | Vendor selection |
-| `BidMedicineType` | ~30-35 | Bid medicine mapping | Item specifications |
-| `BidImport` | ~25-30 | Import bid data | Bulk upload |
+| `BidCreate` | 47 | Tạo gói thầu | Lập kế hoạch & đặc tính kỹ thuật |
+| `BidEdit` | ~35-40 | Sửa chi tiết thầu | Thay đổi trước khi phê duyệt |
+| `BidSupplier` | ~30-35 | Quản lý nhà cung cấp | Lựa chọn đơn vị cung ứng |
+| `BidMedicineType` | ~30-35 | Ánh xạ thầu thuốc | Đặc tả chi tiết mặt hàng |
+| `BidImport` | ~25-30 | Nhập dữ liệu thầu | Tải lên hàng loạt |
 
-### Bid Process Flow
+### Luồng Quy trình Đấu thầu
 
 ```mermaid
 graph TB
-    Planning["Procurement Planning<br/>Annual Requirements"]
+    Planning["Lập kế hoạch Mua sắm<br/>Nhu cầu hàng năm"]
     
-    subgraph "Bid Creation"
-        BidPlugin["HIS.Desktop.Plugins.BidCreate<br/>47 files<br/>frmBidCreate.cs"]
-        BidADO["BidCreateADO.cs<br/>Bid Package Model"]
-        ItemSelection["Medicine/Material Selection<br/>Quantities & Specifications"]
+    subgraph "Tạo Hồ sơ Thầu"
+        BidPlugin["HIS.Desktop.Plugins.BidCreate<br/>47 tệp<br/>frmBidCreate.cs"]
+        BidADO["BidCreateADO.cs<br/>Mô hình Gói thầu"]
+        ItemSelection["Chọn Thuốc/Vật tư<br/>Số lượng & Đặc tính"]
     end
     
-    subgraph "Supplier Management"
-        SupplierPlugin["HIS.Desktop.Plugins.BidSupplier<br/>Vendor Database"]
-        SupplierQuote["Quote Collection<br/>Price Comparison"]
+    subgraph "Quản lý Nhà cung cấp"
+        SupplierPlugin["HIS.Desktop.Plugins.BidSupplier<br/>Cơ sở dữ liệu Nhà cung ứng"]
+        SupplierQuote["Thu thập Báo giá<br/>So sánh giá"]
     end
     
-    subgraph "Award & Contract"
-        BidAward["Bid Award Decision<br/>Winner Selection"]
-        ContractGen["Contract Generation<br/>Terms & Conditions"]
+    subgraph "Trúng thầu & Hợp đồng"
+        BidAward["Quyết định Trúng thầu<br/>Lựa chọn người thắng cuộc"]
+        ContractGen["Tạo Hợp đồng<br/>Các Điều khoản & Điều kiện"]
     end
     
-    subgraph "Integration"
-        ImpMest["ImpMestCreate<br/>Receive against bid"]
-        PriceUpdate["Medicine Price Update<br/>Contract Pricing"]
+    subgraph "Tích hợp"
+        ImpMest["ImpMestCreate<br/>Nhập kho theo thầu"]
+        PriceUpdate["Cập nhật Giá thuốc<br/>Giá theo hợp đồng"]
     end
     
     Planning --> BidPlugin
@@ -341,64 +341,64 @@ graph TB
     ContractGen --> PriceUpdate
 ```
 
-### BidCreate Plugin Components
+### Các Thành phần của Plugin BidCreate
 
-The `BidCreate` plugin structure (47 files):
+Cấu trúc plugin `BidCreate` (47 tệp):
 
-- **Bid Header Management**:
-  - Bid number, name, year
-  - Budget allocation
-  - Timeline and deadlines
-- **Bid Line Items**:
-  - Medicine types with specifications
-  - Material types with specifications
-  - Requested quantities
-  - Estimated prices
-- **Supplier Association**:
-  - Multiple supplier quotes
-  - Comparative analysis
-  - Award recommendations
-- **Document Generation**:
-  - MPS processors for bid documents
-  - Export to tender systems
+- **Quản lý Thông tin Chung về Thầu**:
+  - Số thầu, tên thầu, năm
+  - Phân bổ ngân sách
+  - Mốc thời gian và thời hạn
+- **Các Dòng Mặt hàng Thầu**:
+  - Các loại thuốc kèm đặc tính kỹ thuật
+  - Các loại vật tư kèm đặc tính kỹ thuật
+  - Số lượng yêu cầu
+  - Giá dự kiến
+- **Liên kết Nhà cung cấp**:
+  - Nhiều báo giá từ nhà cung cấp
+  - Phân tích so sánh
+  - Khuyến nghị trúng thầu
+- **Tạo Tài liệu**:
+  - Các bộ xử lý MPS cho hồ sơ thầu
+  - Xuất dữ liệu ra hệ thống đấu thầu
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97)
 
-## Blood Management Operations
+## Hoạt động Quản lý Máu
 
-Blood product management requires specialized tracking due to regulatory requirements:
+Quản lý chế phẩm máu yêu cầu việc theo dõi chuyên biệt do các yêu cầu về quy định y tế:
 
-### Blood-Related Plugins
+### Các Plugin Liên quan đến Máu
 
-| Plugin Name | Estimated Files | Purpose | Unique Features |
+| Tên Plugin | Ước tính số tệp | Mục đích | Các Tính năng Độc đáo |
 |-------------|----------------|---------|-----------------|
-| `ImpMestBlood` | ~35-40 | Import blood products | Blood bank integration |
-| `ExpMestBlood` | ~35-40 | Issue blood products | Cross-match verification |
-| `BloodType` | ~25-30 | Blood type management | ABO, Rh tracking |
-| `BloodTracking` | ~30-35 | Traceability | Donor to recipient chain |
+| `ImpMestBlood` | ~35-40 | Nhập chế phẩm máu | Tích hợp ngân hàng máu |
+| `ExpMestBlood` | ~35-40 | Xuất chế phẩm máu | Xác thực phản ứng chéo (Cross-match) |
+| `BloodType` | ~25-30 | Quản lý nhóm máu | Theo dõi ABO, Rh |
+| `BloodTracking` | ~30-35 | Khả năng truy xuất | Chuỗi từ người hiến đến người nhận |
 
-### Blood Product Flow
+### Luồng Chế phẩm Máu
 
 ```mermaid
 graph TB
-    BloodBank["Blood Bank<br/>External Supplier"]
+    BloodBank["Ngân hàng Máu<br/>Nhà cung cấp bên ngoài"]
     
-    subgraph "Import Process"
-        ImpBlood["HIS.Desktop.Plugins.ImpMestBlood<br/>Blood Receipt"]
-        BloodCheck["Quality Checks<br/>Temperature Log<br/>Expiry Verification"]
-        BloodStorage["Cold Storage Assignment<br/>Location Tracking"]
+    subgraph "Quy trình Nhập"
+        ImpBlood["HIS.Desktop.Plugins.ImpMestBlood<br/>Tiếp nhận Máu"]
+        BloodCheck["Kiểm tra Chất lượng<br/>Nhật ký Nhiệt độ<br/>Xác minh Hạn dùng"]
+        BloodStorage["Phân bổ Kho lạnh<br/>Theo dõi Vị trí"]
     end
     
-    subgraph "Cross-Match Process"
-        PatientOrder["Blood Order<br/>Patient Request"]
-        TypeMatch["Blood Type Matching<br/>ABO & Rh Compatibility"]
-        CrossMatch["Cross-Match Test<br/>Lab Verification"]
+    subgraph "Quy trình Phản ứng Chéo"
+        PatientOrder["Yêu cầu Máu<br/>Yêu cầu của Bệnh nhân"]
+        TypeMatch["Khớp Nhóm máu<br/>Tương thích ABO & Rh"]
+        CrossMatch["Thử Phản ứng Chéo<br/>Xác minh tại Phòng xét nghiệm"]
     end
     
-    subgraph "Issue Process"
-        ExpBlood["HIS.Desktop.Plugins.ExpMestBlood<br/>Blood Issue"]
-        Traceability["Blood Tracking Record<br/>Donor to Recipient"]
-        TransfusionDoc["Transfusion Documentation"]
+    subgraph "Quy trình Xuất"
+        ExpBlood["HIS.Desktop.Plugins.ExpMestBlood<br/>Cấp phát Máu"]
+        Traceability["Hồ sơ Truy xuất Máu<br/>Từ người hiến đến người nhận"]
+        TransfusionDoc["Tài liệu Truyền máu"]
     end
     
     BloodBank --> ImpBlood
@@ -413,57 +413,57 @@ graph TB
     ExpBlood --> TransfusionDoc
 ```
 
-**Special Considerations:**
-- **Temperature Monitoring**: Integration with cold chain monitoring
-- **Expiry Tracking**: Short shelf life (typically 35-42 days)
-- **Regulatory Compliance**: MOH blood safety regulations
-- **Audit Trail**: Complete donor-to-recipient traceability
+**Các Lưu ý Đặc biệt:**
+- **Giám sát Nhiệt độ**: Tích hợp với việc giám sát chuỗi cung ứng lạnh
+- **Theo dõi Hạn dùng**: Thời gian bảo quản ngắn (thường là 35-42 ngày)
+- **Tuân thủ Quy định**: Các quy định về an toàn truyền máu của Bộ Y tế
+- **Dấu vết Kiểm toán**: Khả năng truy xuất hoàn toàn từ người hiến đến người nhận
 
-**Sources:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97, medical domain knowledge
+**Nguồn:** [`.devin/wiki.json:90-97`](../../../../.devin/wiki.json#L90-L97), kiến thức nghiệp vụ y tế
 
-## Integration with Other Systems
+## Tích hợp với các Hệ thống khác
 
-### API Consumer Integration
+### Tích hợp API Consumer
 
-All medicine and material plugins communicate with the backend through `HIS.Desktop.ApiConsumer`:
+Tất cả các plugin thuốc và vật tư giao tiếp với backend thông qua `HIS.Desktop.ApiConsumer`:
 
-| API Consumer Class | Endpoints Served | Plugin Usage |
+| Lớp API Consumer | Các Endpoint phục vụ | Sử dụng trong Plugin |
 |-------------------|------------------|--------------|
-| `ApiConsumerStore` | General REST calls | All plugins |
+| `ApiConsumerStore` | Các lệnh gọi REST chung | Tất cả các plugin |
 | `MedicineTypeApiConsumer` | `/api/HisMedicineType/*` | MedicineType, ImpMest*, ExpMest* |
 | `MaterialTypeApiConsumer` | `/api/HisMaterialType/*` | MaterialType, ImpMest*, ExpMest* |
-| `MediStockApiConsumer` | `/api/HisMediStock/*` | MediStock*, Stock management |
-| `ImpMestApiConsumer` | `/api/HisImpMest/*` | ImpMest* plugins |
-| `ExpMestApiConsumer` | `/api/HisExpMest/*` | ExpMest* plugins |
+| `MediStockApiConsumer` | `/api/HisMediStock/*` | MediStock*, Quản lý kho |
+| `ImpMestApiConsumer` | `/api/HisImpMest/*` | Các plugin ImpMest* |
+| `ExpMestApiConsumer` | `/api/HisExpMest/*` | Các plugin ExpMest* |
 
-**Sources:** [`.devin/wiki.json:54-58`](../../../../.devin/wiki.json#L54-L58, HIS.Desktop.ApiConsumer overview
+**Nguồn:** [`.devin/wiki.json:54-58`](../../../../.devin/wiki.json#L54-L58), tổng quan về HIS.Desktop.ApiConsumer
 
-### Local Storage & Caching
+### Lưu trữ Địa phương & Cơ chế Cache
 
-Medicine and material data is heavily cached in `HIS.Desktop.LocalStorage.BackendData`:
+Dữ liệu thuốc và vật tư được lưu đệm (cache) mạnh mẽ trong `HIS.Desktop.LocalStorage.BackendData`:
 
 ```mermaid
 graph LR
-    subgraph "Backend Data Cache"
-        MedCache["BackendData.MedicineTypes<br/>In-Memory Collection"]
-        MatCache["BackendData.MaterialTypes<br/>In-Memory Collection"]
-        StockCache["BackendData.MediStocks<br/>Warehouse List"]
-        SupplierCache["BackendData.Suppliers<br/>Vendor List"]
+    subgraph "Bộ nhớ đệm Dữ liệu Backend"
+        MedCache["BackendData.MedicineTypes<br/>Danh mục trong bộ nhớ"]
+        MatCache["BackendData.MaterialTypes<br/>Danh mục trong bộ nhớ"]
+        StockCache["BackendData.MediStocks<br/>Danh sách Kho"]
+        SupplierCache["BackendData.Suppliers<br/>Danh sách Nhà cung cấp"]
     end
     
-    subgraph "Plugin Access"
-        ImpPlugin["ImpMest* Plugins"]
-        ExpPlugin["ExpMest* Plugins"]
-        StockPlugin["MediStock* Plugins"]
-        BidPlugin["Bid* Plugins"]
+    subgraph "Truy cập từ Plugin"
+        ImpPlugin["Các plugin ImpMest*"]
+        ExpPlugin["Các plugin ExpMest*"]
+        StockPlugin["Các plugin MediStock*"]
+        BidPlugin["Các plugin Bid*"]
     end
     
-    API["Backend API<br/>Initial Load"]
+    API["Backend API<br/>Tải dữ liệu ban đầu"]
     
-    API -->|"Load on Startup"| MedCache
-    API -->|"Load on Startup"| MatCache
-    API -->|"Load on Startup"| StockCache
-    API -->|"Load on Startup"| SupplierCache
+    API -->|"Tải khi Khởi động"| MedCache
+    API -->|"Tải khi Khởi động"| MatCache
+    API -->|"Tải khi Khởi động"| StockCache
+    API -->|"Tải khi Khởi động"| SupplierCache
     
     MedCache --> ImpPlugin
     MedCache --> ExpPlugin
@@ -481,81 +481,81 @@ graph LR
     SupplierCache --> ImpPlugin
 ```
 
-**Caching Benefits:**
-- Reduces API calls during data entry
-- Enables offline validation
-- Improves autocomplete performance
-- Faster grid filtering and sorting
+**Lợi ích của việc Caching:**
+- Giảm thiểu các lệnh gọi API trong quá trình nhập dữ liệu
+- Cho phép kiểm tra (validation) ngoại tuyến
+- Cải thiện hiệu suất tự động hoàn thành (autocomplete)
+- Lọc và sắp xếp lưới dữ liệu nhanh hơn
 
-**Cache Refresh:**
-- Automatic on application startup
-- Manual refresh via `BackendData.Reload()`
-- PubSub event-driven updates when data changes
+**Làm mới Bộ nhớ đệm (Cache Refresh):**
+- Tự động khi khởi động ứng dụng
+- Làm mới thủ công thông qua `BackendData.Reload()`
+- Cập nhật dựa trên sự kiện PubSub khi dữ liệu thay đổi
 
-**Sources:** [`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53, LocalStorage documentation
+**Nguồn:** [`.devin/wiki.json:44-53`](../../../../.devin/wiki.json#L44-L53), tài liệu LocalStorage
 
-### MPS Print Integration
+### Tích hợp Hệ thống In MPS
 
-Medicine and material transactions generate various print documents:
+Các giao dịch thuốc và vật tư tạo ra nhiều chứng từ in ấn khác nhau:
 
-| Transaction Type | MPS Processor Range | Document Examples |
+| Loại Giao dịch | Dải bộ xử lý MPS | Ví dụ về Chứng từ |
 |-----------------|-------------------|-------------------|
-| Import | Mps000070-Mps000079 | Import voucher, goods receipt |
-| Export | Mps000080-Mps000099 | Export voucher, sale receipt, labels |
-| Stock | Mps000150-Mps000159 | Stock report, inventory card |
-| Bid | Mps000200-Mps000209 | Bid document, contract |
+| Nhập kho | Mps000070-Mps000079 | Phiếu nhập kho, chứng từ nhận hàng |
+| Xuất kho | Mps000080-Mps000099 | Phiếu xuất kho, biên lai bán hàng, nhãn |
+| Tồn kho | Mps000150-Mps000159 | Báo cáo tồn kho, thẻ kho |
+| Đấu thầu | Mps000200-Mps000209 | Hồ sơ thầu, hợp đồng |
 
-**Common Print Features:**
-- Barcode generation for tracking
-- QR codes for digital verification
-- Multi-copy printing (original, copy, warehouse)
-- Electronic signature support
+**Các Tính năng In ấn Chung:**
+- Tạo mã vạch để theo dõi
+- Mã QR để xác thực kỹ thuật số
+- In nhiều liên (bản gốc, bản sao, lưu kho)
+- Hỗ trợ chữ ký điện tử
 
-**Sources:** [`.devin/wiki.json:180-198`](../../../../.devin/wiki.json#L180-L198, MPS Print System overview
+**Nguồn:** [`.devin/wiki.json:180-198`](../../../../.devin/wiki.json#L180-L198), tổng quan về Hệ thống in MPS
 
-## Common Plugin Patterns
+## Các Mẫu Plugin Chung
 
-### Standard Plugin Structure
+### Cấu trúc Plugin Tiêu chuẩn
 
-Each medicine/material plugin typically follows this structure:
+Mỗi plugin thuốc/vật tư thường tuân theo cấu trúc sau:
 
 ```
 HIS.Desktop.Plugins.[PluginName]/
-├── [PluginName].cs                    # Plugin entry point
+├── [PluginName].cs                    # Điểm truy cập plugin
 ├── Run/
-│   ├── frm[PluginName].cs            # Main form
-│   ├── frm[PluginName].Designer.cs   # Designer file
-│   └── frm[PluginName].resx          # Resources
+│   ├── frm[PluginName].cs            # Form chính
+│   ├── frm[PluginName].Designer.cs   # Tệp Designer
+│   └── frm[PluginName].resx          # Tài nguyên giao diện
 ├── ADO/
-│   └── [PluginName]ADO.cs            # Data transfer objects
+│   └── [PluginName]ADO.cs            # Các đối tượng chuyển đổi dữ liệu
 ├── Processor/
-│   └── [PluginName]Processor.cs      # Business logic
+│   └── [PluginName]Processor.cs      # Logic nghiệp vụ
 ├── Base/
-│   ├── RequestUriStore.cs            # API endpoints
-│   └── ResourceLangManager.cs        # Localization
+│   ├── RequestUriStore.cs            # Các endpoint API
+│   └── ResourceLangManager.cs        # Đa ngôn ngữ
 ├── Resources/
-│   └── [Language].resx               # Resource files
+│   └── [Language].resx               # Các tệp tài nguyên ngôn ngữ
 └── Properties/
-    └── AssemblyInfo.cs               # Assembly metadata
+    └── AssemblyInfo.cs               # Metadata của assembly
 ```
 
-### Data Validation Patterns
+### Các Mẫu Kiểm tra Dữ liệu (Validation Patterns)
 
-Common validation across plugins:
+Các bước kiểm tra chung giữa các plugin:
 
-- **Stock Availability**: Before export, verify sufficient stock
-- **Expiry Date**: Warn on near-expiry, block expired items
-- **Duplicate Prevention**: Check for duplicate transactions
-- **Price Validation**: Ensure prices within allowed ranges
-- **User Permissions**: Validate role-based access
-- **Period Closure**: Prevent transactions in closed periods
+- **Khả năng cung ứng tồn kho**: Trước khi xuất, xác minh đủ tồn kho
+- **Hạn dùng**: Cảnh báo khi sắp hết hạn, chặn các mặt hàng đã hết hạn
+- **Ngăn chặn Trùng lặp**: Kiểm tra các giao dịch bị trùng
+- **Kiểm tra Giá**: Đảm bảo giá nằm trong phạm vi cho phép
+- **Quyền người dùng**: Xác thực truy cập dựa trên vai trò
+- **Chốt Kỳ**: Ngăn chặn giao dịch trong các kỳ đã chốt
 
-### Error Handling
+### Xử lý Lỗi
 
-Standard error handling via:
-- `Inventec.Common.Logging` for logging exceptions
-- `MessageBox` for user notifications
-- `ValidationResult` objects for business rule violations
-- Rollback support for failed transactions
+Xử lý lỗi tiêu chuẩn thông qua:
+- `Inventec.Common.Logging` để ghi nhật ký ngoại lệ
+- `MessageBox` để gửi thông báo cho người dùng
+- Các đối tượng `ValidationResult` cho các vi phạm quy tắc nghiệp vụ
+- Hỗ trợ Rollback cho các giao dịch bị lỗi
 
-**Sources:** [`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68, Plugin System Architecture
+**Nguồn:** [`.devin/wiki.json:60-68`](../../../../.devin/wiki.json#L60-L68), Kiến trúc Hệ thống Plugin

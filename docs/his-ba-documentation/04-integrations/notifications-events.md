@@ -1,56 +1,56 @@
-## Purpose and Scope
+## Mục tiêu và Phạm vi
 
-This document covers the notification and event handling infrastructure in the HIS Desktop application, specifically:
-- **HIS.Desktop.LocalStorage.PubSub/** (9 files) - The publish-subscribe event bus for inter-module communication
-- **HIS.Desktop.Notify/** (25 files) - User notification system and UI notifications
-- Integration with **Inventec.Common.WSPubSub** for real-time WebSocket-based messaging
+Tài liệu này trình bày về hạ tầng xử lý thông báo và sự kiện trong ứng dụng HIS Desktop, cụ thể bao gồm:
+- **HIS.Desktop.LocalStorage.PubSub/** (9 files): Hệ thống event bus theo mô hình Publish-Subscribe để giao tiếp giữa các module.
+- **HIS.Desktop.Notify/** (25 files): Hệ thống thông báo người dùng và thông báo trên giao diện (UI notifications).
+- Tích hợp với **Inventec.Common.WSPubSub** để xử lý tin nhắn thời gian thực dựa trên WebSocket.
 
-The event system enables loose coupling between plugins and modules by allowing them to communicate without direct dependencies. For information about direct plugin-to-plugin communication patterns, see [Plugin System Architecture](../01-architecture/plugin-system.md). For local data caching and configuration, see [LocalStorage & Configuration](../02-modules/his-desktop/core.md).
+Hệ thống sự kiện cho phép giảm thiểu sự phụ thuộc trực tiếp (loose coupling) giữa các plugin và module, cho phép chúng giao tiếp với nhau mà không cần tham chiếu trực tiếp. Để biết thêm thông tin về các mô hình giao tiếp trực tiếp giữa cácXem `HIS.Desktop.Modules.Plugin` trong [Tài liệu Hệ thống Plugin](../01-architecture/plugin-system/04-communication.md) để biết chi tiết triển khai.ớ đệm dữ liệu cục bộ, xem [LocalStorage & Cấu hình](../02-modules/his-desktop/core.md).
 
 ---
 
-## System Architecture Overview
+## Tổng quan Kiến trúc Hệ thống
 
-The HIS Desktop application implements two complementary communication patterns:
+Ứng dụng HIS Desktop triển khai hai mô hình giao tiếp bổ trợ cho nhau:
 
-| Pattern | Location | Coupling | Use Case |
+| Mô hình | Vị trí | Mức độ phụ thuộc | Trường hợp sử dụng |
 |---------|----------|----------|----------|
-| **PubSub Event Bus** | HIS.Desktop.LocalStorage.PubSub/ | Loose | Broadcast notifications, data changes, system events |
-| **DelegateRegister** | HIS.Desktop.DelegateRegister | Tight | Direct plugin invocation, request-response patterns |
-| **WSPubSub** | Inventec.Common.WSPubSub | Loose | Real-time server push, multi-client synchronization |
+| **PubSub Event Bus** | HIS.Desktop.LocalStorage.PubSub/ | Lỏng lẻo (Loose) | Phát thông báo, thay đổi dữ liệu, sự kiện hệ thống |
+| **DelegateRegister** | HIS.Desktop.DelegateRegister | Chặt chẽ (Tight) | Gọi trực tiếp plugin, mô hình yêu cầu-phản hồi (request-response) |
+| **WSPubSub** | Inventec.Common.WSPubSub | Lỏng lẻo (Loose) | Đẩy dữ liệu từ server thời gian thực, đồng bộ hóa đa client |
 
-The notification system operates at three layers:
-1. **Application Events** - Internal plugin communication via PubSub
-2. **User Notifications** - UI notifications managed by HIS.Desktop.Notify/
-3. **Real-time Events** - Server-initiated events via WebSocket connections
+Hệ thống thông báo hoạt động ở ba lớp:
+1. **Sự kiện Ứng dụng (Application Events):** Giao tiếp nội bộ giữa các plugin thông qua PubSub.
+2. **Thông báo Người dùng (User Notifications):** Các thông báo giao diện được quản lý bởi HIS.Desktop.Notify/.
+3. **Sự kiện Thời gian thực (Real-time Events):** Các sự kiện khởi tạo từ phía máy chủ thông qua kết nối WebSocket.
 
-**Sources:** 
+**Nguồn tham khảo:** 
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.Notify/
 - Common/Inventec.Common/Inventec.Common.WSPubSub/
 
 ---
 
-## PubSub Event Bus Architecture
+## Kiến trúc PubSub Event Bus
 
 ```mermaid
 graph TB
-    subgraph "Event Publishers"
-        PluginA["Plugin A<br/>(Treatment)"]
-        PluginB["Plugin B<br/>(Prescription)"]
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>(Backend sync)"]
+    subgraph "Bên phát sự kiện (Event Publishers)"
+        PluginA["Plugin A<br/>(Điều trị)"]
+        PluginB["Plugin B<br/>(Đơn thuốc)"]
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>(Đồng bộ Backend)"]
     end
     
     subgraph "HIS.Desktop.LocalStorage.PubSub"
-        PubSubManager["PubSubManager<br/>Event routing"]
-        EventRegistry["Event Registry<br/>Topic subscriptions"]
-        EventQueue["Event Queue<br/>Async delivery"]
+        PubSubManager["PubSubManager<br/>Điều phối sự kiện"]
+        EventRegistry["Đăng ký sự kiện<br/>Đăng ký theo Topic"]
+        EventQueue["Hàng đợi sự kiện<br/>Phân phối bất đồng bộ"]
     end
     
-    subgraph "Event Subscribers"
-        PluginC["Plugin C<br/>(Patient list)"]
+    subgraph "Bên nhận sự kiện (Event Subscribers)"
+        PluginC["Plugin C<br/>(Danh sách bệnh nhân)"]
         PluginD["Plugin D<br/>(Dashboard)"]
-        NotifyUI["HIS.Desktop.Notify<br/>(UI notifications)"]
+        NotifyUI["HIS.Desktop.Notify<br/>(Thông báo giao diện)"]
     end
     
     PluginA -->|"Publish('TREATMENT_UPDATED')"| PubSubManager
@@ -60,29 +60,29 @@ graph TB
     PubSubManager --> EventRegistry
     PubSubManager --> EventQueue
     
-    EventQueue -->|"Notify subscribers"| PluginC
-    EventQueue -->|"Notify subscribers"| PluginD
-    EventQueue -->|"Show notification"| NotifyUI
+    EventQueue -->|"Thông báo cho người nhận"| PluginC
+    EventQueue -->|"Thông báo cho người nhận"| PluginD
+    EventQueue -->|"Hiển thị thông báo"| NotifyUI
     
-    EventRegistry -.->|"Lookup"| EventQueue
+    EventRegistry -.->|"Tra cứu"| EventQueue
 ```
 
-**Event Flow Pattern:**
+**Mô hình Luồng sự kiện:**
 
-1. **Publisher** calls `Publish(eventName, eventData)` on the PubSub manager
-2. **Event Registry** looks up all subscribers for the event topic
-3. **Event Queue** delivers the event asynchronously to each subscriber
-4. **Subscribers** receive the event via registered callback delegates
+1. **Bên phát (Publisher)** gọi phương thức `Publish(eventName, eventData)` trên bộ phận quản lý PubSub.
+2. **Hệ thống đăng ký sự kiện (Event Registry)** tra cứu tất cả những bên đăng ký nhận (subscribers) cho topic sự kiện đó.
+3. **Hàng đợi sự kiện (Event Queue)** phân phối sự kiện một cách bất đồng bộ tới từng bên nhận.
+4. **Bên nhận (Subscribers)** nhận được sự kiện thông qua các hàm callback delegate đã đăng ký.
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.LocalStorage.BackendData/
 
 ---
 
-## PubSub Implementation Components
+## Các thành phần triển khai PubSub
 
-### Core Classes and Interfaces
+### Các Class và Interface cốt lõi
 
 ```mermaid
 classDiagram
@@ -121,52 +121,52 @@ classDiagram
     PubSubManager --> SubscriptionHandle
 ```
 
-### Key Event Topics
+### Các Topic sự kiện chính
 
-The system uses string-based event topics defined in constants classes. Common event topics include:
+Hệ thống sử dụng các topic sự kiện kiểu chuỗi (string) được định nghĩa trong các class hằng số (constants). Các topic sự kiện thông dụng bao gồm:
 
-| Event Topic | Purpose | Typical Publishers | Typical Subscribers |
+| Topic sự kiện | Mục đích | Bên phát phổ biến | Bên nhận phổ biến |
 |-------------|---------|-------------------|---------------------|
-| `TREATMENT_UPDATED` | Treatment record changed | Treatment plugins | Patient list, Dashboard |
-| `PATIENT_REGISTERED` | New patient created | Registration plugins | Reception queue, Call system |
-| `PRESCRIPTION_CREATED` | Prescription issued | Prescription plugins | Pharmacy, Print system |
-| `SERVICE_EXECUTED` | Service performed | Service plugins | Billing, Statistics |
-| `TRANSACTION_COMPLETED` | Payment processed | Transaction plugins | Receipt print, Debt tracking |
-| `DATA_SYNC_COMPLETE` | Backend data refreshed | ApiConsumer | All plugins with cached data |
-| `CONFIG_CHANGED` | Configuration updated | Config plugins | All plugins reading config |
-| `USER_LOGOUT` | User logged out | Session manager | All plugins (cleanup) |
+| `TREATMENT_UPDATED` | Bản ghi điều trị thay đổi | Các plugin Điều trị | Danh sách bệnh nhân, Dashboard |
+| `PATIENT_REGISTERED` | Bệnh nhân mới được tạo | Các plugin Đăng ký | Quầy tiếp đón, Hệ thống gọi |
+| `PRESCRIPTION_CREATED` | Đơn thuốc mới được cấp | Các plugin Đơn thuốc | Nhà thuốc, Hệ thống in |
+| `SERVICE_EXECUTED` | Dịch vụ đã được thực hiện | Các plugin Dịch vụ | Thanh toán, Thống kê |
+| `TRANSACTION_COMPLETED` | Thanh toán đã hoàn tất | Các plugin Giao dịch | In biên lai, Theo dõi nợ |
+| `DATA_SYNC_COMPLETE` | Dữ liệu backend đã làm mới | ApiConsumer | Tất cả plugin dùng cache |
+| `CONFIG_CHANGED` | Cấu hình được cập nhật | Các plugin Cấu hình | Tất cả plugin đọc cấu hình |
+| `USER_LOGOUT` | Người dùng đăng xuất | Bộ quản lý phiên làm việc | Tất cả plugin (dọn dẹp) |
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.LocalStorage.ConfigApplication/
 - HIS.Desktop.LocalStorage.BackendData/
 
 ---
 
-## Notification System (HIS.Desktop.Notify)
+## Hệ thống Thông báo (HIS.Desktop.Notify)
 
-### Notification Types and UI Components
+### Các loại thông báo và Thành phần UI
 
 ```mermaid
 graph LR
-    subgraph "Notification Sources"
+    subgraph "Nguồn thông báo"
         EventBus["PubSub<br/>Event Bus"]
-        UserAction["User Actions<br/>(validation errors)"]
-        BackendAPI["Backend API<br/>(server messages)"]
-        Timer["Timer Events<br/>(reminders)"]
+        UserAction["Hành động người dùng<br/>(lỗi kiểm tra dữ liệu)"]
+        BackendAPI["Backend API<br/>(thông điệp từ server)"]
+        Timer["Sự kiện hẹn giờ<br/>(nhắc nhở)"]
     end
     
     subgraph "HIS.Desktop.Notify"
         NotifyManager["NotificationManager"]
-        NotifyQueue["Notification Queue"]
-        NotifyTypes["NotificationType:<br/>Info/Warning/Error/Success"]
+        NotifyQueue["Hàng đợi thông báo"]
+        NotifyTypes["Loại thông báo:<br/>Thông tin/Cảnh báo/Lỗi/Thành công"]
     end
     
-    subgraph "UI Display"
-        Toast["Toast Popup<br/>(temporary)"]
-        Banner["Banner Alert<br/>(persistent)"]
-        Badge["Badge Counter<br/>(pending items)"]
-        Modal["Modal Dialog<br/>(critical)"]
+    subgraph "Hiển thị trên UI"
+        Toast["Thông báo Toast<br/>(tạm thời)"]
+        Banner["Thanh thông báo Banner<br/>(cố định)"]
+        Badge["Huy hiệu Badge<br/>(đếm mục chờ)"]
+        Modal["Hộp thoại Modal<br/>(quan trọng)"]
     end
     
     EventBus --> NotifyManager
@@ -183,152 +183,152 @@ graph LR
     NotifyQueue --> Modal
 ```
 
-### Notification Severity Levels
+### Các mức độ nghiêm trọng của thông báo
 
-| Level | UI Display | Duration | Sound Alert | Examples |
+| Mức độ | Hiển thị UI | Thời gian | Cảnh báo âm thanh | Ví dụ |
 |-------|-----------|----------|-------------|----------|
-| **Info** | Blue toast | 3 seconds | None | "Patient registered successfully" |
-| **Success** | Green toast | 3 seconds | Optional | "Prescription saved" |
-| **Warning** | Yellow banner | 5 seconds | Beep | "Low stock alert" |
-| **Error** | Red banner | Persistent | Alert sound | "Payment failed" |
-| **Critical** | Modal dialog | User dismiss | Alarm | "Database connection lost" |
+| **Thông tin (Info)** | Toast xanh dương | 3 giây | Không | "Đã đăng ký bệnh nhân thành công" |
+| **Thành công (Success)** | Toast xanh lá | 3 giây | Tùy chọn | "Đã lưu đơn thuốc" |
+| **Cảnh báo (Warning)** | Banner vàng | 5 giây | Tiếng Beep | "Cảnh báo thuốc sắp hết hạn" |
+| **Lỗi (Error)** | Banner đỏ | Cố định | Âm thanh cảnh báo | "Thanh toán thất bại" |
+| **Nghiêm trọng (Critical)** | Hộp thoại Modal | Người dùng đóng | Âm thanh báo động | "Mất kết nối cơ sở dữ liệu" |
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.Notify/
 - HIS.Desktop.Utility/
 
 ---
 
-## Event Subscription Patterns
+## Các mô hình Đăng ký sự kiện
 
-### Basic Subscription
+### Đăng ký cơ bản
 
-Plugins subscribe to events during initialization and unsubscribe during disposal:
+Các plugin đăng ký nhận sự kiện trong quá trình khởi tạo và hủy đăng ký khi giải phóng (disposal):
 
-**Subscription Location:** Plugin constructor or `OnLoad()` method
-**Unsubscription Location:** Plugin `Dispose()` method
+**Vị trí Đăng ký:** Constructor của plugin hoặc phương thức `OnLoad()`.
+**Vị trí Hủy đăng ký:** Phương thức `Dispose()` của plugin.
 
 ```mermaid
 sequenceDiagram
-    participant Plugin as Plugin Instance
-    participant PubSub as PubSub Manager
-    participant Handler as Event Handler
+    participant Plugin as Thực thể Plugin
+    participant PubSub as Bộ quản lý PubSub
+    participant Handler as Hàm xử lý sự kiện
     
-    Note over Plugin: Plugin initialization
+    Note over Plugin: Khởi tạo plugin
     Plugin->>PubSub: Subscribe("TREATMENT_UPDATED", OnTreatmentUpdated)
-    PubSub-->>Plugin: Return SubscriptionHandle
+    PubSub-->>Plugin: Trả về SubscriptionHandle
     
-    Note over Plugin: Plugin active state
+    Note over Plugin: Trạng thái plugin đang hoạt động
     
-    PubSub->>Handler: Event triggered
+    PubSub->>Handler: Sự kiện được kích hoạt
     Handler->>Plugin: OnTreatmentUpdated(data)
-    Plugin->>Plugin: Update UI
+    Plugin->>Plugin: Cập nhật giao diện
     
-    Note over Plugin: Plugin disposal
+    Note over Plugin: Hủy plugin
     Plugin->>PubSub: Unsubscribe("TREATMENT_UPDATED", OnTreatmentUpdated)
 ```
 
-### Common Subscription Pattern
+### Mô hình đăng ký thông dụng
 
-Referenced in plugin base classes throughout [HIS/Plugins/HIS.Desktop.Plugins.*/:1-50]():
+Được tham chiếu trong các class cơ sở của plugin trên toàn hệ thống [HIS/Plugins/HIS.Desktop.Plugins.*/: 1-50]():
 
-```
-// Typical pattern in plugin initialization
+```csharp
+// Mô hình điển hình khi khởi tạo plugin
 private void SubscribeEvents()
 {
-    // Subscribe to patient data changes
+    // Đăng ký nhận thay đổi dữ liệu bệnh nhân
     PubSubManager.Subscribe(EventConstants.PATIENT_UPDATED, OnPatientUpdated);
     
-    // Subscribe to treatment changes
+    // Đăng ký nhận thay đổi điều trị
     PubSubManager.Subscribe(EventConstants.TREATMENT_UPDATED, OnTreatmentUpdated);
     
-    // Subscribe to configuration changes
+    // Đăng ký nhận thay đổi cấu hình
     PubSubManager.Subscribe(EventConstants.CONFIG_CHANGED, OnConfigChanged);
 }
 
-// Event handler callback
+// Hàm callback xử lý sự kiện
 private void OnPatientUpdated(object data)
 {
-    // Cast data to expected type
+    // Ép kiểu dữ liệu về kiểu mong đợi
     var patientData = data as PatientUpdateEventData;
     
-    // Update UI on main thread
+    // Cập nhật UI trên thread chính (Main thread)
     this.InvokeIfRequired(() => {
         RefreshPatientData(patientData);
     });
 }
 ```
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS/Plugins/HIS.Desktop.Plugins.*/
 
 ---
 
-## WebSocket PubSub Integration
+## Tích hợp WebSocket PubSub
 
-### Real-Time Server Communication
+### Giao tiếp thời gian thực với Máy chủ
 
 ```mermaid
 graph TB
-    subgraph "Backend Server"
+    subgraph "Máy chủ Backend"
         WSServer["WebSocket Server<br/>(SignalR/WebSocket)"]
-        EventSource["Event Sources:<br/>- Other clients<br/>- Background jobs<br/>- External systems"]
+        EventSource["Nguồn sự kiện:<br/>- Các client khác<br/>- Các tiến trình chạy ngầm<br/>- Hệ thống bên ngoài"]
     end
     
-    subgraph "Client Application"
+    subgraph "Ứng dụng Client"
         WSPubSub["Inventec.Common.WSPubSub<br/>WebSocket client"]
-        WSHandler["WS Message Handler"]
+        WSHandler["Bộ xử lý tin nhắn WS"]
         LocalPubSub["HIS.Desktop.LocalStorage.PubSub"]
     end
     
-    subgraph "Plugins"
+    subgraph "Các Plugin"
         PluginA["Plugin A"]
         PluginB["Plugin B"]
         PluginC["Plugin C"]
     end
     
-    EventSource -->|"Server event"| WSServer
-    WSServer <==>|"WebSocket connection"| WSPubSub
+    EventSource -->|"Sự kiện server"| WSServer
+    WSServer <==>|"Kết nối WebSocket"| WSPubSub
     WSPubSub --> WSHandler
-    WSHandler -->|"Publish to local bus"| LocalPubSub
+    WSHandler -->|"Đẩy vào bus nội bộ"| LocalPubSub
     
-    LocalPubSub -->|"Notify"| PluginA
-    LocalPubSub -->|"Notify"| PluginB
-    LocalPubSub -->|"Notify"| PluginC
+    LocalPubSub -->|"Thông báo"| PluginA
+    LocalPubSub -->|"Thông báo"| PluginB
+    LocalPubSub -->|"Thông báo"| PluginC
 ```
 
-### Real-Time Event Use Cases
+### Các trường hợp sử dụng sự kiện thời gian thực
 
-| Event Type | Server Trigger | Client Action |
+| Loại sự kiện | Tác nhân từ Server | Hành động phía Client |
 |------------|---------------|---------------|
-| **PATIENT_CALLED** | Reception calls patient | Update call display screens |
-| **TREATMENT_LOCKED** | Another user locked record | Disable editing in all clients |
-| **CONFIG_UPDATED** | Admin changed system config | Reload configuration |
-| **STOCK_CHANGED** | Pharmacy dispensed medicine | Refresh stock levels |
-| **APPOINTMENT_CANCELLED** | Patient cancelled appointment | Update appointment list |
-| **EMERGENCY_ALERT** | Emergency button pressed | Show alert on all stations |
+| **PATIENT_CALLED** | Tiếp đón gọi bệnh nhân | Cập nhật màn hình hiển thị gọi số |
+| **TREATMENT_LOCKED** | Người dùng khác đang khóa bản ghi | Khóa chức năng chỉnh sửa trên tất cả client |
+| **CONFIG_UPDATED** | Quản trị viên thay đổi cấu hình | Tải lại cấu hình hệ thống |
+| **STOCK_CHANGED** | Kho dược vừa xuất thuốc | Cập nhật số lượng tồn kho |
+| **APPOINTMENT_CANCELLED** | Bệnh nhân hủy lịch hẹn | Cập nhật danh sách hẹn khám |
+| **EMERGENCY_ALERT** | Nhấn nút báo động khẩn cấp | Hiển thị cảnh báo trên tất cả các trạm |
 
-**WebSocket Connection Management:**
+**Quản lý kết nối WebSocket:**
 
-The `Inventec.Common.WSPubSub` component handles:
-- Automatic reconnection on connection loss
-- Heartbeat/keep-alive messages
-- Message queuing during disconnection
-- Subscription state synchronization
+Thành phần `Inventec.Common.WSPubSub` đảm nhiệm:
+- Tự động kết nối lại khi mất kết nối.
+- Các tin nhắn Heartbeat/keep-alive để duy trì kết nối.
+- Hàng đợi tin nhắn khi mất kết nối.
+- Đồng bộ hóa trạng thái đăng ký.
 
-**Sources:**
+**Nguồn tham khảo:**
 - Common/Inventec.Common/Inventec.Common.WSPubSub/
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.ApiConsumer/
 
 ---
 
-## Event Data Models
+## Các Model dữ liệu sự kiện
 
-### Standard Event Data Structure
+### Cấu trúc dữ liệu sự kiện chuẩn
 
-Events typically carry structured data objects that implement a common pattern:
+Các sự kiện thường mang theo các đối tượng dữ liệu có cấu trúc tuân theo một mô hình chung:
 
 ```mermaid
 classDiagram
@@ -374,58 +374,58 @@ classDiagram
     EventDataBase <|-- DataSyncEvent
 ```
 
-### Event Data Serialization
+### Serialization dữ liệu sự kiện
 
-Events are serialized when:
-- Crossing plugin boundaries (in-memory objects)
-- Transmitted via WebSocket (JSON serialization)
-- Logged for debugging (string representation)
+Các sự kiện được tuần tự hóa (serialized) khi:
+- Vượt qua ranh giới giữa các plugin (đối tượng trong bộ nhớ).
+- Truyền tải qua WebSocket (tuần tự hóa JSON).
+- Ghi log để phục vụ debug (dưới dạng chuỗi văn bản).
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.ADO/
 - HIS.Desktop.LocalStorage.PubSub/
 
 ---
 
-## Thread Safety and Async Handling
+## An toàn luồng (Thread Safety) và Xử lý bất đồng bộ
 
-### Event Delivery Guarantees
+### Đảm bảo phân phối sự kiện
 
-| Aspect | Implementation | Notes |
+| Khía cạnh | Triển khai | Ghi chú |
 |--------|---------------|-------|
-| **Order** | FIFO per topic | Events on same topic delivered in order |
-| **Delivery** | At-least-once | Subscribers may receive duplicates |
-| **Thread** | Callback thread | Handlers must marshal to UI thread if needed |
-| **Error** | Isolated | Exception in one handler doesn't affect others |
-| **Async** | Optional | `PublishAsync()` returns immediately |
+| **Thứ tự** | FIFO theo từng topic | Các sự kiện cùng topic được phân phối theo thứ tự |
+| **Phân phối** | At-least-once (Ít nhất một lần) | Bên nhận có thể nhận tin nhắn trùng lặp |
+| **Luồng (Thread)** | Luồng callback | Hàm xử lý phải tự chuyển về UI thread nếu cần |
+| **Lỗi** | Cách ly (Isolated) | Lỗi trong một hàm xử lý không ảnh hưởng tới các hàm khác |
+| **Bất đồng bộ** | Tùy chọn | `PublishAsync()` sẽ trả về kết quả ngay lập tức |
 
-### UI Thread Marshalling Pattern
+### Mô hình chuyển tiếp sang UI Thread
 
 ```mermaid
 sequenceDiagram
-    participant Worker as Background Thread
-    participant PubSub as PubSub Manager
-    participant Handler as Event Handler
-    participant UI as UI Thread
+    participant Worker as Luồng chạy ngầm (Background)
+    participant PubSub as Bộ quản lý PubSub
+    participant Handler as Hàm xử lý sự kiện
+    participant UI as Luồng giao diện (UI Thread)
     
     Worker->>PubSub: Publish("DATA_UPDATED", data)
-    PubSub->>Handler: Callback on worker thread
+    PubSub->>Handler: Thực hiện callback trên luồng chạy ngầm
     
-    Note over Handler: Check if UI update needed
+    Note over Handler: Kiểm tra nếu cần cập nhật UI
     Handler->>Handler: if (InvokeRequired)
     
     Handler->>UI: BeginInvoke(() => UpdateUI())
-    UI->>UI: Update controls
+    UI->>UI: Cập nhật các control
     
-    Note over Handler: Handler returns immediately
-    Handler-->>PubSub: Complete
+    Note over Handler: Hàm xử lý hoàn tất ngay lập tức
+    Handler-->>PubSub: Hoàn tất
 ```
 
-**Common Pattern in Event Handlers:**
+**Mô hình chung trong các hàm xử lý sự kiện:**
 
-Referenced in [HIS/Plugins/HIS.Desktop.Plugins.*/:1-100]():
+Được tham chiếu trong hệ thống [HIS/Plugins/HIS.Desktop.Plugins.*/: 1-100]():
 
-```
+```csharp
 private void OnDataUpdated(object data)
 {
     if (this.InvokeRequired)
@@ -434,412 +434,409 @@ private void OnDataUpdated(object data)
         return;
     }
     
-    // Safe to update UI here
+    // Tại đây đã an toàn để cập nhật UI
     UpdateDataGrid(data);
 }
 ```
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.Utility/
 
 ---
 
-## Notification Configuration
+## Cấu hình Thông báo
 
-### System-Wide Notification Settings
+### Các thiết lập thông báo toàn hệ thống
 
-Configuration keys in [HIS.Desktop.LocalStorage.ConfigApplication/]():
+Các key cấu hình trong [HIS.Desktop.LocalStorage.ConfigApplication/]() bao gồm:
 
-| Configuration Key | Type | Default | Purpose |
+| Key cấu hình | Kiểu dữ liệu | Mặc định | Mục đích |
 |------------------|------|---------|---------|
-| `NOTIFY_ENABLE` | Boolean | true | Enable/disable notifications |
-| `NOTIFY_SOUND_ENABLE` | Boolean | true | Enable notification sounds |
-| `NOTIFY_DURATION` | Integer | 3000 | Toast display duration (ms) |
-| `NOTIFY_POSITION` | Enum | TopRight | Notification position on screen |
-| `NOTIFY_MAX_CONCURRENT` | Integer | 3 | Max simultaneous notifications |
-| `NOTIFY_PRIORITY_FILTER` | String | "INFO,WARNING,ERROR" | Which levels to show |
+| `NOTIFY_ENABLE` | Boolean | true | Bật/tắt các thông báo |
+| `NOTIFY_SOUND_ENABLE` | Boolean | true | Bật/tắt âm thanh thông báo |
+| `NOTIFY_DURATION` | Integer | 3000 | Thời gian hiển thị toast (ms) |
+| `NOTIFY_POSITION` | Enum | TopRight | Vị trí hiển thị trên màn hình |
+| `NOTIFY_MAX_CONCURRENT` | Integer | 3 | Số lượng thông báo tối đa hiển thị cùng lúc |
+| `NOTIFY_PRIORITY_FILTER` | String | "INFO,WARNING,ERROR" | Lọc các mức độ thông báo được hiển thị |
 
-### Plugin-Specific Event Configuration
+### Cấu hình sự kiện riêng cho từng Plugin
 
-Plugins can configure which events they want to receive through [HIS.Desktop.LocalStorage.SdaConfigKey/]():
+Các plugin có thể cấu hình các sự kiện muốn nhận thông qua [HIS.Desktop.LocalStorage.SdaConfigKey/]() :
 
-- `PLUGIN_[NAME]_EVENTS` - Comma-separated list of event topics
-- `PLUGIN_[NAME]_NOTIFY_MODE` - How to handle incoming notifications (immediate, batch, suppress)
+- `PLUGIN_[TÊN]_EVENTS`: Danh sách các topic sự kiện cách nhau bởi dấu phẩy.
+- `PLUGIN_[TÊN]_NOTIFY_MODE`: Cách xử lý các thông báo đến (ngay lập tức, theo lô, hoặc tắt).
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.ConfigApplication/
 - HIS.Desktop.LocalStorage.SdaConfigKey/
 - HIS.Desktop.LocalStorage.HisConfig/
 
 ---
 
-## Integration with Backend Data Cache
+## Tích hợp với Bộ nhớ đệm dữ liệu Backend
 
-### Cache Invalidation Events
+### Các sự kiện hủy hiệu lực Cache (Cache Invalidation)
 
 ```mermaid
 graph LR
     subgraph "Backend API"
-        APIResponse["API Response<br/>with cache directive"]
+        APIResponse["Phản hồi API<br/>kèm theo lệnh cache"]
     end
     
-    subgraph "ApiConsumer Layer"
+    subgraph "Lớp ApiConsumer"
         ApiClient["HIS.Desktop.ApiConsumer"]
-        CacheInvalidator["Cache Invalidation<br/>Handler"]
+        CacheInvalidator["Bộ xử lý<br/>hủy hiệu lực Cache"]
     end
     
-    subgraph "Local Storage"
-        BackendData["BackendData Cache<br/>(69 files)"]
-        PubSub["PubSub Manager"]
+    subgraph "Bộ nhớ đặc thù"
+        BackendData["Cache BackendData<br/>(69 files)"]
+        PubSub["Bộ quản lý PubSub"]
     end
     
-    subgraph "Subscribers"
-        Plugins["Plugins with<br/>cached data"]
+    subgraph "Bên đăng ký"
+        Plugins["Các Plugin chứa<br/>dữ liệu cache"]
     end
     
     APIResponse --> ApiClient
     ApiClient --> CacheInvalidator
-    CacheInvalidator -->|"Clear cache"| BackendData
+    CacheInvalidator -->|"Xóa cache"| BackendData
     CacheInvalidator -->|"Publish(DATA_SYNC)"| PubSub
-    PubSub -->|"Notify"| Plugins
-    Plugins -->|"Reload data"| BackendData
+    PubSub -->|"Thông báo"| Plugins
+    Plugins -->|"Tải lại dữ liệu"| BackendData
 ```
 
-### Cache Update Event Flow
+### Luồng sự kiện cập nhật Cache
 
-1. **API Response** indicates data has changed on server
-2. **ApiConsumer** detects cache invalidation directive
-3. **BackendData Cache** clears relevant cached entries
-4. **PubSub Event** published with affected entity types
-5. **Subscribed Plugins** receive notification and reload data
+1. **Phản hồi từ API** cho biết dữ liệu đã thay đổi trên máy chủ.
+2. **ApiConsumer** phát hiện lệnh hủy hiệu lực cache.
+3. **Bộ nhớ đệm BackendData** xóa bỏ các bản ghi liên quan đã lưu.
+4. **Sự kiện PubSub** được phát cho các loại thực thể bị ảnh hưởng.
+5. **Các Plugin đã đăng ký** nhận thông báo và tiến hành tải lại dữ liệu.
 
-**Common Cache Events:**
+**Các sự kiện Cache phổ biến:**
 
-| Event | Triggered When | Affected Cache |
+| Sự kiện | Được kích hoạt khi | Cache bị ảnh hưởng |
 |-------|---------------|----------------|
-| `MEDICINE_TYPE_UPDATED` | Medicine catalog changed | MedicineType cache |
-| `PATIENT_TYPE_UPDATED` | Patient types modified | PatientType cache |
-| `ROOM_UPDATED` | Room configuration changed | Room/Department cache |
-| `SERVICE_UPDATED` | Service catalog changed | Service cache |
-| `EMPLOYEE_UPDATED` | Staff data changed | Employee cache |
+| `MEDICINE_TYPE_UPDATED` | Danh mục thuốc thay đổi | Cache Loại thuốc |
+| `PATIENT_TYPE_UPDATED` | Đối tượng bệnh nhân thay đổi | Cache Loại bệnh nhân |
+| `ROOM_UPDATED` | Cấu hình phòng thay đổi | Cache Phòng/Khoa |
+| `SERVICE_UPDATED` | Danh mục dịch vụ y tế thay đổi | Cache Dịch vụ |
+| `EMPLOYEE_UPDATED` | Dữ liệu nhân viên thay đổi | Cache Nhân viên |
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.BackendData/
 - HIS.Desktop.ApiConsumer/
 - HIS.Desktop.LocalStorage.PubSub/
 
 ---
 
-## Event Debugging and Monitoring
+## Giám sát và Debug sự kiện
 
-### Event Logging
+### Ghi Log sự kiện
 
-Event activity is logged through the standard logging infrastructure:
+Các hoạt động của hệ thống sự kiện được ghi lại thông qua hạ tầng log tiêu chuẩn:
 
-**Log Levels:**
-- **DEBUG:** All event publish/subscribe operations
-- **INFO:** Important business events (treatment updated, patient registered)
-- **WARNING:** Event handler exceptions
-- **ERROR:** Event delivery failures
+**Các mức độ Log:**
+- **DEBUG:** Tất cả các hoạt động phát/đăng ký sự kiện.
+- **INFO:** Các sự kiện nghiệp vụ quan trọng (cập nhật điều trị, đăng ký bệnh nhân).
+- **WARNING:** Các lỗi xảy ra trong hàm xử lý sự kiện.
+- **ERROR:** Các lỗi khi phân phối sự kiện.
 
-**Log Location:** Application log directory, typically `Logs/EventBus/`
+**Vị trí file Log:** Thư mục log ứng dụng, thường là `Logs/EventBus/`.
 
-### Event Tracing Tools
+### Các công cụ theo dõi sự kiện
 
-| Tool | Location | Purpose |
+| Công cụ | Vị trí | Mục đích |
 |------|----------|---------|
-| **Event Monitor Plugin** | HIS.Desktop.Plugins.Deverloper | Live view of events in development |
-| **Event Log Viewer** | HIS.Desktop.Plugins.EventLog | Historical event log browser |
-| **PubSub Statistics** | HIS.Desktop.LocalStorage.PubSub | Subscription count, message rate |
+| **Event Monitor Plugin** | HIS.Desktop.Plugins.Deverloper | Xem trực tiếp các sự kiện trong quá trình phát triển |
+| **Event Log Viewer** | HIS.Desktop.Plugins.EventLog | Trình duyệt xem lịch sử log sự kiện |
+| **PubSub Statistics** | HIS.Desktop.LocalStorage.PubSub | Thống kê số lượng đăng ký, tốc độ tin nhắn |
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.Notify/
 - Common/Inventec.Common/Inventec.Common.Logging/
 - Common/Inventec.Desktop/Inventec.Desktop.Plugins.EventLog/
 
 ---
 
-## Performance Considerations
+## Cân nhắc về hiệu năng
 
-### Event System Performance Characteristics
+### Đặc tính hiệu năng của Hệ thống Sự kiện
 
-| Metric | Value | Notes |
+| Chỉ số | Giá trị | Ghi chú |
 |--------|-------|-------|
-| **Publish latency** | < 1ms | Synchronous publish to queue |
-| **Delivery latency** | < 10ms | Queue to handler callback |
-| **Max throughput** | ~10,000 events/sec | Per application instance |
-| **Memory overhead** | ~100 bytes/subscription | Delegate storage |
-| **Queue depth** | 1000 events | Configurable, prevents memory bloat |
+| **Độ trễ khi phát (Publish)** | < 1ms | Phát đồng bộ vào hàng đợi |
+| **Độ trễ phân phối (Delivery)** | < 10ms | Từ hàng đợi tới hàm callback |
+| **Thông lượng tối đa** | ~10.000 sự kiện/giây | Trên mỗi thực thể ứng dụng |
+| **Chi phí bộ nhớ** | ~100 bytes/đăng ký | Lưu trữ delegate |
+| **Độ sâu hàng đợi** | 1000 sự kiện | Có thể cấu hình, giúp ngăn chặn tràn bộ nhớ |
 
-### Best Practices
+### Các quy tắc thực hiện tốt nhất (Best Practices)
 
-**✓ Do:**
-- Subscribe in plugin initialization, unsubscribe in disposal
-- Keep event handlers lightweight and fast
-- Marshal to UI thread when updating controls
-- Use specific event topics rather than broadcasting
-- Publish events asynchronously when performance critical
+**Nên thực hiện (✓):**
+- Đăng ký sự kiện khi khởi tạo plugin và hủy đăng ký khi giải phóng.
+- Giữ cho các hàm xử lý sự kiện nhẹ nhàng và nhanh chóng.
+- Chuyển sang UI thread khi cần cập nhật các control giao diện.
+- Sử dụng các topic sự kiện cụ thể thay vì phát tán rộng rãi.
+- Sử dụng phát sự kiện bất đồng bộ cho các kịch bản ưu tiên hiệu năng.
 
-**✗ Don't:**
-- Block event handlers with long-running operations
-- Publish events from UI thread if avoidable
-- Subscribe to events you don't need
-- Hold references to event data longer than necessary
-- Use events for request-response patterns (use DelegateRegister instead)
+**Không nên thực hiện (✗):**
+- Chặn các hàm xử lý sự kiện bằng các hoạt động chạy lâu.
+- Phát sự kiện từ UI thread nếu có thể tránh được.
+- Đăng ký nhận các sự kiện mà bạn không thực sự cần.
+- Giữ tham chiếu tới dữ liệu sự kiện lâu hơn mức cần thiết.
+- Sử dụng sự kiện cho các mô hình yêu cầu-phản hồi (nên dùng DelegateRegister).
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS.Desktop.LocalStorage.PubSub/
 - HIS.Desktop.Utility/
 
 ---
 
-## Common Event Patterns by Module
+## Các mô hình sự kiện chung theo Module
 
-### Plugin Categories and Their Event Usage
+### Các loại Plugin và cách sử dụng sự kiện
 
 ```mermaid
 graph TB
-    subgraph "Core Events"
+    subgraph "Sự kiện Cốt lõi (Core Events)"
         CE["PATIENT_*<br/>TREATMENT_*<br/>SERVICE_*"]
     end
     
-    subgraph "Transaction Plugins"
-        Trans["Transaction/Billing"]
+    subgraph "Các Plugin Giao dịch"
+        Trans["Giao dịch/Thanh toán"]
     end
     
-    subgraph "Medicine Plugins"
-        Med["Medicine/Material<br/>Pharmacy"]
+    subgraph "Các Plugin Dược"
+        Med["Thuốc/Vật tư<br/>Nhà thuốc"]
     end
     
-    subgraph "Clinical Plugins"
-        Clin["Exam/Prescription<br/>Laboratory"]
+    subgraph "Các Plugin Lâm sàng"
+        Clin["Khám bệnh/Đơn thuốc<br/>Xét nghiệm"]
     end
     
-    subgraph "System Plugins"
-        Sys["Config/Admin<br/>Access Control"]
+    subgraph "Các Plugin Hệ thống"
+        Sys["Cấu hình/Quản trị<br/>Phân quyền"]
     end
     
-    Trans -->|"Subscribe"| CE
+    Trans -->|"Đăng ký"| CE
     Trans -->|"Publish TRANSACTION_*"| CE
     
-    Med -->|"Subscribe"| CE
+    Med -->|"Đăng ký"| CE
     Med -->|"Publish STOCK_*"| CE
     
-    Clin -->|"Subscribe"| CE
+    Clin -->|"Đăng ký"| CE
     Clin -->|"Publish EXAM_*<br/>PRESCRIPTION_*"| CE
     
-    Sys -->|"Subscribe"| CE
+    Sys -->|"Đăng ký"| CE
     Sys -->|"Publish CONFIG_*<br/>USER_*"| CE
 ```
 
-### Event Pattern Examples by Business Flow
+### Ví dụ về mô hình sự kiện theo Luồng nghiệp vụ
 
-| Business Flow | Events Published | Events Consumed |
+| Luồng nghiệp vụ | Sự kiện được Phát | Sự kiện được Nhận |
 |--------------|------------------|-----------------|
-| **Patient Registration** | `PATIENT_REGISTERED`, `APPOINTMENT_CREATED` | `PATIENT_TYPE_UPDATED`, `ROOM_UPDATED` |
-| **Examination** | `EXAM_STARTED`, `EXAM_COMPLETED`, `PRESCRIPTION_CREATED` | `PATIENT_REGISTERED`, `SERVICE_EXECUTED` |
-| **Dispensing** | `MEDICINE_DISPENSED`, `STOCK_CHANGED` | `PRESCRIPTION_CREATED`, `PAYMENT_COMPLETED` |
-| **Payment** | `TRANSACTION_COMPLETED`, `INVOICE_CREATED` | `SERVICE_EXECUTED`, `PRESCRIPTION_CREATED` |
-| **Report Generation** | `REPORT_GENERATED` | `TREATMENT_UPDATED`, `TRANSACTION_COMPLETED` |
+| **Đăng ký bệnh nhân** | `PATIENT_REGISTERED`, `APPOINTMENT_CREATED` | `PATIENT_TYPE_UPDATED`, `ROOM_UPDATED` |
+| **Khám bệnh** | `EXAM_STARTED`, `EXAM_COMPLETED`, `PRESCRIPTION_CREATED` | `PATIENT_REGISTERED`, `SERVICE_EXECUTED` |
+| **Phát thuốc** | `MEDICINE_DISPENSED`, `STOCK_CHANGED` | `PRESCRIPTION_CREATED`, `PAYMENT_COMPLETED` |
+| **Thanh toán** | `TRANSACTION_COMPLETED`, `INVOICE_CREATED` | `SERVICE_EXECUTED`, `PRESCRIPTION_CREATED` |
+| **Tạo báo cáo** | `REPORT_GENERATED` | `TREATMENT_UPDATED`, `TRANSACTION_COMPLETED` |
 
-**Sources:**
+**Nguồn tham khảo:**
 - HIS/Plugins/HIS.Desktop.Plugins.*/
 - HIS.Desktop.LocalStorage.PubSub/
 
 ---
 
-## Summary
+## Tổng kết
 
-The HIS Desktop notification and event system provides:
+Hệ thống thông báo và sự kiện của HIS Desktop mang lại:
 
-1. **Loose Coupling:** Plugins communicate without direct dependencies via PubSub pattern
-2. **Real-Time Sync:** WebSocket integration keeps multiple clients synchronized  
-3. **User Notifications:** Consistent UI notification framework across all plugins
-4. **Cache Coordination:** Events drive cache invalidation and data refresh
-5. **Extensibility:** New plugins easily integrate by subscribing to existing events
+1. **Giảm thiểu phụ thuộc (Loose Coupling):** Các plugin giao tiếp thông qua mô hình PubSub mà không cần tham chiếu trực tiếp.
+2. **Đồng bộ thời gian thực:** Tích hợp WebSocket giúp đồng bộ hóa dữ liệu giữa nhiều client khác nhau.
+3. **Thông báo người dùng:** Giải pháp thông báo giao diện nhất quán cho tất cả các plugin.
+4. **Phối hợp Cache:** Các sự kiện đóng vai trò điều hướng việc hủy cache và nạp lại dữ liệu.
+5. **Khả năng mở rộng:** Các plugin mới dễ dàng tích hợp bằng cách đăng ký các sự kiện có sẵn.
 
-The system handles thousands of events per second while maintaining responsiveness and ensuring plugins remain decoupled from each other's implementation details.
+Hệ thống có khả năng xử lý hàng ngàn sự kiện mỗi giây trong khi vẫn duy trì sự phản hồi nhanh của giao diện và đảm bảo tính độc lập giữa các thành phần.
 
-**Key Components:**
-- [HIS.Desktop.LocalStorage.PubSub/]() - Core event bus (9 files)
-- [HIS.Desktop.Notify/]() - Notification UI system (25 files)  
-- [Common/Inventec.Common/Inventec.Common.WSPubSub/]() - WebSocket pub/sub
-- [HIS.Desktop.LocalStorage.BackendData/]() - Cache coordination (69 files)
+**Các thành phần chính:**
+- [HIS.Desktop.LocalStorage.PubSub/]() - Bộ điều phối sự kiện cốt lõi (9 files).
+- [HIS.Desktop.Notify/]() - Hệ thống thông báo giao diện (25 files).
+- [Common/Inventec.Common/Inventec.Common.WSPubSub/]() - WebSocket pub/sub.
+- [HIS.Desktop.LocalStorage.BackendData/]() - Điều phối Cache (69 files).
 
-# MPS Print System
+# Hệ thống In ấn MPS
 
+## Mục tiêu và Phạm vi
 
+MPS (Medical Print System - Hệ thống In ấn Y tế) là một phân hệ chuyên biệt chịu trách nhiệm tạo, định dạng và kết xuất các tài liệu y tế trong hệ thống thông tin bệnh viện HisNguonMo. MPS cung cấp một kiến trúc dựa trên mẫu (template) với hơn 790 bộ xử lý in (print processors) đảm nhiệm các biểu mẫu y tế đa dạng bao gồm đơn thuốc, phiếu kết quả xét nghiệm, hóa đơn, phiếu chuyển viện, giấy chứng nhận y tế và các tài liệu hành chính. Hệ thống tích hợp với FlexCell để tạo file Excel/PDF và BarTender để in mã vạch.
 
+Tài liệu này trình bày về kiến trúc module MPS, mô hình bộ xử lý (processor pattern), quản lý mẫu (template management) và quy trình in ấn. Để biết thông tin về cách các plugin HIS kích hoạt các hoạt động in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md). Để xem hướng dẫn phát triển về việc tạo các bộ xử lý in mới, xem [Phát triển Bộ xử lý In ấn](#1.2.1).
 
-## Purpose and Scope
+**Nguồn tham khảo:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
 
-The MPS (Medical Print System) is a specialized subsystem responsible for generating, formatting, and outputting medical documents in the HisNguonMo hospital information system. MPS provides a template-based architecture with 790+ print processors that handle diverse medical forms including prescriptions, laboratory reports, invoices, transfer forms, medical certificates, and administrative documents. The system integrates with FlexCell for Excel/PDF generation and BarTender for barcode printing.
+## Tổng quan Kiến trúc Hệ thống
 
-This document covers the MPS module architecture, processor pattern, template management, and print workflow. For information about how HIS plugins invoke print operations, see [Plugin System Architecture](../01-architecture/plugin-system.md). For the development guide on creating new print processors, see [Print Processor Development](#1.2.1).
-
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
-
-## System Architecture Overview
-
-The MPS module operates as a semi-independent subsystem invoked by HIS plugins when document generation is required. The architecture consists of three primary layers: the core engine, processor layer, and export layer.
+Module MPS hoạt động như một phân hệ bán độc lập được các plugin HIS gọi khi cần tạo tài liệu. Kiến trúc bao gồm ba lớp chính: lớp nhân cốt lõi (core engine), lớp bộ xử lý (processor layer) và lớp kết xuất (export layer).
 
 ```mermaid
 graph TB
-    subgraph "HIS Desktop Application"
-        Plugins["HIS Plugins<br/>(956 plugins)"]
+    subgraph "Ứng dụng HIS Desktop"
+        Plugins["Plugin HIS<br/>(956 plugin)"]
     end
     
-    subgraph "MPS Core Layer"
+    subgraph "Lớp Cốt lõi MPS (MPS Core Layer)"
         MPSCore["MPS Core Engine<br/>MPS/ (594 files)"]
-        ProcessorBase["MPS.ProcessorBase<br/>(30 files)<br/>Abstract Base Classes"]
+        ProcessorBase["MPS.ProcessorBase<br/>(30 files)<br/>Các Class cơ sở trừu tượng"]
     end
     
-    subgraph "Processor Layer"
-        Processors["MPS.Processor.Mps000xxx<br/>(790+ processors)<br/>Logic Components"]
-        PDOs["MPS.Processor.Mps000xxx.PDO<br/>Print Data Objects"]
+    subgraph "Lớp Bộ xử lý (Processor Layer)"
+        Processors["MPS.Processor.Mps000xxx<br/>(790+ bộ xử lý)<br/>Thành phần Logic"]
+        PDOs["MPS.Processor.Mps000xxx.PDO<br/>Đối tượng Dữ liệu In"]
     end
     
-    subgraph "Export Layer"
-        FlexCell["FlexCell 5.7.6.0<br/>Excel/PDF Generator"]
-        BarTender["BarTender 10.1.0<br/>Barcode Printer"]
+    subgraph "Lớp Kết xuất (Export Layer)"
+        FlexCell["FlexCell 5.7.6.0<br/>Bộ tạo Excel/PDF"]
+        BarTender["BarTender 10.1.0<br/>Máy in mã vạch"]
     end
     
-    Plugins -->|"Print Request"| MPSCore
-    MPSCore -->|"Routes to"| ProcessorBase
-    ProcessorBase -->|"Inherited by"| Processors
-    Processors -->|"Uses"| PDOs
-    Processors -->|"Exports via"| FlexCell
-    MPSCore -->|"Barcode via"| BarTender
+    Plugins -->|"Yêu cầu In"| MPSCore
+    MPSCore -->|"Điều hướng tới"| ProcessorBase
+    ProcessorBase -->|"Được kế thừa bởi"| Processors
+    Processors -->|"Sử dụng"| PDOs
+    Processors -->|"Kết xuất qua"| FlexCell
+    MPSCore -->|"Mã vạch qua"| BarTender
 ```
 
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), MPS/ (directory structure)
+**Nguồn tham khảo:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), Cấu trúc thư mục MPS/
 
-## Core Components
+## Các Thành phần cốt lõi
 
 ### MPS.ProcessorBase
 
-The `MPS.ProcessorBase` directory contains 30 files that define abstract base classes and interfaces for all print processors. These base classes implement common functionality including template loading, data binding, and export orchestration.
+Thư mục `MPS.ProcessorBase` chứa 30 file định nghĩa các lớp cơ sở trừu tượng (abstract base classes) và các interface cho tất cả các bộ xử lý in. Các lớp cơ sở này triển khai các chức năng chung bao gồm nạp mẫu, liên kết dữ liệu và điều phối kết xuất.
 
-| Component Type | Purpose |
+| Loại thành phần | Mục đích |
 |----------------|---------|
-| Abstract Processor Classes | Define lifecycle methods: Initialize(), Load(), Export() |
-| Template Manager | Handle .xml and .xls template file loading |
-| Data Binding Engine | Map PDO properties to template placeholders |
-| Export Coordinator | Interface with FlexCell and BarTender |
-| Validation Framework | Validate PDO data before rendering |
+| Các Class Processor trừu tượng | Định nghĩa các phương thức vòng đời: Initialize(), Load(), Export() |
+| Bộ quản lý Mẫu (Template Manager) | Xử lý việc nạp các file mẫu .xml và .xls |
+| Công cụ Liên kết dữ liệu (Data Binding Engine) | Ánh xạ các thuộc tính PDO vào các vị trí chờ (placeholders) trong mẫu |
+| Điều phối Kết xuất (Export Coordinator) | Giao tiếp với FlexCell và BarTender |
+| Khung Kiểm tra (Validation Framework) | Kiểm tra dữ liệu PDO trước khi dựng (rendering) |
 
-**Key Base Classes Pattern:**
-- Processors inherit from base classes in `MPS.ProcessorBase/`
-- Implement template-specific rendering logic
-- Override virtual methods for custom behavior
-- Utilize shared utility methods for common operations
+**Mô hình các Class cơ sở chính:**
+- Các bộ xử lý kế thừa từ các lớp cơ sở trong `MPS.ProcessorBase/`
+- Triển khai logic kết xuất dành riêng cho mẫu
+- Ghi đè các phương thức ảo cho hành vi tùy chỉnh
+- Sử dụng các phương thức tiện ích dùng chung cho các hoạt động phổ biến
 
-**Sources:** MPS.ProcessorBase/ (30 files), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+**Nguồn tham khảo:** MPS.ProcessorBase/ (30 files), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
 
-### MPS.Processor Structure
+### Cấu trúc MPS.Processor
 
-The processor layer follows a strict naming and organizational convention. Each processor is identified by a unique numeric ID (Mps000xxx) and consists of two parallel folder structures:
+Lớp bộ xử lý tuân thủ quy ước đặt tên và tổ chức nghiêm ngặt. Mỗi bộ xử lý được xác định bằng một ID số duy nhất (Mps000xxx) và bao gồm hai cấu trúc thư mục song song:
 
 ```mermaid
 graph LR
-    subgraph "Single Processor Unit"
-        Logic["Mps000xxx/<br/>Logic Folder<br/>(4-19 files)"]
-        PDO["Mps000xxx.PDO/<br/>Data Objects<br/>(3-10 files)"]
+    subgraph "Đơn vị Bộ xử lý Đơn lẻ"
+        Logic["Mps000xxx/<br/>Thư mục Logic<br/>(4-19 files)"]
+        PDO["Mps000xxx.PDO/<br/>Đối tượng Dữ liệu<br/>(3-10 files)"]
     end
     
-    Logic -->|"Consumes"| PDO
+    Logic -->|"Tiêu thụ"| PDO
     
-    subgraph "Logic Files"
-        Processor["Mps000xxxProcessor.cs<br/>Main Logic"]
-        Behavior["Mps000xxxBehavior.cs<br/>Template Behavior"]
-        ExtensionMethod["Extension Methods"]
+    subgraph "Các File Logic"
+        Processor["Mps000xxxProcessor.cs<br/>Logic Chính"]
+        Behavior["Mps000xxxBehavior.cs<br/>Hành vi Mẫu"]
+        ExtensionMethod["Phương thức mở rộng"]
     end
     
-    subgraph "PDO Files"
-        MainPDO["Mps000xxxPDO.cs<br/>Main Data Object"]
-        AdditionalPDO["Additional PDOs<br/>for complex data"]
+    subgraph "Các File PDO"
+        MainPDO["Mps000xxxPDO.cs<br/>Đối tượng Dữ liệu Chính"]
+        AdditionalPDO["Các PDO bổ sung<br/>cho dữ liệu phức tạp"]
     end
     
-    Logic -.->|"Contains"| Processor
-    Logic -.->|"Contains"| Behavior
-    Logic -.->|"Contains"| ExtensionMethod
+    Logic -.->|"Chứa"| Processor
+    Logic -.->|"Chứa"| Behavior
+    Logic -.->|"Chứa"| ExtensionMethod
     
-    PDO -.->|"Contains"| MainPDO
-    PDO -.->|"Contains"| AdditionalPDO
+    PDO -.->|"Chứa"| MainPDO
+    PDO -.->|"Chứa"| AdditionalPDO
 ```
 
-**Processor Folder Contents:**
+**Nội dung Thư mục Bộ xử lý:**
 
-**Logic Folder (Mps000xxx/):**
-- [[`Mps000xxxProcessor.cs`](../../Mps000xxxProcessor.cs)](../../Mps000xxxProcessor.cs) - Main processor implementation
-- [[`Mps000xxxBehavior.cs`](../../Mps000xxxBehavior.cs)](../../Mps000xxxBehavior.cs) - Template-specific rendering behavior
-- Helper classes for data transformation
-- Resource files (.resx) for localization
-- Designer files (.Designer.cs) for UI components
+**Thư mục Logic (Mps000xxx/):**
+- [[`Mps000xxxProcessor.cs`](../../Mps000xxxProcessor.cs)](../../Mps000xxxProcessor.cs) - Triển khai bộ xử lý chính
+- [[`Mps000xxxBehavior.cs`](../../Mps000xxxBehavior.cs)](../../Mps000xxxBehavior.cs) - Hành vi kết xuất dành riêng cho mẫu
+- Các lớp trợ giúp để chuyển đổi dữ liệu
+- Các file tài nguyên (.resx) cho bản địa hóa
+- Các file Designer (.Designer.cs) cho các thành phần UI
 
-**PDO Folder (Mps000xxx.PDO/):**
-- [[`Mps000xxxPDO.cs`](../../Mps000xxxPDO.cs)](../../Mps000xxxPDO.cs) - Primary data transfer object
-- Additional data classes for nested structures
-- DTO mappings for backend entities
+**Thư mục PDO (Mps000xxx.PDO/):**
+- [[`Mps000xxxPDO.cs`](../../Mps000xxxPDO.cs)](../../Mps000xxxPDO.cs) - Đối tượng truyền dữ liệu chính
+- Các lớp dữ liệu bổ sung cho cấu trúc lồng nhau
+- Ánh xạ DTO cho các thực thể backend
 
-**Sources:** MPS.Processor/ (790+ folders), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+**Nguồn tham khảo:** MPS.Processor/ (hơn 790 thư mục), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
 
-### Print Data Objects (PDO)
+### Đối tượng Dữ liệu In (PDO)
 
-PDOs serve as strongly-typed containers that encapsulate all data required for document generation. They act as an abstraction layer between backend data models and template placeholders.
+PDO đóng vai trò là các container được định kiểu mạnh mẽ, gói gọn tất cả dữ liệu cần thiết để tạo tài liệu. Chúng hoạt động như một lớp trừu tượng giữa các mô hình dữ liệu backend và các vị trí chờ trong mẫu.
 
-**PDO Design Pattern:**
+**Mô hình Thiết kế PDO:**
 
 ```mermaid
 graph TB
-    subgraph "Data Flow"
-        Backend["Backend API Data<br/>(Treatment, Patient, etc)"]
-        Plugin["HIS Plugin"]
-        PDO["Mps000xxxPDO<br/>Print Data Object"]
+    subgraph "Luồng Dữ liệu"
+        Backend["Dữ liệu API Backend<br/>(Điều trị, Bệnh nhân, v.v.)"]
+        Plugin["Plugin HIS"]
+        PDO["Mps000xxxPDO<br/>Đối tượng Dữ liệu In"]
         Processor["Mps000xxxProcessor"]
-        Template["Document Template"]
+        Template["Mẫu Tài liệu"]
     end
     
-    Backend -->|"API Response"| Plugin
-    Plugin -->|"Constructs"| PDO
-    PDO -->|"Passed to"| Processor
-    Processor -->|"Binds to"| Template
+    Backend -->|"Phản hồi API"| Plugin
+    Plugin -->|"Tạo và điền"| PDO
+    PDO -->|"Truyền tới"| Processor
+    Processor -->|"Liên kết với"| Template
 ```
 
-**Common PDO Properties Pattern:**
-- Patient information (PatientCode, PatientName, DOB, Gender)
-- Treatment data (TreatmentCode, InTime, OutTime, Department)
-- Medical data (Diagnosis, Prescriptions, Lab Results)
-- Administrative data (Doctor, Room, Invoice Details)
-- Custom fields specific to document type
+**Mô hình Thuộc tính PDO phổ biến:**
+- Thông tin bệnh nhân (Mã bệnh nhân, Tên bệnh nhân, Ngày sinh, Giới tính)
+- Dữ liệu điều trị (Mã điều trị, Thời gian vào, Thời gian ra, Khoa)
+- Dữ liệu y tế (Chẩn đoán, Đơn thuốc, Kết quả xét nghiệm)
+- Dữ liệu hành chính (Bác sĩ, Phòng, Chi tiết hóa đơn)
+- Các trường tùy chỉnh dành riêng cho loại tài liệu
 
-**Sources:** MPS.Processor/Mps000xxx.PDO/ (multiple folders), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+**Nguồn tham khảo:** MPS.Processor/Mps000xxx.PDO/ (nhiều thư mục), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
 
-## Print Processor Architecture
+## Kiến trúc Bộ xử lý In ấn
 
-### Processor Numbering Scheme
+### Sơ đồ Đánh số Bộ xử lý
 
-The 790+ processors are organized using a sequential numbering system (Mps000001 through Mps000600+), with ranges allocated to different document categories:
+Hơn 790 bộ xử lý được tổ chức bằng một hệ thống đánh số tuần tự (Mps000001 đến Mps000600+), với các phạm vi được phân bổ cho các danh mục tài liệu khác nhau:
 
-| Processor Range | Document Category | Examples |
+| Phạm vi Bộ xử lý | Danh mục Tài liệu | Ví dụ |
 |----------------|-------------------|----------|
-| Mps000001-000050 | Prescriptions | Outpatient prescription, inpatient prescription |
-| Mps000051-000100 | Laboratory Reports | Blood test, urine test, microbiology |
-| Mps000101-000150 | Invoices | Payment receipt, deposit receipt |
-| Mps000151-000200 | Transfer Forms | Hospital transfer, department transfer |
-| Mps000201-000250 | Medical Certificates | Sick leave, fitness certificate |
-| Mps000251-000300 | Administrative | Appointment card, patient card |
-| Mps000301-000600 | Specialized Forms | Surgery records, imaging reports, treatment summaries |
+| Mps000001-000050 | Đơn thuốc | Đơn thuốc ngoại trú, đơn thuốc nội trú |
+| Mps000051-000100 | Phiếu kết quả xét nghiệm | Xét nghiệm máu, xét nghiệm nước tiểu, vi sinh |
+| Mps000101-000150 | Hóa đơn | Biên lai thanh toán, biên lai tạm ứng |
+| Mps000151-000200 | Phiếu chuyển viện | Chuyển viện, chuyển khoa |
+| Mps000201-000250 | Giấy chứng nhận y tế | Giấy nghỉ ốm, giấy chứng nhận sức khỏe |
+| Mps000251-000300 | Hành chính | Thẻ hẹn, thẻ bệnh nhân |
+| Mps000301-000600 | Các biểu mẫu chuyên biệt | Hồ sơ phẫu thuật, báo cáo hình ảnh, tóm tắt điều trị |
 
-**Large Processors (by file count):**
-- Mps000304: 19 files - Complex treatment summary
-- Mps000321: 17 files - Detailed prescription form
-- Mps000463: 15 files - Comprehensive lab report
+**Các Bộ xử lý lớn (theo số lượng file):**
+- Mps000304: 19 file - Tóm tắt điều trị phức tạp
+- Mps000321: 17 file - Biểu mẫu đơn thuốc chi tiết
+- Mps000463: 15 file - Phiếu kết quả xét nghiệm toàn diện
 
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), MPS.Processor/ (directory structure)
+**Nguồn tham khảo:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), MPS.Processor/ (cấu trúc thư mục)
 
-### Processor Lifecycle
+### Vòng đời Bộ xử lý
 
 ```mermaid
 sequenceDiagram
@@ -850,273 +847,155 @@ sequenceDiagram
     participant PDO as "Mps000xxxPDO"
     participant FlexCell as "FlexCell Engine"
     
-    Plugin->>PDO: Create and populate PDO
-    Plugin->>MPSCore: Request print (processId, PDO)
-    MPSCore->>Processor: Instantiate processor
-    Processor->>ProcessorBase: Call Initialize()
-    ProcessorBase->>Processor: Load template
-    Processor->>PDO: Read data
-    Processor->>Processor: Transform and validate
-    Processor->>FlexCell: Generate document
-    FlexCell->>MPSCore: Return file path
-    MPSCore->>Plugin: Return result
+    Plugin->>PDO: Tạo và điền PDO
+    Plugin->>MPSCore: Yêu cầu in (processId, PDO)
+    MPSCore->>Processor: Khởi tạo bộ xử lý
+    Processor->>ProcessorBase: Gọi Initialize()
+    ProcessorBase->>Processor: Nạp mẫu
+    Processor->>PDO: Đọc dữ liệu
+    Processor->>Processor: Chuyển đổi và kiểm tra
+    Processor->>FlexCell: Tạo tài liệu
+    FlexCell->>MPSCore: Trả về đường dẫn file
+    MPSCore->>Plugin: Trả về kết quả
+```
+**Các thuộc tính PDO phổ biến:**
+- Thông tin hành chính bệnh nhân (Tên, Mã, Tuổi, v.v.).
+- Chi tiết phiên điều trị (Khoa, Phòng, Bác sĩ, v.v.).
+- Các mục dịch vụ/thuốc.
+- Thông tin bệnh viện và biểu trưng (logo).
+- Mã vạch và mã định danh tài liệu.
+
+**Nguồn tham khảo:** MPS.Processor/ (thư mục PDO)
+
+## Quy trình In ấn
+
+Hệ thống MPS hỗ trợ một quy trình in ấn linh hoạt từ việc nạp dữ liệu đến đầu ra vật lý:
+
+1. **Chuẩn bị dữ liệu:** Plugin thu thập dữ liệu từ API và nạp vào thực thể PDO tương ứng.
+2. **Khởi tạo Bộ xử lý:** Hệ thống khởi tạo bộ xử lý Mps000xxx thích hợp với dữ liệu PDO.
+3. **Nạp Mẫu:** Bộ xử lý nạp file mẫu (thường là Excel) từ kho tài nguyên hoặc bộ nhớ đệm.
+4. **Liên kết dữ liệu:** Logic bộ xử lý ánh xạ dữ liệu PDO vào các ô hoặc trường trong mẫu.
+5. **Định dạng & Logic:** Thực hiện các hành vi tùy chỉnh (như ẩn/hiện các dòng, tính tổng, đổi màu nền).
+6. **Kết xuất:** Tài liệu được tạo ra dưới dạng Excel hoặc PDF qua FlexCell.
+7. **In ấn:** Tài liệu đã dựng được gửi đến hàng đợi in của Windows hoặc máy in mã vạch.
+
+---
+
+## Tích hợp FlexCell & BarTender
+
+### Công cụ FlexCell
+- Được sử dụng cho 95% các biểu mẫu y tế.
+- Hỗ trợ định dạng Excel phức tạp.
+- Xuất PDF chất lượng cao cho các tài liệu chính thức.
+- Tích hợp xem trước (preview) trong ứng dụng HIS Desktop.
+
+### In ấn BarTender
+- Được sử dụng cho nhãn thuốc, vòng đeo tay bệnh nhân và mã vạch xét nghiệm.
+- Dữ liệu PDO được truyền vào công cụ in BarTender.
+- Đầu ra trực tiếp đến các máy in nhãn chuyên dụng.
+
+**Nguồn tham khảo:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+
+## Các danh mục Bộ xử lý phổ biến
+
+### Bộ xử lý Đơn thuốc
+
+Các bộ xử lý liên quan đến đơn thuốc xử lý nhiều loại phiếu chỉ định thuốc:
+
+**Các bộ xử lý ví dụ:**
+- **Mps000001**: Đơn thuốc ngoại trú - biểu mẫu chỉ định thuốc chuẩn.
+- **Mps000002**: Đơn thuốc nội trú - danh sách thuốc tại khoa.
+- **Mps000003**: Đơn thuốc gây nghiện/hướng tâm thần - các yêu cầu đặc biệt.
+- **Mps000044**: Đơn thuốc kèm hướng dẫn sử dụng chi tiết.
+- **Mps000045**: Tóm tắt đơn thuốc khi ra viện.
+
+**Các thành phần PDO chung:**
+- Thông tin hành chính bệnh nhân.
+- Danh sách thuốc kèm liều lượng.
+- Hướng dẫn sử dụng.
+- Thông tin người kê đơn và chữ ký.
+- Chi tiết cấp phát tại nhà thuốc.
+
+### Bộ xử lý Kết quả Xét nghiệm
+
+Các bộ xử lý xét nghiệm tạo ra các tài liệu kết quả kiểm tra khác nhau:
+
+**Các bộ xử lý ví dụ:**
+- **Mps000050**: Phiếu kết quả xét nghiệm chung.
+- **Mps000051**: Bảng kết quả hóa sinh máu.
+- **Mps000052**: Kết quả nuôi cấy vi sinh.
+- **Mps000053**: Phiếu kết quả giải phẫu bệnh.
+- **Mps000054**: Phiếu kết quả chẩn đoán hình ảnh.
+
+**Các thành phần PDO chung:**
+- Chi tiết yêu cầu xét nghiệm.
+- Giá trị kết quả cùng khoảng tham chiếu.
+- Các chỉ số cảnh báo giá trị bất thường.
+- Thông tin kỹ thuật viên và bác sĩ đọc kết quả.
+- Dữ liệu kiểm chuẩn chất lượng (QC).
+
+### Bộ xử lý Hóa đơn & Thanh toán
+
+Các bộ xử lý tài liệu tài chính cho các giao dịch:
+
+**Các bộ xử lý ví dụ:**
+- **Mps000100**: Biên lai thu tiền.
+- **Mps000101**: Hóa đơn kèm chi tiết các khoản thu.
+- **Mps000102**: Phiếu thu tạm ứng.
+- **Mps000103**: Phiếu hoàn tạm ứng.
+- **Mps000104**: Biểu mẫu yêu cầu thanh toán bảo hiểm.
+
+**Các thành phần PDO chung:**
+- Thông tin thanh toán của bệnh nhân.
+- Chi tiết dịch vụ/mục thanh toán kèm chi phí.
+- Hình thức thanh toán và số tiền.
+- Chi tiết về mức hưởng bảo hiểm.
+- Số dư và các khoản nợ còn lại.
+
+### Bộ xử lý Chuyển viện & Hội chẩn
+
+Tài liệu chuyển viện và giới thiệu bệnh nhân:
+
+**Các bộ xử lý ví dụ:**
+- **Mps000150**: Giấy chuyển tuyến/chuyển viện.
+- **Mps000151**: Phiếu chuyển khoa.
+- **Mps000152**: Giấy giới thiệu chuyên gia bên ngoài.
+- **Mps000153**: Hồ sơ chuyển viện cấp cứu.
+
+**Các thành phần PDO chung:**
+- Lý do chuyển viện và chẩn đoán.
+- Tóm tắt tình trạng bệnh nhân.
+- Các phương pháp điều trị đã thực hiện.
+- Thông tin đơn vị/khoa tiếp nhận.
+- Chi tiết nhân viên hộ tống.
+
+**Nguồn tham khảo:** MPS.Processor/ (hơn 790 thư mục bộ xử lý), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+
+## Mô hình phát triển Bộ xử lý
+
+### Cấu trúc Bộ xử lý Chuẩn
+
+Mỗi bộ xử lý tuân theo một mô hình triển khai thống nhất kế thừa từ `MPS.ProcessorBase`:
+
+**Cấu trúc file điển hình:**
+
+**Mps000xxx/ (Thư mục Logic):**
+```
+Mps000xxxProcessor.cs          // Class bộ xử lý chính
+Mps000xxxBehavior.cs           // Logic hành vi của mẫu
+Mps000xxxExtension.cs          // Các phương thức mở rộng (tùy chọn)
+Mps000xxx.Designer.cs          // Các file UI designer (nếu có)
+Resources.resx                  // Tài nguyên đa ngôn ngữ
 ```
 
-**Lifecycle Stages:**
-
-1. **Initialization**: Processor instantiation and template loading
-2. **Data Binding**: PDO properties mapped to template placeholders
-3. **Transformation**: Data formatting and calculation
-4. **Validation**: Data completeness and integrity checks
-5. **Generation**: FlexCell renders the document
-6. **Post-processing**: Barcode generation, digital signatures
-7. **Output**: File save or direct print
-
-**Sources:** MPS.ProcessorBase/ (30 files), MPS/ (594 files)
-
-## Template Management
-
-### Template Types and Storage
-
-MPS utilizes two primary template formats:
-
-**Excel Templates (.xls, .xlsx):**
-- Stored in template directories
-- Contain placeholder syntax: `{PROPERTY_NAME}`
-- Support complex formatting, formulas, and charts
-- Used by FlexCell for rendering
-
-**XML Configuration (.xml):**
-- Define template metadata and structure
-- Specify data source mappings
-- Configure print settings (page size, margins, orientation)
-
-**Template Resolution Flow:**
-
-```mermaid
-graph TD
-    PrintRequest["Print Request<br/>(ProcessorId + PDO)"]
-    CoreEngine["MPS Core Engine"]
-    TemplateResolver["Template Resolver"]
-    TemplateCache["Template Cache"]
-    FileSystem["File System<br/>Template Directory"]
-    Processor["Processor Instance"]
-    
-    PrintRequest --> CoreEngine
-    CoreEngine --> TemplateResolver
-    TemplateResolver --> TemplateCache
-    TemplateCache -->|"Cache Miss"| FileSystem
-    FileSystem -->|"Load Template"| TemplateCache
-    TemplateCache -->|"Return Template"| TemplateResolver
-    TemplateResolver --> Processor
+**Mps000xxx.PDO/ (Thư mục Đối tượng Dữ liệu):**
+```
+Mps000xxxPDO.cs                // Class PDO chính
+Mps000xxxADO.cs                // Các đối tượng dữ liệu bổ sung (tùy chọn)
+PatientDataPDO.cs              // Cấu trúc dữ liệu lồng nhau (tùy chọn)
 ```
 
-**Template Naming Convention:**
-- Primary template: `Mps000xxx.xls`
-- Alternate templates: `Mps000xxx_Alt1.xls`, `Mps000xxx_Alt2.xls`
-- Configuration: [[`Mps000xxx.xml`](../../Mps000xxx.xml)](../../Mps000xxx.xml)
-
-**Sources:** MPS/ (594 files core system)
-
-## Print Workflow
-
-### End-to-End Print Flow
-
-The complete print workflow involves coordination between HIS plugins, MPS core, processors, and external libraries:
-
-```mermaid
-graph TB
-    subgraph "Request Initiation"
-        UserAction["User Action<br/>(Print Button Click)"]
-        Plugin["HIS Plugin<br/>(e.g., AssignPrescriptionPK)"]
-    end
-    
-    subgraph "Data Preparation"
-        APICall["Backend API Call"]
-        DataMapping["Map to PDO Structure"]
-        PDOInstance["Mps000xxxPDO Instance"]
-    end
-    
-    subgraph "MPS Processing"
-        MPSCore["MPS Core Engine<br/>MPS/ (594 files)"]
-        ProcessorSelection["Select Processor<br/>Based on ProcessorId"]
-        ProcessorExec["Mps000xxxProcessor<br/>Execute()"]
-        TemplateLoad["Load Template"]
-        DataBind["Bind PDO to Template"]
-    end
-    
-    subgraph "Document Generation"
-        FlexCellRender["FlexCell Rendering"]
-        BarcodeGen["BarTender Barcode<br/>(if needed)"]
-        DocumentOutput["Output Document<br/>(PDF/Excel/Print)"]
-    end
-    
-    UserAction --> Plugin
-    Plugin --> APICall
-    APICall --> DataMapping
-    DataMapping --> PDOInstance
-    PDOInstance --> MPSCore
-    MPSCore --> ProcessorSelection
-    ProcessorSelection --> ProcessorExec
-    ProcessorExec --> TemplateLoad
-    TemplateLoad --> DataBind
-    DataBind --> FlexCellRender
-    FlexCellRender --> BarcodeGen
-    BarcodeGen --> DocumentOutput
-```
-
-**Invocation Pattern from HIS Plugins:**
-
-Plugins typically invoke MPS through a standardized interface:
-
-1. Retrieve data from backend via API consumer
-2. Construct appropriate PDO instance
-3. Call MPS core with processor ID and PDO
-4. Handle result (display, save, or send to printer)
-5. Log operation for audit trail
-
-**Sources:** HIS/Plugins/ (956 plugins), MPS/ (594 files)
-
-## External Integrations
-
-### FlexCell Integration
-
-FlexCell 5.7.6.0 is the primary document generation engine for MPS, handling Excel and PDF export functionality.
-
-**FlexCell Capabilities in MPS:**
-- Load .xls/.xlsx templates with complex formatting
-- Bind PDO properties to cell ranges
-- Evaluate Excel formulas dynamically
-- Merge cells and apply conditional formatting
-- Export to multiple formats (Excel, PDF, HTML)
-- Support for charts, images, and embedded objects
-
-**Integration Points:**
-- `MPS.ProcessorBase/` contains FlexCell wrapper classes
-- Common library: `Inventec.Common.FlexCelPrint/` (38 files)
-- Export utilities: `Inventec.Common.FlexCelExport/` (23 files)
-
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), Common/Inventec.Common/FlexCelPrint/ (38 files)
-
-### BarTender Integration
-
-BarTender 10.1.0 is integrated for specialized barcode and label printing requirements.
-
-**BarTender Use Cases:**
-- Patient wristbands with barcodes
-- Specimen labels for laboratory
-- Medication labels with dosage barcodes
-- Inventory tracking labels
-- Asset management tags
-
-**Integration Pattern:**
-- BarTender templates (.btw files) stored separately
-- MPS core invokes BarTender SDK
-- PDO data passed to BarTender print engine
-- Direct output to label printers
-
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
-
-## Common Processor Categories
-
-### Prescription Processors
-
-Prescription-related processors handle various medication order forms:
-
-**Example Processors:**
-- **Mps000001**: Outpatient prescription - standard medication order form
-- **Mps000002**: Inpatient prescription - ward medication list
-- **Mps000003**: Controlled substance prescription - special requirements
-- **Mps000044**: Prescription with detailed usage instructions
-- **Mps000045**: Prescription summary for discharge
-
-**Common PDO Elements:**
-- Patient demographics
-- List of medications with dosages
-- Administration instructions
-- Prescriber information and signature
-- Pharmacy dispensing details
-
-### Laboratory Report Processors
-
-Laboratory processors generate various test result documents:
-
-**Example Processors:**
-- **Mps000050**: General laboratory report
-- **Mps000051**: Blood chemistry panel
-- **Mps000052**: Microbiology culture results
-- **Mps000053**: Pathology report
-- **Mps000054**: Imaging study report
-
-**Common PDO Elements:**
-- Test requisition details
-- Result values with reference ranges
-- Critical value indicators
-- Technician and pathologist information
-- Quality control data
-
-### Invoice and Billing Processors
-
-Financial document processors for transactions:
-
-**Example Processors:**
-- **Mps000100**: Payment receipt
-- **Mps000101**: Invoice with itemized charges
-- **Mps000102**: Deposit receipt
-- **Mps000103**: Refund document
-- **Mps000104**: Insurance claim form
-
-**Common PDO Elements:**
-- Patient billing information
-- Service/item details with costs
-- Payment method and amounts
-- Insurance coverage details
-- Balance and outstanding amounts
-
-### Transfer and Referral Processors
-
-Patient transfer and referral documentation:
-
-**Example Processors:**
-- **Mps000150**: Hospital transfer form
-- **Mps000151**: Department transfer note
-- **Mps000152**: External referral letter
-- **Mps000153**: Emergency transfer document
-
-**Common PDO Elements:**
-- Transfer reason and diagnosis
-- Patient condition summary
-- Treatment provided
-- Receiving facility/department information
-- Transporting personnel details
-
-**Sources:** MPS.Processor/ (790+ processor folders), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
-
-## Processor Development Pattern
-
-### Standard Processor Structure
-
-Each processor follows a consistent implementation pattern inherited from `MPS.ProcessorBase`:
-
-**Typical File Structure:**
-
-**Mps000xxx/ (Logic Folder):**
-```
-Mps000xxxProcessor.cs          // Main processor class
-Mps000xxxBehavior.cs           // Template behavior logic
-Mps000xxxExtension.cs          // Extension methods (optional)
-Mps000xxx.Designer.cs          // UI designer files (if applicable)
-Resources.resx                  // Localization resources
-```
-
-**Mps000xxx.PDO/ (Data Object Folder):**
-```
-Mps000xxxPDO.cs                // Primary PDO class
-Mps000xxxADO.cs                // Additional data objects (optional)
-PatientDataPDO.cs              // Nested data structures (optional)
-```
-
-**Class Relationship:**
+**Mối quan hệ các Class:**
 
 ```mermaid
 classDiagram
@@ -1157,182 +1036,179 @@ classDiagram
     Mps000xxxProcessor --> Mps000xxxBehavior
 ```
 
-**Sources:** MPS.ProcessorBase/ (30 files), MPS.Processor/ (multiple Mps000xxx folders)
+**Nguồn tham khảo:** MPS.ProcessorBase/ (30 files), MPS.Processor/ (nhiều thư mục Mps000xxx)
 
-## Configuration and Extension Points
+## Cấu hình và Điểm Mở rộng
 
-### Processor Registration
+### Đăng ký Bộ xử lý
 
-Processors are registered in the MPS core engine through configuration files or dynamic discovery:
+Các bộ xử lý được đăng ký trong nhân cốt lõi của MPS thông qua các file cấu hình hoặc khám phá động (dynamic discovery):
 
-**Registration Mechanisms:**
-- Static registration in `MPS/` core configuration
-- Attribute-based discovery using reflection
-- Plugin manifest files for each processor
-- Runtime registration via API
+**Các cơ chế đăng ký:**
+- Đăng ký tĩnh trong cấu hình cốt lõi của `MPS/`.
+- Khám phá dựa trên thuộc tính (Attribute) sử dụng reflection.
+- Các file manifest plugin cho từng bộ xử lý.
+- Đăng ký tại thời điểm thực thi (runtime) qua API.
 
-### Customization Points
+### Các điểm tùy chỉnh
 
-The MPS architecture provides several extension points:
+Kiến trúc MPS cung cấp nhiều điểm mở rộng:
 
-**Extension Capabilities:**
+**Khả năng mở rộng:**
 
-| Extension Point | Purpose | Implementation |
+| Điểm mở rộng | Mục đích | Cách triển khai |
 |----------------|---------|----------------|
-| Custom PDO Properties | Add document-specific data fields | Extend base PDO classes |
-| Template Overrides | Hospital-specific form variations | Alternate template files |
-| Post-processing Hooks | Custom operations after generation | Override virtual methods |
-| Export Format Extensions | Additional output formats | Implement export interfaces |
-| Validation Rules | Custom data validation logic | Extend validation framework |
+| Thuộc tính PDO tùy chỉnh | Thêm các trường dữ liệu đặc thù cho tài liệu | Mở rộng các lớp cơ sở PDO |
+| Ghi đè mẫu (Template Overrides) | Các biến thể biểu mẫu đặc thù cho từng bệnh viện | Các file mẫu thay thế |
+| Các Hook xử lý hậu kỳ | Thực hiện các thao tác tùy chỉnh sau khi tạo tài liệu | Ghi đè các phương thức ảo |
+| Mở rộng định dạng kết xuất | Thêm các định dạng đầu ra bổ sung | Triển khai các interface export |
+| Các quy tắc kiểm tra | Logic kiểm tra dữ liệu tùy chỉnh | Mở rộng khung kiểm tra (validation framework) |
 
-**Sources:** MPS/ (594 files), MPS.ProcessorBase/ (30 files)
+**Nguồn tham khảo:** MPS/ (594 files), MPS.ProcessorBase/ (30 files)
 
-## Performance and Caching
+## Hiệu năng và Bộ nhớ đệm
 
-### Template Caching Strategy
+### Chiến lược Cache Mẫu in
 
-MPS implements template caching to optimize repeated print operations:
+MPS triển khai việc lưu trữ mẫu vào bộ nhớ đệm để tối ưu hóa các thao tác in lặp lại:
 
-**Cache Layers:**
-1. **Memory Cache**: Frequently used templates stored in RAM
-2. **Disk Cache**: Compiled template objects cached locally
-3. **Template Preloading**: Common templates loaded at startup
+**Các lớp Cache:**
+1. **Memory Cache**: Các mẫu hay dùng được lưu trong RAM.
+2. **Disk Cache**: Các đối tượng mẫu đã biên dịch được lưu cục bộ.
+3. **Template Preloading**: Các mẫu phổ biến được nạp ngay khi khởi động.
 
-### Processor Instance Pooling
+### Quản lý Pool thực thể Bộ xử lý
 
-For high-volume printing scenarios, processor instances may be pooled:
+Đối với các kịch bản in số lượng lớn, các thực thể bộ xử lý có thể được đưa vào pool quản lý:
 
-**Pooling Benefits:**
-- Reduced instantiation overhead
-- Template reuse across requests
-- Memory efficiency for bulk operations
-- Improved throughput for batch printing
+**Lợi ích của việc dùng Pool:**
+- Giảm chi phí khởi tạo thực thể.
+- Tái sử dụng mẫu giữa các yêu cầu.
+- Hiệu quả bộ nhớ cho các hoạt động in ấn hàng loạt.
+- Cải thiện thông lượng cho việc in theo lô (batch printing).
 
-**Sources:** MPS/ (594 files core engine)
+**Nguồn tham khảo:** MPS/ (594 files core engine)
 
-## Integration with HIS Plugins
+## Tích hợp với Plugin HIS
 
-### Print Request Flow from Plugins
+### Luồng yêu cầu In từ Plugin
 
-HIS plugins integrate with MPS following a standardized pattern:
+Các plugin HIS tích hợp với MPS theo một mô hình chuẩn hóa:
 
 ```mermaid
 sequenceDiagram
-    participant User
+    participant User as Người dùng
     participant Plugin as "HIS.Desktop.Plugins.*"
     participant ApiConsumer as "HIS.Desktop.ApiConsumer"
     participant Backend as "Backend API"
     participant MPS as "MPS Core"
     participant Processor as "Mps000xxxProcessor"
     
-    User->>Plugin: Click Print Button
+    User->>Plugin: Click nút In
     Plugin->>ApiConsumer: GetData(treatmentId)
-    ApiConsumer->>Backend: HTTP Request
-    Backend->>ApiConsumer: JSON Response
-    ApiConsumer->>Plugin: Deserialized Data
-    Plugin->>Plugin: Construct PDO
+    ApiConsumer->>Backend: Gửi HTTP Request
+    Backend->>ApiConsumer: Phản hồi JSON
+    ApiConsumer->>Plugin: Dữ liệu đã Deserialize
+    Plugin->>Plugin: Khởi tạo PDO
     Plugin->>MPS: Print(ProcessorId, PDO)
-    MPS->>Processor: Execute Print
-    Processor->>MPS: Document Path
-    MPS->>Plugin: Print Result
-    Plugin->>User: Show/Print Document
+    MPS->>Processor: Thực hiện In
+    Processor->>MPS: Đường dẫn tài liệu
+    MPS->>Plugin: Kết quả In
+    Plugin->>User: Hiển thị/In tài liệu
 ```
 
-**Common Plugin Integration Points:**
-- `HIS.Desktop.Plugins.AssignPrescriptionPK` (203 files) - Prescription printing
-- `HIS.Desktop.Plugins.ServiceExecute` (119 files) - Service result reports
-- `HIS.Desktop.Plugins.TransactionBill` (48 files) - Invoice printing
-- `HIS.Desktop.Plugins.PrintBordereau` (69 files) - Summary reports
-- `HIS.Desktop.Plugins.PrintOtherForm` (94 files) - Miscellaneous forms
+**Các điểm tích hợp Plugin phổ biến:**
+- `HIS.Desktop.Plugins.AssignPrescriptionPK` (203 files) - In đơn thuốc.
+- `HIS.Desktop.Plugins.ServiceExecute` (119 files) - Phiếu kết quả dịch vụ xét nghiệm/CDHA.
+- `HIS.Desktop.Plugins.TransactionBill` (48 files) - In hóa đơn/biên lai.
+- `HIS.Desktop.Plugins.PrintBordereau` (69 files) - Các báo cáo tổng hợp.
+- `HIS.Desktop.Plugins.PrintOtherForm` (94 files) - Các biểu mẫu hỗn hợp khác.
 
-**Sources:** HIS/Plugins/ (956 plugins), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
+**Nguồn tham khảo:** HIS/Plugins/ (956 plugins), [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json)
 
-## Summary
+## Tổng kết
 
-The MPS Print System provides a robust, extensible architecture for medical document generation with 790+ processors covering diverse healthcare documentation needs. The processor-PDO pattern ensures separation of concerns between data and presentation, while integrations with FlexCell and BarTender enable professional document output. The system's template-based approach allows for customization per hospital requirements while maintaining consistent code structure across all processors.
+Hệ thống In ấn MPS cung cấp một kiến trúc mạnh mẽ, có khả năng mở rộng để tạo tài liệu y tế với hơn 790 bộ xử lý đáp ứng nhu cầu tài liệu y tế đa dạng. Mô hình Processor-PDO đảm bảo sự phân tách các mối quan tâm giữa dữ liệu và hiển thị, trong khi việc tích hợp với FlexCell và BarTender cho phép xuất tài liệu chuyên nghiệp. Cách tiếp cận dựa trên mẫu của hệ thống giúp tùy chỉnh theo yêu cầu của từng bệnh viện trong khi vẫn duy trì cấu trúc mã nguồn nhất quán trên tất cả các bộ xử lý.
 
-For detailed information on creating new print processors, refer to [Print Processor Development](#1.2.1).
+Để biết thông tin chi tiết về việc tạo các bộ xử lý in mới, hãy tham khảo [Phát triển Bộ xử lý In ấn](#1.2.1).
 
-**Sources:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), MPS/ (all components)
+**Nguồn tham khảo:** [[`.devin/wiki.json`](../../../.devin/wiki.json)](../../../.devin/wiki.json), MPS/ (tất cả các thành phần)
 
-# Print Processor Development
+# Phát triển Bộ xử lý In ấn
 
+## Mục tiêu và Phạm vi
 
+Tài liệu này cung cấp hướng dẫn kỹ thuật để phát triển các bộ xử lý in (print processors) mới trong module MPS (Medical Print System). Tài liệu bao gồm kiến trúc bộ xử lý, mô hình thiết kế hai thành phần (logic + đối tượng dữ liệu), kế thừa class cơ sở, quản lý mẫu và các mô hình liên kết dữ liệu. Trang này tập trung vào các chi tiết triển khai của từng bộ xử lý riêng lẻ.
 
-
-## Purpose and Scope
-
-This document provides technical guidance for developing new print processors in the MPS (Medical Print System) module. It covers the processor architecture, two-component design pattern (logic + data objects), base class inheritance, template management, and data binding patterns. This page focuses on the implementation details of individual processors.
-
-For the overall MPS architecture and integration, see [MPS Print System](../02-modules/his-desktop/business-plugins.md#mps-print). For information about how plugins invoke print processors, see [Plugin System Architecture](../01-architecture/plugin-system.md).
+Để biết thông tin về kiến trúc tổng thể và tích hợp của MPS, xem [Hệ thống In ấn MPS](../02-modules/his-desktop/business-plugins.md#mps-print). Để biết thông tin về cách các plugin kích hoạt bộ xử lý in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
-## Print Processor Architecture
+## Kiến trúc Bộ xử lý In ấn
 
-The MPS system implements a template-based pattern where each processor is responsible for generating one or more types of medical forms (prescriptions, lab reports, invoices, transfer documents, etc.). The system contains 790+ processors, numbered sequentially as Mps000001 through Mps000600+.
+Hệ thống MPS triển khai mô hình dựa trên mẫu (template), trong đó mỗi bộ xử lý chịu trách nhiệm tạo ra một hoặc nhiều loại biểu mẫu y tế (đơn thuốc, phiếu xét nghiệm, hóa đơn, tài liệu chuyển viện, v.v.). Hệ thống bao gồm hơn 790 bộ xử lý, được đánh số tuần tự từ Mps000001 đến Mps000600+.
 
-### Two-Component Design Pattern
+### Mô hình Thiết kế Hai thành phần
 
-Each print processor follows a strict two-folder structure:
+Mỗi bộ xử lý in tuân thủ cấu trúc hai thư mục nghiêm ngặt:
 
-| Component | Folder Name | Typical File Count | Purpose |
+| Thành phần | Tên thư mục | Số lượng file điển hình | Mục đích |
 |-----------|-------------|-------------------|---------|
-| Logic | `Mps000xxx` | 4-15 files | Processing logic, template handling, data transformation |
-| Data Object | `Mps000xxx.PDO` | 3-10 files | Data transfer objects, input parameters, data models |
+| Logic | `Mps000xxx` | 4-15 files | Logic xử lý, quản lý mẫu, chuyển đổi dữ liệu |
+| Đối tượng Dữ liệu (Data Object) | `Mps000xxx.PDO` | 3-10 files | Đối tượng truyền dữ liệu, tham số đầu vào, mô hình dữ liệu |
 
-Large processors may have 15-19 files in the logic folder and additional PDO files for complex data structures.
+Các bộ xử lý lớn có thể có từ 15-19 file trong thư mục logic và các file PDO bổ sung cho các cấu trúc dữ liệu phức tạp.
 
 ```mermaid
 graph TB
-    subgraph "Print Request Flow"
-        Plugin["HIS Plugin<br/>(e.g., Prescription)"]
+    subgraph "Luồng Yêu cầu In"
+        Plugin["Plugin HIS<br/>(ví dụ: Đơn thuốc)"]
         MPSCore["MPS Core Engine<br/>MPS/"]
-        ProcessorBase["MPS.ProcessorBase<br/>Abstract Base Classes"]
+        ProcessorBase["MPS.ProcessorBase<br/>Các Class Cơ sở Trừu tượng"]
     end
     
-    subgraph "Processor Instance - Mps000xxx"
-        Logic["Mps000xxx Folder<br/>4-15 files<br/>Processing Logic"]
-        PDO["Mps000xxx.PDO Folder<br/>3-10 files<br/>Data Objects"]
+    subgraph "Thực thể Bộ xử lý - Mps000xxx"
+        Logic["Thư mục Mps000xxx<br/>4-15 files<br/>Logic Xử lý"]
+        PDO["Thư mục Mps000xxx.PDO<br/>3-10 files<br/>Đối tượng Dữ liệu"]
     end
     
-    subgraph "Output Generation"
-        FlexCell["FlexCell 5.7.6.0<br/>Excel/PDF Export"]
-        BarTender["BarTender 10.1.0<br/>Barcode Printing"]
+    subgraph "Tạo Đầu ra"
+        FlexCell["FlexCell 5.7.6.0<br/>Xuất Excel/PDF"]
+        BarTender["BarTender 10.1.0<br/>In Mã vạch"]
     end
     
-    Plugin -->|"Print Request + Data"| MPSCore
-    MPSCore -->|"Route to Processor"| ProcessorBase
-    ProcessorBase -->|"Instantiate"| Logic
-    Logic -->|"Populate"| PDO
-    PDO -->|"Bind Data"| Logic
-    Logic -->|"Generate Document"| FlexCell
-    Logic -->|"Generate Barcodes"| BarTender
+    Plugin -->|"Yêu cầu In + Dữ liệu"| MPSCore
+    MPSCore -->|"Điều hướng tới Bộ xử lý"| ProcessorBase
+    ProcessorBase -->|"Khởi tạo"| Logic
+    Logic -->|"Điền dữ liệu"| PDO
+    PDO -->|"Liên kết Dữ liệu"| Logic
+    Logic -->|"Tạo Tài liệu"| FlexCell
+    Logic -->|"Tạo Mã vạch"| BarTender
     
     style Logic fill:#fff4e1
     style PDO fill:#e8f5e9
     style ProcessorBase fill:#4ecdc4
 ```
 
-**Sources:** MPS/, MPS.ProcessorBase/, MPS.Processor/
+**Nguồn tham khảo:** MPS/, MPS.ProcessorBase/, MPS.Processor/
 
 ---
 
-## Processor Base Classes
+## Các Class cơ sở của Bộ xử lý
 
-All print processors inherit from abstract base classes defined in the `MPS.ProcessorBase` folder (30 files). These base classes provide common infrastructure for template management, data binding, and document generation.
+Tất cả các bộ xử lý in đều kế thừa từ các class cơ sở trừu tượng (abstract base classes) được định nghĩa trong thư mục `MPS.ProcessorBase` (30 file). Các class cơ sở này cung cấp hạ tầng chung cho quản lý mẫu, liên kết dữ liệu và tạo tài liệu.
 
-### Base Class Hierarchy
+### Hệ thống Phân cấp Class cơ sở
 
 ```mermaid
 graph TB
-    AbstractProcessor["AbstractProcessor<br/>Core Base Class"]
-    TemplateProcessor["TemplateProcessor<br/>Template Management"]
-    DataBindingProcessor["DataBindingProcessor<br/>Data Binding Logic"]
+    AbstractProcessor["AbstractProcessor<br/>Class Cơ sở Cốt lõi"]
+    TemplateProcessor["TemplateProcessor<br/>Quản lý Mẫu"]
+    DataBindingProcessor["DataBindingProcessor<br/>Logic Liên kết Dữ liệu"]
     
-    Mps000001["Mps000001<br/>Prescription Processor"]
-    Mps000002["Mps000002<br/>Lab Report Processor"]
-    Mps000304["Mps000304<br/>Complex Form<br/>19 files"]
+    Mps000001["Mps000001<br/>Bộ xử lý Đơn thuốc"]
+    Mps000002["Mps000002<br/>Bộ xử lý Phiếu xét nghiệm"]
+    Mps000304["Mps000304<br/>Biểu mẫu phức tạp<br/>19 files"]
     
     AbstractProcessor --> TemplateProcessor
     TemplateProcessor --> DataBindingProcessor
@@ -1341,88 +1217,88 @@ graph TB
     DataBindingProcessor --> Mps000304
 ```
 
-### Key Base Class Responsibilities
+### Trách nhiệm của các Class Cơ sở Chính
 
-| Base Class | Responsibility | Key Methods |
+| Class Cơ sở | Trách nhiệm | Các phương thức chính |
 |------------|---------------|-------------|
-| `AbstractProcessor` | Core lifecycle management | `Initialize()`, `Process()`, `Cleanup()` |
-| `TemplateProcessor` | Template loading and caching | `LoadTemplate()`, `GetTemplateFile()` |
-| `DataBindingProcessor` | Data binding to template | `BindData()`, `PopulateFields()` |
+| `AbstractProcessor` | Quản lý vòng đời cốt lõi | `Initialize()`, `Process()`, `Cleanup()` |
+| `TemplateProcessor` | nạp và lưu trữ mẫu | `LoadTemplate()`, `GetTemplateFile()` |
+| `DataBindingProcessor` | Liên kết dữ liệu vào mẫu | `BindData()`, `PopulateFields()` |
 
-**Sources:** MPS.ProcessorBase/
+**Nguồn tham khảo:** MPS.ProcessorBase/
 
 ---
 
-## PDO (Print Data Object) Structure
+## Cấu trúc PDO (Đối tượng Dữ liệu In)
 
-Each processor's PDO folder contains data transfer objects that encapsulate all input parameters and data models needed for document generation. PDOs follow a standardized naming convention and structure.
+Thư mục PDO của mỗi bộ xử lý chứa các đối tượng truyền dữ liệu (DTO) đóng gói tất cả các tham số đầu vào và mô hình dữ liệu cần thiết để tạo tài liệu. Các PDO tuân theo quy ước đặt tên và cấu trúc chuẩn hóa.
 
-### PDO Components
+### Các thành phần PDO
 
 ```mermaid
 graph LR
-    subgraph "Mps000xxx.PDO Folder"
-        MainPDO["Mps000xxxPDO.cs<br/>Main Data Object"]
-        PatientPDO["PatientPDO.cs<br/>Patient Data"]
-        TreatmentPDO["TreatmentPDO.cs<br/>Treatment Data"]
-        DetailsPDO["DetailsPDO.cs<br/>Line Item Details"]
-        ConfigPDO["ConfigPDO.cs<br/>Configuration"]
+    subgraph "Thư mục Mps000xxx.PDO"
+        MainPDO["Mps000xxxPDO.cs<br/>Đối tượng Dữ liệu Chính"]
+        PatientPDO["PatientPDO.cs<br/>Dữ liệu Bệnh nhân"]
+        TreatmentPDO["TreatmentPDO.cs<br/>Dữ liệu Điều trị"]
+        DetailsPDO["DetailsPDO.cs<br/>Chi tiết các mục"]
+        ConfigPDO["ConfigPDO.cs<br/>Cấu hình"]
     end
     
-    MainPDO -->|"Contains"| PatientPDO
-    MainPDO -->|"Contains"| TreatmentPDO
-    MainPDO -->|"Contains"| DetailsPDO
-    MainPDO -->|"References"| ConfigPDO
+    MainPDO -->|"Chứa"| PatientPDO
+    MainPDO -->|"Chứa"| TreatmentPDO
+    MainPDO -->|"Chứa"| DetailsPDO
+    MainPDO -->|"Tham chiếu"| ConfigPDO
 ```
 
-### Common PDO Properties
+### Các thuộc tính PDO phổ biến
 
-| Property Type | Purpose | Example |
+| Loại thuộc tính | Mục đích | Ví dụ |
 |--------------|---------|---------|
-| Patient Info | Patient identification and demographics | `PatientCode`, `PatientName`, `DOB`, `Gender` |
-| Treatment Info | Treatment context | `TreatmentCode`, `InTime`, `OutTime`, `Department` |
-| Service Details | Service/medicine line items | `List<ServiceDetail>`, `List<MedicineDetail>` |
-| Configuration | Print settings and formatting | `IsBarcodeEnabled`, `NumCopies`, `PaperSize` |
-| Metadata | Tracking and audit | `CreateTime`, `Creator`, `PrintTime` |
+| Thông tin Bệnh nhân | Định danh và nhân khẩu học bệnh nhân | `PatientCode`, `PatientName`, `DOB`, `Gender` |
+| Thông tin Điều trị | Ngữ cảnh điều trị | `TreatmentCode`, `InTime`, `OutTime`, `Department` |
+| Chi tiết Dịch vụ | Các mục dịch vụ/thuốc | `List<ServiceDetail>`, `List<MedicineDetail>` |
+| Cấu hình | Cài đặt in và định dạng | `IsBarcodeEnabled`, `NumCopies`, `PaperSize` |
+| Siêu dữ liệu (Metadata) | Theo dõi và kiểm tra | `CreateTime`, `Creator`, `PrintTime` |
 
-**Sources:** MPS.Processor/Mps000xxx.PDO/
+**Nguồn tham khảo:** MPS.Processor/Mps000xxx.PDO/
 
 ---
 
-## Creating a New Print Processor
+## Tạo Bộ xử lý In ấn mới
 
-### Step 1: Folder Structure
+### Bước 1: Cấu trúc Thư mục
 
-Create two folders following the naming convention:
+Tạo hai thư mục theo quy ước đặt tên:
 
 ```
 MPS.Processor/
-├── Mps000xxx/              # Logic folder (where xxx is next available number)
-│   ├── Mps000xxx.cs        # Main processor class
-│   ├── Mps000xxxProcessor.cs  # Processing implementation
-│   ├── TemplateHandler.cs  # Template management
-│   └── DataBinder.cs       # Data binding logic
-└── Mps000xxx.PDO/          # Data objects folder
-    ├── Mps000xxxPDO.cs     # Main PDO
-    ├── PatientPDO.cs       # Patient data
-    └── DetailPDO.cs        # Detail data
+├── Mps000xxx/              # Thư mục Logic (xxx là số thứ tự tiếp theo)
+│   ├── Mps000xxx.cs        # Class bộ xử lý chính
+│   ├── Mps000xxxProcessor.cs  # Triển khai xử lý
+│   ├── TemplateHandler.cs  # Quản lý mẫu
+│   └── DataBinder.cs       # Logic liên kết dữ liệu
+└── Mps000xxx.PDO/          # Thư mục đối tượng dữ liệu
+    ├── Mps000xxxPDO.cs     # PDO chính
+    ├── PatientPDO.cs       # PDO bệnh nhân
+    └── DetailPDO.cs        # PDO chi tiết
 ```
 
-### Step 2: Implement Main Processor Class
+### Bước 2: Triển khai Class Bộ xử lý chính
 
-The main processor class inherits from base classes in `MPS.ProcessorBase` and implements the processing logic:
+Class bộ xử lý chính kế thừa từ các class cơ sở trong `MPS.ProcessorBase` và triển khai logic xử lý:
 
-**File Structure:**
-- [[`MPS.Processor/Mps000xxx/Mps000xxx.cs`](../../MPS.Processor/Mps000xxx/Mps000xxx.cs)](../../MPS.Processor/Mps000xxx/Mps000xxx.cs) - Main entry point
-- [[`MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs`](../../MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs)](../../MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs) - Core processing logic
-- [[`MPS.Processor/Mps000xxx/TemplateHandler.cs`](../../MPS.Processor/Mps000xxx/TemplateHandler.cs)](../../MPS.Processor/Mps000xxx/TemplateHandler.cs) - Template operations
-- [[`MPS.Processor/Mps000xxx/DataBinder.cs`](../../MPS.Processor/Mps000xxx/DataBinder.cs)](../../MPS.Processor/Mps000xxx/DataBinder.cs) - Data binding operations
+**Cấu trúc file:**
+- [[`MPS.Processor/Mps000xxx/Mps000xxx.cs`](../../MPS.Processor/Mps000xxx/Mps000xxx.cs)](../../MPS.Processor/Mps000xxx/Mps000xxx.cs) - Điểm vào chính (Main entry point)
+- [[`MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs`](../../MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs)](../../MPS.Processor/Mps000xxx/Mps000xxxProcessor.cs) - Logic xử lý cốt lõi
+- [[`MPS.Processor/Mps000xxx/TemplateHandler.cs`](../../MPS.Processor/Mps000xxx/TemplateHandler.cs)](../../MPS.Processor/Mps000xxx/TemplateHandler.cs) - Các thao tác với mẫu (Template operations)
+- [[`MPS.Processor/Mps000xxx/DataBinder.cs`](../../MPS.Processor/Mps000xxx/DataBinder.cs)](../../MPS.Processor/Mps000xxx/DataBinder.cs) - Các thao tác liên kết dữ liệu
 
-### Step 3: Define PDO Classes
+### Bước 3: Định nghĩa các Class PDO
 
 ```mermaid
 graph TB
-    subgraph "PDO Class Diagram"
+    subgraph "Sơ đồ Class PDO"
         MainPDO["Mps000xxxPDO<br/>+ PatientInfo: PatientPDO<br/>+ Treatment: TreatmentPDO<br/>+ Details: List&lt;DetailPDO&gt;<br/>+ Config: ConfigPDO"]
         
         PatientPDO["PatientPDO<br/>+ PatientCode: string<br/>+ PatientName: string<br/>+ DOB: DateTime<br/>+ Gender: string<br/>+ Address: string"]
@@ -1440,33 +1316,33 @@ graph TB
     end
 ```
 
-**Sources:** MPS.Processor/Mps000xxx.PDO/
+**Nguồn tham khảo:** MPS.Processor/Mps000xxx.PDO/
 
 ---
 
-## Data Binding and Template Integration
+## Liên kết Dữ liệu và Tích hợp Mẫu
 
-### Template Management
+### Quản lý Mẫu
 
-Print processors use template files (typically Excel-based for FlexCell integration) that define the layout and formatting of output documents.
+Các bộ xử lý in sử dụng các file mẫu (thường dựa trên Excel để tích hợp FlexCell) định nghĩa bố cục và định dạng của tài liệu đầu ra.
 
 ```mermaid
 graph LR
-    subgraph "Template Processing Flow"
-        LoadTemplate["Load Template<br/>from Resources"]
-        BindData["Bind PDO Data<br/>to Template Fields"]
-        ApplyFormatting["Apply Conditional<br/>Formatting"]
-        GenerateOutput["Generate Output<br/>(Excel/PDF)"]
+    subgraph "Luồng Xử lý Mẫu"
+        LoadTemplate["Nạp Mẫu<br/>từ Tài nguyên"]
+        BindData["Liên kết Dữ liệu PDO<br/>vào các trường của Mẫu"]
+        ApplyFormatting["Áp dụng Định dạng<br/>có điều kiện"]
+        GenerateOutput["Tạo Đầu ra<br/>(Excel/PDF)"]
         
         LoadTemplate --> BindData
         BindData --> ApplyFormatting
         ApplyFormatting --> GenerateOutput
     end
     
-    subgraph "Data Sources"
-        PDO["Mps000xxxPDO<br/>Data Object"]
-        BackendData["BackendData<br/>Cached Reference Data"]
-        Config["Config<br/>System Configuration"]
+    subgraph "Nguồn Dữ liệu"
+        PDO["Mps000xxxPDO<br/>Đối tượng Dữ liệu"]
+        BackendData["BackendData<br/>Dữ liệu Tham chiếu đã Cache"]
+        Config["Config<br/>Cấu hình Hệ thống"]
     end
     
     PDO --> BindData
@@ -1474,274 +1350,276 @@ graph LR
     Config --> ApplyFormatting
 ```
 
-### Field Binding Patterns
+### Các mô hình Liên kết Trường
 
-| Binding Type | Template Syntax | PDO Property | Purpose |
+| Loại liên kết | Cú pháp Mẫu | Thuộc tính PDO | Mục đích |
 |--------------|----------------|--------------|---------|
-| Simple Field | `{PatientName}` | `PDO.PatientInfo.PatientName` | Direct value binding |
-| Formatted Date | `{InTime:dd/MM/yyyy}` | `PDO.Treatment.InTime` | Date formatting |
-| Conditional | `{IF ShowLogo}...{ENDIF}` | `PDO.Config.ShowLogo` | Conditional content |
-| Loop | `{FOREACH Details}...{ENDFOR}` | `PDO.Details` | Repeating rows |
-| Calculation | `{SUM Details.Amount}` | Computed | Aggregate functions |
-| Barcode | `{BARCODE TreatmentCode}` | `PDO.Treatment.TreatmentCode` | Barcode generation |
+| Trường đơn giản | `{PatientName}` | `PDO.PatientInfo.PatientName` | Liên kết giá trị trực tiếp |
+| Định dạng ngày | `{InTime:dd/MM/yyyy}` | `PDO.Treatment.InTime` | Định dạng ngày tháng |
+| Có điều kiện | `{IF ShowLogo}...{ENDIF}` | `PDO.Config.ShowLogo` | Nội dung có điều kiện |
+| Vòng lặp | `{FOREACH Details}...{ENDFOR}` | `PDO.Details` | Lặp lại các dòng |
+| Tính toán | `{SUM Details.Amount}` | Được tính toán | Các hàm tổng hợp |
+| Mã vạch (Barcode) | `{BARCODE TreatmentCode}` | `PDO.Treatment.TreatmentCode` | Tạo mã vạch |
 
-**Sources:** MPS.ProcessorBase/, MPS.Processor/
+**Nguồn tham khảo:** MPS.ProcessorBase/, MPS.Processor/
 
 ---
 
-## Large Processor Examples
+## Các ví dụ về Bộ xử lý lớn
 
 ### Mps000304 (19 Files)
 
-One of the largest processors, likely handling complex multi-page medical reports with extensive data requirements.
+Một trong những bộ xử lý lớn nhất, chuyên xử lý các báo cáo y tế đa trang phức tạp với yêu cầu dữ liệu sâu rộng.
 
-**Typical File Organization:**
-- [[`MPS.Processor/Mps000304/Mps000304.cs`](../../MPS.Processor/Mps000304/Mps000304.cs)](../../MPS.Processor/Mps000304/Mps000304.cs) - Main class
-- [[`MPS.Processor/Mps000304/Mps000304Processor.cs`](../../MPS.Processor/Mps000304/Mps000304Processor.cs)](../../MPS.Processor/Mps000304/Mps000304Processor.cs) - Core processor
-- [[`MPS.Processor/Mps000304/PageHandler.cs`](../../MPS.Processor/Mps000304/PageHandler.cs)](../../MPS.Processor/Mps000304/PageHandler.cs) - Multi-page logic
-- [[`MPS.Processor/Mps000304/SectionProcessor.cs`](../../MPS.Processor/Mps000304/SectionProcessor.cs)](../../MPS.Processor/Mps000304/SectionProcessor.cs) - Section handling
-- [[`MPS.Processor/Mps000304/DataAggregator.cs`](../../MPS.Processor/Mps000304/DataAggregator.cs)](../../MPS.Processor/Mps000304/DataAggregator.cs) - Data aggregation
-- [[`MPS.Processor/Mps000304/TemplateManager.cs`](../../MPS.Processor/Mps000304/TemplateManager.cs)](../../MPS.Processor/Mps000304/TemplateManager.cs) - Template management
-- [[`MPS.Processor/Mps000304/ValidationHelper.cs`](../../MPS.Processor/Mps000304/ValidationHelper.cs)](../../MPS.Processor/Mps000304/ValidationHelper.cs) - Data validation
-- Additional helper classes (12 more files)
+**Tổ chức file điển hình:**
+- [[`MPS.Processor/Mps000304/Mps000304.cs`](../../MPS.Processor/Mps000304/Mps000304.cs)](../../MPS.Processor/Mps000304/Mps000304.cs) - Class chính
+- [[`MPS.Processor/Mps000304/Mps000304Processor.cs`](../../MPS.Processor/Mps000304/Mps000304Processor.cs)](../../MPS.Processor/Mps000304/Mps000304Processor.cs) - Bộ xử lý cốt lõi
+- [[`MPS.Processor/Mps000304/PageHandler.cs`](../../MPS.Processor/Mps000304/PageHandler.cs)](../../MPS.Processor/Mps000304/PageHandler.cs) - Logic xử lý đa trang
+- [[`MPS.Processor/Mps000304/SectionProcessor.cs`](../../MPS.Processor/Mps000304/SectionProcessor.cs)](../../MPS.Processor/Mps000304/SectionProcessor.cs) - Xử lý từng phần (Section handling)
+- [[`MPS.Processor/Mps000304/DataAggregator.cs`](../../MPS.Processor/Mps000304/DataAggregator.cs)](../../MPS.Processor/Mps000304/DataAggregator.cs) - Tổng hợp dữ liệu
+- [[`MPS.Processor/Mps000304/TemplateManager.cs`](../../MPS.Processor/Mps000304/TemplateManager.cs)](../../MPS.Processor/Mps000304/TemplateManager.cs) - Quản lý mẫu
+- [[`MPS.Processor/Mps000304/ValidationHelper.cs`](../../MPS.Processor/Mps000304/ValidationHelper.cs)](../../MPS.Processor/Mps000304/ValidationHelper.cs) - Kiểm tra tính hợp lệ của dữ liệu
+- Các class helper bổ sung (thêm 12 file nữa)
 
-**PDO Structure:**
-- [MPS.Processor/Mps000304.PDO/]() - Complex nested data objects
+**Cấu trúc PDO:**
+- [MPS.Processor/Mps000304.PDO/]() - Các đối tượng dữ liệu lồng nhau phức tạp
 
 ### Mps000321 (17 Files)
 
-Another large processor demonstrating advanced features.
+Một bộ xử lý lớn khác thể hiện các tính năng nâng cao.
 
 ### Mps000463 (15 Files)
 
-Complex form processor with extensive customization.
+Bộ xử lý biểu mẫu phức tạp với khả năng tùy chỉnh sâu rộng.
 
-**Sources:** MPS.Processor/Mps000304/, MPS.Processor/Mps000321/, MPS.Processor/Mps000463/
+**Nguồn tham khảo:** MPS.Processor/Mps000304/, MPS.Processor/Mps000321/, MPS.Processor/Mps000463/
 
 ---
 
-## Processor Registration and Invocation
+## Đăng ký và Kích hoạt Bộ xử lý
 
-### Registration Pattern
+### Mô hình Đăng ký
 
 ```mermaid
 graph TB
-    subgraph "Processor Discovery"
+    subgraph "Khám phá Bộ xử lý"
         MPSCore["MPS Core Engine<br/>MPS/"]
-        Registry["Processor Registry<br/>ProcessorMap"]
-        ProcessorFactory["Processor Factory<br/>Create Instances"]
+        Registry["Kho Đăng ký Bộ xử lý<br/>ProcessorMap"]
+        ProcessorFactory["Processor Factory<br/>Tạo Thực thể"]
     end
     
-    subgraph "Processor Registration"
+    subgraph "Đăng ký Bộ xử lý"
         Mps000001["Mps000001<br/>Register(001)"]
         Mps000002["Mps000002<br/>Register(002)"]
         Mps000304["Mps000304<br/>Register(304)"]
     end
     
-    subgraph "Plugin Invocation"
-        PrescriptionPlugin["Prescription Plugin"]
-        LabPlugin["Lab Plugin"]
-        InvoicePlugin["Invoice Plugin"]
+    subgraph "Kích hoạt từ Plugin"
+        PrescriptionPlugin["Plugin Đơn thuốc"]
+        LabPlugin["Plugin Xét nghiệm"]
+        InvoicePlugin["Plugin Hóa đơn"]
     end
     
-    Mps000001 -->|"Self-Register"| Registry
-    Mps000002 -->|"Self-Register"| Registry
-    Mps000304 -->|"Self-Register"| Registry
+    Mps000001 -->|"Tự Đăng ký"| Registry
+    Mps000002 -->|"Tự Đăng ký"| Registry
+    Mps000304 -->|"Tự Đăng ký"| Registry
     
-    PrescriptionPlugin -->|"Request Print(001)"| MPSCore
-    LabPlugin -->|"Request Print(002)"| MPSCore
-    InvoicePlugin -->|"Request Print(304)"| MPSCore
+    PrescriptionPlugin -->|"Yêu cầu In(001)"| MPSCore
+    LabPlugin -->|"Yêu cầu In(002)"| MPSCore
+    InvoicePlugin -->|"Yêu cầu In(304)"| MPSCore
     
-    MPSCore -->|"Lookup"| Registry
-    Registry -->|"Create Instance"| ProcessorFactory
+    MPSCore -->|"Tra số"| Registry
+    Registry -->|"Tạo Thực thể"| ProcessorFactory
 ```
 
-### Invocation Flow
+### Luồng Kích hoạt (Invocation Flow)
 
-| Step | Component | Action |
+| Bước | Thành phần | Hành động |
 |------|-----------|--------|
-| 1 | Plugin | Creates PDO with data, specifies processor ID |
-| 2 | MPS Core | Routes request to processor registry |
-| 3 | Registry | Looks up processor class by ID |
-| 4 | Factory | Instantiates processor with PDO |
-| 5 | Processor | Executes processing logic |
-| 6 | FlexCell/BarTender | Generates final output |
-| 7 | MPS Core | Returns result to plugin |
+| 1 | Plugin | Tạo PDO với dữ liệu, chỉ định ID bộ xử lý |
+| 2 | MPS Core | Điều hướng yêu cầu tới kho đăng ký bộ xử lý |
+| 3 | Kho Đăng ký | Tra cứu class bộ xử lý theo ID |
+| 4 | Factory | Khởi tạo bộ xử lý với dữ liệu PDO |
+| 5 | Bộ xử lý | Thực thi logic xử lý |
+| 6 | FlexCell/BarTender | Tạo đầu ra cuối cùng |
+| 7 | MPS Core | Trả kết quả về cho plugin |
+
+**Nguồn tham khảo:** MPS/, MPS.ProcessorBase/
 
 **Sources:** MPS/, MPS.ProcessorBase/
 
 ---
 
-## FlexCell Integration
+## Tích hợp FlexCell
 
-The MPS system uses FlexCell 5.7.6.0 for Excel template processing and PDF generation.
+Hệ thống MPS sử dụng FlexCell 5.7.6.0 để xử lý mẫu Excel và tạo PDF.
 
-### FlexCell Processing Pattern
+### Mô hình Xử lý FlexCell
 
 ```mermaid
 graph LR
-    subgraph "FlexCell Workflow"
-        LoadWorkbook["Load Excel<br/>Template"]
-        CreateSheet["Access<br/>Worksheet"]
-        BindCells["Bind Cell<br/>Values"]
-        ApplyStyles["Apply Cell<br/>Styles"]
-        Export["Export to<br/>Excel/PDF"]
+    subgraph "Luồng công việc FlexCell"
+        LoadWorkbook["Nạp File<br/>Excel Mẫu"]
+        CreateSheet["Truy cập<br/>Worksheet"]
+        BindCells["Liên kết Giá trị<br/>vào Ô"]
+        ApplyStyles["Áp dụng Định dạng<br/>(Styles)"]
+        Export["Kết xuất ra<br/>Excel/PDF"]
     end
     
-    Processor["Print Processor"] --> LoadWorkbook
+    Processor["Bộ xử lý In"] --> LoadWorkbook
     LoadWorkbook --> CreateSheet
     CreateSheet --> BindCells
-    PDO["PDO Data"] --> BindCells
+    PDO["Dữ liệu PDO"] --> BindCells
     BindCells --> ApplyStyles
-    Config["Format Config"] --> ApplyStyles
+    Config["Cấu hình Định dạng"] --> ApplyStyles
     ApplyStyles --> Export
 ```
 
-### Common FlexCell Operations
+### Các thao tác FlexCell phổ biến
 
-| Operation | Purpose | Implementation |
+| Thao tác | Mục đích | Cách triển khai |
 |-----------|---------|----------------|
-| Cell Binding | Set cell values from PDO | `worksheet.Cell[row, col].Value = pdo.Field` |
-| Range Binding | Fill data ranges | `worksheet.SetRange(startRow, startCol, dataArray)` |
-| Formula | Calculate values | `worksheet.Cell[row, col].Formula = "=SUM(A1:A10)"` |
-| Styling | Apply formatting | `worksheet.Cell[row, col].Style = styleObject` |
-| Merge Cells | Combine cells | `worksheet.MergeRange(range)` |
-| Export PDF | Generate PDF output | `workbook.ExportPDF(fileName)` |
+| Liên kết Ô | Gán giá trị từ PDO vào ô | `worksheet.Cell[row, col].Value = pdo.Field` |
+| Liên kết Vùng | Điền dữ liệu vào một vùng (range) | `worksheet.SetRange(startRow, startCol, dataArray)` |
+| Công thức | Tính toán các giá trị | `worksheet.Cell[row, col].Formula = "=SUM(A1:A10)"` |
+| Định dạng | Áp dụng style cho ô | `worksheet.Cell[row, col].Style = styleObject` |
+| Trộn ô (Merge) | Gộp các ô lại với nhau | `worksheet.MergeRange(range)` |
+| Kết xuất PDF | Tạo đầu ra định dạng PDF | `workbook.ExportPDF(fileName)` |
 
-**Sources:** MPS/, Common/Inventec.Common/FlexCelPrint/, Common/Inventec.Common/FlexCelExport/
+**Nguồn tham khảo:** MPS/, Common/Inventec.Common/FlexCelPrint/, Common/Inventec.Common/FlexCelExport/
 
 ---
 
-## BarTender Integration
+## Tích hợp BarTender
 
-BarTender 10.1.0 is used for barcode and label printing.
+BarTender 10.1.0 được sử dụng để in mã vạch và nhãn.
 
-### Barcode Generation Pattern
+### Mô hình Tạo Mã vạch
 
 ```mermaid
 graph TB
-    subgraph "BarTender Workflow"
-        LoadFormat["Load BarTender<br/>Format File"]
-        SetData["Set Data<br/>Sources"]
-        GenerateBarcode["Generate<br/>Barcode"]
-        Print["Print to<br/>Device/File"]
+    subgraph "Luồng công việc BarTender"
+        LoadFormat["Nạp File<br/>Định dạng BarTender"]
+        SetData["Thiết lập<br/>Nguồn Dữ liệu"]
+        GenerateBarcode["Tạo<br/>Mã vạch"]
+        Print["In ra<br/>Thiết bị/File"]
     end
     
-    Processor["Print Processor"] --> LoadFormat
+    Processor["Bộ xử lý In"] --> LoadFormat
     LoadFormat --> SetData
-    PDO["PDO with<br/>Barcode Data"] --> SetData
+    PDO["PDO chứa<br/>Dữ liệu Mã vạch"] --> SetData
     SetData --> GenerateBarcode
     GenerateBarcode --> Print
 ```
 
-### Barcode Types Supported
+### Các loại Mã vạch được hỗ trợ
 
-| Type | Use Case | PDO Field Example |
+| Loại | Trường hợp sử dụng | Ví dụ Trường PDO |
 |------|----------|-------------------|
-| Code 39 | Patient ID, Treatment ID | `PatientCode`, `TreatmentCode` |
-| Code 128 | Medicine codes | `MedicineCode` |
-| QR Code | Multi-field encoding | `JSON.Serialize(ComplexData)` |
-| EAN-13 | Product identification | `ProductBarcode` |
+| Code 39 | Mã BN, Mã Điều trị | `PatientCode`, `TreatmentCode` |
+| Code 128 | Mã thuốc | `MedicineCode` |
+| QR Code | Mã hóa đa trường dữ liệu | `JSON.Serialize(ComplexData)` |
+| EAN-13 | Định danh sản phẩm | `ProductBarcode` |
 
-**Sources:** MPS/
-
----
-
-## Common Development Patterns
-
-### Pattern 1: Simple Form Processor (4-6 Files)
-
-Basic single-page form with minimal complexity:
-- Main processor class
-- Template handler
-- PDO class
-- 1-2 helper classes
-
-**Example Range:** Mps000001-Mps000100
-
-### Pattern 2: Multi-Section Report (7-10 Files)
-
-Form with multiple sections requiring different data sources:
-- Main processor
-- Section processors (one per section)
-- Data aggregator
-- PDO classes (one per section)
-- Helper utilities
-
-**Example Range:** Mps000101-Mps000200
-
-### Pattern 3: Complex Multi-Page Document (15-19 Files)
-
-Sophisticated document with dynamic pagination, calculations, and extensive formatting:
-- Main processor and coordinator
-- Page handlers
-- Section processors
-- Data aggregators and calculators
-- Multiple PDO classes
-- Validation helpers
-- Template managers
-- Formatting utilities
-
-**Example Range:** Mps000304, Mps000321, Mps000463
-
-**Sources:** MPS.Processor/
+**Nguồn tham khảo:** MPS/
 
 ---
 
-## Best Practices
+## Các mô hình Phát triển Phổ biến
 
-### Code Organization
+### Mô hình 1: Bộ xử lý Biểu mẫu Đơn giản (4-6 File)
 
-| Practice | Rationale |
+Biểu mẫu trang đơn cơ bản với độ phức tạp thấp:
+- Class bộ xử lý chính
+- Bộ quản lý mẫu (Template handler)
+- Class PDO
+- 1-2 class trợ giúp (helper)
+
+**Phạm vi ví dụ:** Mps000001-Mps000100
+
+### Mô hình 2: Báo cáo Đa phần (7-10 File)
+
+Biểu mẫu có nhiều phần (section) yêu cầu các nguồn dữ liệu khác nhau:
+- Bộ xử lý chính
+- Các bộ xử lý phần (mỗi phần một bộ)
+- Bộ tổng hợp dữ liệu (Data aggregator)
+- Các class PDO (mỗi phần một PDO)
+- Các tiện ích trợ giúp
+
+**Phạm vi ví dụ:** Mps000101-Mps000200
+
+### Mô hình 3: Tài liệu Đa trang Phức tạp (15-19 File)
+
+Tài liệu tinh vi với tính năng phân trang động, tính toán và định dạng sâu rộng:
+- Bộ xử lý chính và bộ điều phối
+- Các bộ xử lý trang (Page handlers)
+- Các bộ xử lý phần (Section processors)
+- Các bộ tổng hợp và tính toán dữ liệu
+- Nhiều class PDO
+- Các trợ giúp kiểm tra (Validation helpers)
+- Các bộ quản lý mẫu
+- Các tiện ích định dạng
+
+**Phạm vi ví dụ:** Mps000304, Mps000321, Mps000463
+
+**Nguồn tham khảo:** MPS.Processor/
+
+---
+
+## Các thực hành tốt nhất (Best Practices)
+
+### Tổ chức Mã nguồn
+
+| Thực hành | Lý do |
 |----------|-----------|
-| Separate logic from data | PDO folder contains only data objects with no business logic |
-| Single responsibility | Each file handles one specific aspect (template, binding, formatting) |
-| Reuse base classes | Leverage `MPS.ProcessorBase` for common functionality |
-| Standardize naming | Follow Mps000xxx / Mps000xxxPDO convention |
+| Tách biệt logic và dữ liệu | Thư mục PDO chỉ chứa các đối tượng dữ liệu, không có logic nghiệp vụ |
+| Trách nhiệm đơn nhất (Single responsibility) | Mỗi file xử lý một khía cạnh cụ thể (mẫu, liên kết, định dạng) |
+| Tái sử dụng class cơ sở | Tận dụng `MPS.ProcessorBase` cho các chức năng chung |
+| Chuẩn hóa đặt tên | Tuân thủ quy ước Mps000xxx / Mps000xxxPDO |
 
-### Performance Optimization
+### Tối ưu hóa Hiệu năng
 
-| Technique | Benefit |
+| Kỹ thuật | Lợi ích |
 |-----------|---------|
-| Template caching | Avoid reloading templates for each print request |
-| Lazy loading | Load reference data only when needed |
-| Bulk operations | Use range operations instead of cell-by-cell in FlexCell |
-| Resource disposal | Properly dispose FlexCell objects to prevent memory leaks |
+| Cache mẫu | Tránh việc nạp lại mẫu cho mỗi yêu cầu in |
+| Nạp chậm (Lazy loading) | Chỉ nạp dữ liệu tham chiếu khi cần thiết |
+| Thao tác hàng loạt | Sử dụng các thao tác vùng (range) thay vì từng ô trong FlexCell |
+| Giải phóng tài nguyên | Giải phóng các đối tượng FlexCell đúng cách để tránh rò rỉ bộ nhớ |
 
-### Error Handling
+### Xử lý Lỗi
 
-| Scenario | Handling Strategy |
+| Tình huống | Chiến lược xử lý |
 |----------|-------------------|
-| Missing template | Log error, use fallback template |
-| Invalid PDO data | Validate input, return meaningful error |
-| FlexCell errors | Catch exceptions, log details, retry if transient |
-| BarTender connection | Handle disconnection gracefully, queue for retry |
+| Thiếu mẫu | Ghi log lỗi, sử dụng mẫu dự phòng (fallback) |
+| Dữ liệu PDO không hợp lệ | Kiểm tra đầu vào, trả về lỗi có ý nghĩa |
+| Lỗi FlexCell | Bắt ngoại lệ, ghi lại chi tiết, thử lại nếu lỗi tạm thời |
+| Kết nối BarTender | Xử lý mất kết nối khéo léo, đưa vào hàng đợi để thử lại |
 
-**Sources:** MPS.ProcessorBase/, MPS/
+**Nguồn tham khảo:** MPS.ProcessorBase/, MPS/
 
 ---
 
-## Testing New Processors
+## Kiểm thử Bộ xử lý mới
 
-### Test Checklist
+### Danh mục Kiểm thử (Checklist)
 
 ```mermaid
 graph TB
-    subgraph "Testing Process"
-        UnitTest["Unit Tests<br/>PDO Validation"]
-        IntegrationTest["Integration Tests<br/>Template Binding"]
-        RenderTest["Render Tests<br/>Output Generation"]
-        PrintTest["Print Tests<br/>Physical Output"]
+    subgraph "Quy trình Kiểm thử"
+        UnitTest["Kiểm thử Đơn vị<br/>Kiểm tra PDO"]
+        IntegrationTest["Kiểm thử Tích hợp<br/>Liên kết Mẫu"]
+        RenderTest["Kiểm thử Dựng hình<br/>Tạo Đầu ra"]
+        PrintTest["Kiểm thử In ấn<br/>Đầu ra Vật lý"]
         
         UnitTest --> IntegrationTest
         IntegrationTest --> RenderTest
         RenderTest --> PrintTest
     end
     
-    subgraph "Test Data"
-        SamplePDO["Sample PDO<br/>Valid Data"]
-        EdgeCases["Edge Cases<br/>Boundary Values"]
-        ErrorCases["Error Cases<br/>Invalid Data"]
+    subgraph "Dữ liệu Kiểm thử"
+        SamplePDO["PDO Mẫu<br/>Dữ liệu Hợp lệ"]
+        EdgeCases["Trường hợp Biên<br/>Giá trị Giới hạn"]
+        ErrorCases["Trường hợp Lỗi<br/>Dữ liệu Không hợp lệ"]
     end
     
     SamplePDO --> UnitTest
@@ -1749,125 +1627,122 @@ graph TB
     ErrorCases --> UnitTest
 ```
 
-### Test Cases to Verify
+### Các trường hợp cần Xác minh
 
-- PDO validation with valid data
-- PDO validation with missing required fields
-- Template loading and caching
-- Data binding to all template fields
-- Conditional formatting rules
-- Multi-page pagination
-- Barcode generation (if applicable)
-- PDF export quality
-- Print preview functionality
-- Performance with large datasets (100+ detail rows)
+- Kiểm tra PDO với dữ liệu hợp lệ.
+- Kiểm tra PDO khi thiếu các trường bắt buộc.
+- Nạp mẫu và lưu trữ mẫu vào cache.
+- Liên kết dữ liệu vào tất cả các trường trong mẫu.
+- Các quy tắc định dạng có điều kiện.
+- Phân trang cho tài liệu nhiều trang.
+- Tạo mã vạch (nếu có).
+- Chất lượng kết xuất PDF.
+- Chức năng xem trước khi in (print preview).
+- Hiệu năng với tập dữ liệu lớn (hơn 100 dòng chi tiết).
 
-**Sources:** MPS.Processor/
+**Nguồn tham khảo:** MPS.Processor/
 
 ---
 
-## Integration with HIS Plugins
+## Tích hợp với Plugin HIS
 
-Plugins invoke print processors through the MPS Core Engine:
+Các plugin kích hoạt bộ xử lý in thông qua MPS Core Engine:
 
 ```mermaid
 graph LR
-    subgraph "Plugin Layer - HIS/Plugins/"
+    subgraph "Lớp Plugin - HIS/Plugins/"
         PrescriptionPlugin["AssignPrescriptionPK<br/>203 files"]
         ServicePlugin["ServiceExecute<br/>119 files"]
         FinishPlugin["TreatmentFinish<br/>101 files"]
     end
     
-    subgraph "MPS Layer"
+    subgraph "Lớp MPS"
         MPSCore["MPS Core Engine<br/>MPS/"]
-        Processor001["Mps000001<br/>Prescription"]
-        Processor002["Mps000002<br/>Service Report"]
-        Processor003["Mps000003<br/>Treatment Summary"]
+        Processor001["Mps000001<br/>Đơn thuốc"]
+        Processor002["Mps000002<br/>Kết quả Dịch vụ"]
+        Processor003["Mps000003<br/>Tóm tắt Điều trị"]
     end
     
-    PrescriptionPlugin -->|"Print Request + PDO"| MPSCore
-    ServicePlugin -->|"Print Request + PDO"| MPSCore
-    FinishPlugin -->|"Print Request + PDO"| MPSCore
+    PrescriptionPlugin -->|"Yêu cầu In + PDO"| MPSCore
+    ServicePlugin -->|"Yêu cầu In + PDO"| MPSCore
+    FinishPlugin -->|"Yêu cầu In + PDO"| MPSCore
     
     MPSCore --> Processor001
     MPSCore --> Processor002
     MPSCore --> Processor003
 ```
 
-**Sources:** HIS/Plugins/, MPS/
+**Nguồn tham khảo:** HIS/Plugins/, MPS/
 
 ---
 
-## Processor Numbering Convention
+## Quy ước Đánh số Bộ xử lý
 
-| Range | Category | Examples |
+| Phạm vi | Danh mục | Ví dụ |
 |-------|----------|----------|
-| 000001-000050 | Prescriptions | Drug prescriptions, medicine orders |
-| 000051-000100 | Lab Reports | Test results, analysis reports |
-| 000101-000150 | Invoices | Payment receipts, billing statements |
-| 000151-000200 | Transfer Forms | Patient transfers, referrals |
-| 000201-000250 | Treatment Records | Treatment summaries, discharge notes |
-| 000251-000300 | Administrative | Registration forms, certificates |
-| 000301-000500 | Complex Forms | Multi-page reports, specialized documents |
-| 000501-000600+ | Custom Forms | Hospital-specific templates |
+| 000001-000050 | Đơn thuốc | Kê đơn thuốc, y lệnh thuốc |
+| 000051-000100 | Phiếu Xét nghiệm | Kết quả xét nghiệm, báo cáo phân tích |
+| 000101-000150 | Hóa đơn | Biên lai thanh toán, bảng kê chi phí |
+| 000151-000200 | Phiếu Chuyển viện | Chuyển tuyến, giới thiệu chuyên gia |
+| 000201-000250 | Hồ sơ Điều trị | Tóm tắt bệnh án, phiếu ra viện |
+| 000251-000300 | Hành chính | Phiếu đăng ký, giấy chứng nhận |
+| 000301-000500 | Biểu mẫu Phức tạp | Báo cáo đa trang, tài liệu chuyên biệt |
+| 000501-000600+ | Biểu mẫu Tùy chỉnh | Các mẫu đặc thù của bệnh viện |
 
-**Sources:** MPS.Processor/
+**Nguồn tham khảo:** MPS.Processor/
 
 ---
 
-## Summary
+## Tổng kết
 
-Print processor development in the MPS system follows a well-defined two-component architecture:
+Phát triển bộ xử lý in trong hệ thống MPS tuân theo kiến trúc hai thành phần được định nghĩa rõ ràng:
 
-1. **Logic Folder (Mps000xxx)**: Contains processing logic, template handling, and data binding code (4-19 files)
-2. **PDO Folder (Mps000xxx.PDO)**: Contains data transfer objects and input parameters (3-10 files)
+1.  **Thư mục Logic (Mps000xxx)**: Chứa logic xử lý, quản lý mẫu và mã liên kết dữ liệu (4-19 file).
+2.  **Thư mục PDO (Mps000xxx.PDO)**: Chứa các đối tượng truyền dữ liệu và tham số đầu vào (3-10 file).
 
-Key integration points:
-- Inherit from `MPS.ProcessorBase` abstract classes
-- Use FlexCell for Excel/PDF generation ([Common/Inventec.Common/FlexCelPrint/](), [Common/Inventec.Common/FlexCelExport/]())
-- Use BarTender for barcode printing
-- Register with MPS Core Engine for plugin invocation
-- Follow standardized naming conventions (Mps000xxx)
+Các điểm tích hợp chính:
+- Kế thừa từ các class trừu tượng của `MPS.ProcessorBase`.
+- Sử dụng FlexCell để tạo file Excel/PDF.
+- Sử dụng BarTender để in mã vạch.
+- Đăng ký với MPS Core Engine để các plugin có thể kích hoạt.
+- Tuân thủ quy ước đặt tên chuẩn hóa (Mps000xxx).
 
-For information about the overall MPS architecture, see [MPS Print System](../02-modules/his-desktop/business-plugins.md#mps-print). For details on how plugins use the print system, see [Plugin System Architecture](../01-architecture/plugin-system.md).
+Để biết thông tin về kiến trúc tổng thể của MPS, xem [Hệ thống In ấn MPS](../02-modules/his-desktop/business-plugins.md#mps-print). Để biết chi tiết về cách các plugin sử dụng hệ thống in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
-**Sources:** MPS/, MPS.ProcessorBase/, MPS.Processor/, Common/Inventec.Common/
+**Nguồn tham khảo:** MPS/, MPS.ProcessorBase/, MPS.Processor/, Common/Inventec.Common/
 
-# UC Components Library
+# Thư viện Thành phần UC
 
+## Mục tiêu và Phạm vi
 
+Tài liệu này bao gồm thư viện UC (User Controls), một tập hợp gồm 131 thành phần UI có thể tái sử dụng nằm trong thư mục `UC/`. Các thành phần này cung cấp các trình điều khiển chuẩn hóa, chuyên biệt theo nghiệp vụ được sử dụng trong 956 plugin của hệ thống HIS. Thư viện UC triển khai kiến trúc hai tầng được xây dựng trên nền tảng `Inventec.UC` và cung cấp các trình điều khiển chuyên biệt cho lĩnh vực y tế.
 
+Để biết thông tin về các tiện ích của lớp nền tảng, xem [Các trình điều khiển dùng chung Inventec UC](../02-modules/common-libraries/libraries.md#inventec-uc). Đối với việc triển khai UI ở cấp độ plugin, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/03-structure-organization.md).
 
-## Purpose and Scope
+## Tổng quan
 
-This document covers the UC (User Controls) library, a collection of 131 reusable UI components located in the `UC/` directory. These components provide standardized, domain-specific controls used throughout the HIS system's 956 plugins. The UC library implements a two-tier architecture built on the `Inventec.UC` foundation layer and provides specialized medical domain controls.
+Thư viện UC đóng vai trò là kho lưu trữ thành phần UI chính cho hệ thống HIS, cho phép giao diện người dùng nhất quán trên tất cả các plugin. Mỗi dự án UC là một trình điều khiển độc lập, có thể tái sử dụng, có thể được nhúng vào bất kỳ plugin nào yêu cầu chức năng đó.
 
-For information about the foundation layer utilities, see [Inventec UC Shared Controls](../02-modules/common-libraries/libraries.md#inventec-uc). For plugin-level UI implementation, see [Plugin System Architecture](../01-architecture/plugin-system.md).
-
-## Overview
-
-The UC library serves as the primary UI component repository for the HIS system, enabling consistent user interfaces across all plugins. Each UC project is a self-contained, reusable control that can be embedded into any plugin requiring that functionality.
-
-The library contains components ranging from simple input controls to complex workflow forms, with the largest components containing over 300 files.
+Thư viện chứa các thành phần từ trình điều khiển nhập liệu đơn giản đến các biểu mẫu quy trình công việc phức tạp, với các thành phần lớn nhất chứa hơn 300 file.
 
 ```mermaid
 graph TB
-    subgraph "HIS Application Layer"
-        Plugins["956 HIS Plugins<br/>Business Logic"]
+    subgraph "Lớp Ứng dụng HIS"
+        Plugins["956 Plugin HIS<br/>Logic nghiệp vụ"]
     end
     
-    subgraph "UC Components Layer - 131 Projects"
+    subgraph "Lớp Thành phần UC - 131 Dự án"
         FormType["HIS.UC.FormType<br/>329 files"]
         CreateReport["His.UC.CreateReport<br/>165 files"]
         UCHein["His.UC.UCHein<br/>153 files"]
         PlusInfo["HIS.UC.PlusInfo<br/>147 files"]
         ExamFinish["HIS.UC.ExamTreatmentFinish<br/>103 files"]
         TreatmentFinish["HIS.UC.TreatmentFinish<br/>94 files"]
-        OtherUCs["125 other UC projects"]
+        OtherUCs["125 dự án UC khác"]
     end
     
-    subgraph "Foundation Layer"
-        InventecUC["Inventec.UC<br/>1060 files<br/>Base Controls"]
+    subgraph "Lớp Nền tảng (Foundation Layer)"
+        InventecUC["Inventec.UC<br/>1060 files<br/>Các trình điều khiển cơ sở"]
     end
     
     Plugins --> FormType
@@ -1887,98 +1762,104 @@ graph TB
     OtherUCs --> InventecUC
 ```
 
-**Sources:** [UC/](#), [Common/Inventec.UC/](#), [`.devin/wiki.json:1-295`](../../../.devin/wiki.json#L1-L295)
+**Nguồn tham khảo:** [UC/](#), [Common/Inventec.UC/](#), [`.devin/wiki.json`](../../../.devin/wiki.json)
 
-## Architecture
+---
 
-### Two-Tier Component Hierarchy
+## Kiến trúc
 
-The UC library implements a layered architecture where domain-specific components build upon a foundation of generic controls:
+### Hệ thống Phân cấp Thành phần Hai tầng
 
-| Layer | Component | Purpose | File Count |
+Thư viện UC triển khai kiến trúc phân tầng trong đó các thành phần chuyên biệt theo nghiệp vụ được xây dựng dựa trên nền tảng của các trình điều khiển chung:
+
+| Tầng | Thành phần | Mục đích | Số lượng file |
 |-------|-----------|---------|------------|
-| Foundation | `Inventec.UC` | Base controls, grid behaviors, common UI patterns | 1060 files |
-| Domain | `HIS.UC.*` | Medical domain-specific controls | 131 projects |
-| Domain | `His.UC.*` | Healthcare workflow controls | Part of 131 projects |
+| Nền tảng | `Inventec.UC` | Các trình điều khiển cơ sở, hành vi lưới (grid), các mô hình UI chung | 1060 file |
+| Nghiệp vụ | `HIS.UC.*` | Các trình điều khiển chuyên biệt cho lĩnh vực y tế | 131 dự án |
+| Nghiệp vụ | `His.UC.*` | Các trình điều khiển quy trình chăm sóc sức khỏe | Một phần của 131 dự án |
 
-The foundation layer (`Inventec.UC`) provides generic UI behaviors such as:
-- Grid controls with sorting and filtering
-- Date/time pickers
-- Search boxes
-- Validation frameworks
-- Common dialogs
+Lớp nền tảng (`Inventec.UC`) cung cấp các hành vi UI chung như:
+- Các trình điều khiển lưới (grid) với tính năng sắp xếp và lọc.
+- Bộ chọn ngày/giờ.
+- Các ô tìm kiếm.
+- Khung kiểm tra (validation frameworks).
+- Các hộp thoại chung.
 
-Domain-specific UC projects extend these base controls with medical context, business rules, and workflow logic.
+Các dự án UC chuyên biệt theo nghiệp vụ mở rộng các trình điều khiển cơ sở này với các ngữ cảnh y tế, quy tắc nghiệp vụ và logic quy trình công việc.
 
-**Sources:** [Common/Inventec.UC/](#), [UC/](#)
+**Nguồn tham khảo:** [Common/Inventec.UC/](#), [UC/](#)
 
-### UC Categories
+### Các Danh mục UC
 
-The 131 UC components are organized by functional domain:
+131 thành phần UC được tổ chức theo miền chức năng:
 
 ```mermaid
 graph LR
-    subgraph "Core Data Entry"
-        FormType["HIS.UC.FormType<br/>329 files<br/>Form Engine"]
-        PlusInfo["HIS.UC.PlusInfo<br/>147 files<br/>Additional Info"]
+    subgraph "Nhập liệu cốt lõi"
+        FormType["HIS.UC.FormType<br/>329 files<br/>Bộ máy Biểu mẫu"]
+        PlusInfo["HIS.UC.PlusInfo<br/>147 files<br/>Thông tin bổ sung"]
     end
     
-    subgraph "Clinical Workflows"
+    subgraph "Quy trình Lâm sàng"
         ExamFinish["HIS.UC.ExamTreatmentFinish<br/>103 files"]
         TreatmentFinish["HIS.UC.TreatmentFinish<br/>94 files"]
         Hospitalize["HIS.UC.Hospitalize<br/>53 files"]
         Death["HIS.UC.Death<br/>47 files"]
     end
     
-    subgraph "Reporting"
+    subgraph "Báo cáo"
         CreateReport["His.UC.CreateReport<br/>165 files"]
     end
     
-    subgraph "Insurance"
+subgraph "Bảo hiểm"
         UCHein["His.UC.UCHein<br/>153 files"]
         UCHeniInfo["HIS.UC.UCHeniInfo<br/>47 files"]
     end
     
-    subgraph "Medical Data"
+    subgraph "Dữ liệu Y tế"
         MedicineType["HIS.UC.MedicineType<br/>82 files"]
         MaterialType["HIS.UC.MaterialType<br/>85 files"]
         Icd["HIS.UC.Icd<br/>65 files"]
         SecondaryIcd["HIS.UC.SecondaryIcd<br/>61 files"]
     end
     
-    subgraph "Patient Management"
+    subgraph "Quản lý Bệnh nhân"
         PatientSelect["HIS.UC.PatientSelect<br/>39 files"]
         UCPatientRaw["HIS.UC.UCPatientRaw<br/>47 files"]
     end
 ```
 
-**Sources:** [`.devin/wiki.json:200-237`](../../../.devin/wiki.json#L200-L237)
+**Nguồn tham khảo:** [`.devin/wiki.json`](../../../.devin/wiki.json)
 
-### Top 15 UC Components by Size
+---
 
-| UC Project | File Count | Primary Purpose |
+### Top 15 Thành phần UC theo Kích thước
+
+| Dự án UC | Số lượng file | Mục đích chính |
 |------------|------------|-----------------|
-| `HIS.UC.FormType` | 329 | Core form rendering engine for all data entry |
-| `His.UC.CreateReport` | 165 | Report builder and template management |
-| `His.UC.UCHein` | 153 | Health insurance workflows and validation |
-| `HIS.UC.PlusInfo` | 147 | Additional patient/treatment information entry |
-| `HIS.UC.ExamTreatmentFinish` | 103 | Exam completion workflows |
-| `HIS.UC.TreatmentFinish` | 94 | Treatment termination and discharge |
-| `HIS.UC.MaterialType` | 85 | Material/supply selection and management |
-| `HIS.UC.MedicineType` | 82 | Medicine selection and management |
-| `HIS.UC.Icd` | 65 | Primary diagnosis (ICD-10 code) selection |
-| `HIS.UC.SecondaryIcd` | 61 | Secondary diagnosis and comorbidities |
-| `HIS.UC.KskContract` | 59 | Health examination contract management |
-| `HIS.UC.DateEditor` | 55 | Date/time input with medical context |
-| `HIS.UC.DHST` | 54 | Vital signs entry (height, weight, BP, etc.) |
-| `HIS.UC.Hospitalize` | 53 | Patient admission workflows |
-| `HIS.UC.TreeSereServ7V2` | 52 | Service tree navigation and selection |
+| `HIS.UC.FormType` | 329 | Bộ máy dựng biểu mẫu cốt lõi cho tất cả nhập liệu |
+| `His.UC.CreateReport` | 165 | Trình tạo báo cáo và quản lý mẫu |
+| `His.UC.UCHein` | 153 | Quy trình và kiểm tra bảo hiểm y tế |
+| `HIS.UC.PlusInfo` | 147 | Nhập thông tin bổ sung cho bệnh nhân/điều trị |
+| `HIS.UC.ExamTreatmentFinish` | 103 | Quy trình hoàn tất khám bệnh |
+| `HIS.UC.TreatmentFinish` | 94 | Quy trình kết thúc điều trị và xuất viện |
+| `HIS.UC.MaterialType` | 85 | Lựa chọn và quản lý vật tư/công cụ |
+| `HIS.UC.MedicineType` | 82 | Lựa chọn và quản lý thuốc |
+| `HIS.UC.Icd` | 65 | Lựa chọn chẩn đoán chính (mã ICD-10) |
+| `HIS.UC.SecondaryIcd` | 61 | Chẩn đoán phụ và các bệnh kèm theo |
+| `HIS.UC.KskContract` | 59 | Quản lý hợp đồng khám sức khỏe |
+| `HIS.UC.DateEditor` | 55 | Nhập ngày/giờ với ngữ cảnh y tế |
+| `HIS.UC.DHST` | 54 | Nhập dấu hiệu sinh tồn (chiều cao, cân nặng, HA, v.v.) |
+| `HIS.UC.Hospitalize` | 53 | Quy trình nhập viện |
+| `HIS.UC.TreeSereServ7V2` | 52 | Điều hướng và lựa chọn cây dịch vụ |
 
-**Sources:** [`.devin/wiki.json:204-231`](../../../.devin/wiki.json#L204-L231)
+**Nguồn tham khảo:** [`.devin/wiki.json`](../../../.devin/wiki.json)
 
-## Integration with HIS Plugins
+---
 
-UC components are consumed by plugins through a standard pattern of initialization, data binding, and event handling. The following diagram illustrates the data flow between plugins and UCs:
+## Tích hợp với Plugin HIS
+
+Các thành phần UC được các plugin tiêu thụ thông qua một mô hình chuẩn về khởi tạo, liên kết dữ liệu và xử lý sự kiện. Biểu đồ dưới đây minh họa luồng dữ liệu giữa các plugin và UC:
 
 ```mermaid
 sequenceDiagram
@@ -2005,44 +1886,44 @@ sequenceDiagram
     Plugin->>UC: RefreshData()
 ```
 
-**Sources:** [HIS/HIS.Desktop/](#), [UC/](#), [HIS/HIS.Desktop.ApiConsumer/](#)
+**Nguồn tham khảo:** [HIS/HIS.Desktop/](#), [UC/](#), [HIS/HIS.Desktop.ApiConsumer/](#)
 
-### Common Integration Pattern
+### Mô hình Tích hợp Phổ biến
 
-Most plugins follow this pattern when using UC components:
+Hầu hết các plugin tuân theo mô hình này khi sử dụng các thành phần UC:
 
-```
-1. Plugin creates UC instance
-2. Plugin initializes UC with configuration parameters
-3. Plugin binds data from LocalStorage or API
-4. UC raises events for user actions
-5. Plugin handles events and performs business logic
-6. Plugin updates UC display based on results
-```
+1. Plugin tạo thực thể UC.
+2. Plugin khởi tạo UC với các tham số cấu hình.
+3. Plugin liên kết dữ liệu từ LocalStorage hoặc API.
+4. UC kích hoạt các sự kiện cho các hành động của người dùng.
+5. Plugin xử lý các sự kiện và thực hiện logic nghiệp vụ.
+6. Plugin cập nhật hiển thị của UC dựa trên kết quả.
 
-The UC component itself handles:
-- UI layout and rendering
-- Input validation
-- Grid operations (sort, filter, search)
-- Data formatting
-- User interaction events
+Bản thân thành phần UC xử lý:
+- Bố cục UI và dựng hình (rendering).
+- Kiểm tra tính hợp lệ của dữ liệu nhập liệu.
+- Các thao tác trên lưới (sắp xếp, lọc, tìm kiếm).
+- Định dạng dữ liệu.
+- Các sự kiện tương tác của người dùng.
 
-**Sources:** [HIS/Plugins/](#)
+**Nguồn tham khảo:** [HIS/Plugins/](#)
 
-## UC Project Structure
+---
 
-Each UC project typically follows this internal structure:
+## Cấu trúc Dự án UC
+
+Mỗi dự án UC thường tuân theo cấu trúc nội bộ này:
 
 ```mermaid
 graph TB
-    subgraph "HIS.UC.ExampleControl Project"
-        UCControl["UCExampleControl.cs<br/>Main UserControl Class"]
-        Processor["Processor/<br/>Business Logic"]
-        ADO["ADO/<br/>Data Objects"]
-        Design["Design/<br/>UI Layouts"]
+    subgraph "Dự án HIS.UC.ExampleControl"
+        UCControl["UCExampleControl.cs<br/>Class UserControl Chính"]
+        Processor["Processor/<br/>Logic Nghiệp vụ"]
+        ADO["ADO/<br/>Đối tượng Dữ liệu"]
+        Design["Design/<br/>Bố cục UI"]
         Resources["Resources/<br/>Icons, Strings"]
-        Run["Run/<br/>Initialization Logic"]
-        Base["Base/<br/>Interfaces, Base Classes"]
+        Run["Run/<br/>Logic Khởi tạo"]
+        Base["Base/<br/>Interfaces, Class Cơ sở"]
     end
     
     UCControl --> Processor
@@ -2052,142 +1933,148 @@ graph TB
     Run --> UCControl
 ```
 
-### Standard Folders in UC Projects
+### Các Thư mục chuẩn trong Dự án UC
 
-| Folder | Purpose | Typical Contents |
+| Thư mục | Mục đích | Nội dung điển hình |
 |--------|---------|------------------|
-| `/` (root) | Main control class | [`UC[Name].cs`](../../UC[Name].cs), [`UC[Name].Designer.cs`](../../UC[Name].Designer.cs) |
-| `ADO/` | Data transfer objects | Models specific to the UC |
-| `Processor/` | Business logic | Validation, calculations, data transformations |
-| `Design/` | UI resources | Layout XML, designer files |
-| `Resources/` | Assets | Icons, localized strings |
-| `Run/` | Factory/initialization | UC instantiation logic |
-| `Base/` | Interfaces | Contracts for plugin integration |
+| `/` (gốc) | Class trình điều khiển chính | `UC[Tên].cs`, `UC[Tên].Designer.cs` |
+| `ADO/` | Đối tượng truyền dữ liệu | Các Model đặc thù cho UC |
+| `Processor/` | Logic nghiệp vụ | Kiểm tra, tính toán, chuyển đổi dữ liệu |
+| `Design/` | Tài nguyên UI | Layout XML, các file designer |
+| `Resources/` | Tài sản | Các icon, chuỗi ký tự đa ngôn ngữ |
+| `Run/` | Factory/khởi tạo | Logic khởi tạo thực thể UC |
+| `Base/` | Giao diện (Interfaces) | Các hợp đồng (contracts) để tích hợp plugin |
 
-**Sources:** [UC/](#)
+**Nguồn tham khảo:** [UC/](#)
 
-## Key UC Components
+---
 
-### HIS.UC.FormType - Form Rendering Engine
+## Các thành phần UC chính
 
-`HIS.UC.FormType` is the largest and most critical UC component with 329 files. It serves as the core form rendering engine for all data entry operations in the HIS system.
+### HIS.UC.FormType - Bộ máy Dựng Biểu mẫu
 
-**Functionality:**
-- Dynamic form generation based on templates
-- Field-level validation rules
-- Data binding for complex medical forms
-- Support for multiple form types (patient registration, exam, prescription, etc.)
+`HIS.UC.FormType` là thành phần UC lớn nhất và quan trọng nhất với 329 file. Nó đóng vai trò là bộ máy dựng biểu mẫu cốt lõi cho tất cả các hoạt động nhập liệu trong hệ thống HIS.
 
-For detailed information, see [Form Type Controls](#1.3.1).
+**Chức năng:**
+- Tạo biểu mẫu động dựa trên các mẫu (templates).
+- Các quy tắc kiểm tra tính hợp lệ ở cấp độ trường.
+- Liên kết dữ liệu cho các biểu mẫu y tế phức tạp.
+- Hỗ trợ nhiều loại biểu mẫu (đăng ký bệnh nhân, khám bệnh, đơn thuốc, v.v.)
 
-**Sources:** [UC/HIS.UC.FormType/](#)
+Để biết thông tin chi tiết, xem [Trình điều khiển Loại Biểu mẫu](#1.3.1).
 
-### His.UC.CreateReport - Report Builder
+**Nguồn tham khảo:** [UC/HIS.UC.FormType/](#)
 
-`His.UC.CreateReport` (165 files) provides report creation and template management capabilities.
+### His.UC.CreateReport - Trình tạo Báo cáo
 
-**Key Features:**
-- Custom report template design
-- Parameter input forms
-- Data source selection
-- Export to multiple formats (PDF, Excel, Word)
-- Integration with MPS print system
+`His.UC.CreateReport` (165 file) cung cấp khả năng tạo báo cáo và quản lý mẫu.
 
-**Sources:** [UC/His.UC.CreateReport/](#)
+**Các tính năng chính:**
+- Thiết kế mẫu báo cáo tùy chỉnh.
+- Các biểu mẫu nhập tham số.
+- Lựa chọn nguồn dữ liệu.
+- Kết xuất sang nhiều định dạng (PDF, Excel, Word).
+- Tích hợp với hệ thống in MPS.
 
-### His.UC.UCHein - Insurance Management
+**Nguồn tham khảo:** [UC/His.UC.CreateReport/](#)
 
-`His.UC.UCHein` (153 files) handles health insurance validation and workflows.
+### His.UC.UCHein - Quản lý Bảo hiểm
 
-**Key Features:**
-- Insurance card validation
-- Coverage verification
-- Co-payment calculation
-- Insurance rules enforcement
-- Integration with government insurance systems
+`His.UC.UCHein` (153 file) xử lý việc kiểm tra và quy trình bảo hiểm y tế.
 
-**Sources:** [UC/His.UC.UCHein/](#)
+**Các tính năng chính:**
+- Kiểm tra thẻ bảo hiểm.
+- Xác minh phạm vi bảo hiểm.
+- Tính toán đồng chi trả.
+- Thực thi các quy tắc bảo hiểm.
+- Tích hợp với hệ thống bảo hiểm của chính phủ.
 
-### HIS.UC.PlusInfo - Additional Information
+**Nguồn tham khảo:** [UC/His.UC.UCHein/](#)
 
-`HIS.UC.PlusInfo` (147 files) provides extensible fields for additional patient and treatment data.
+### HIS.UC.PlusInfo - Thông tin Bổ sung
 
-**Key Features:**
-- Custom field definitions
-- Dynamic field rendering
-- Multi-type data entry (text, numeric, date, dropdown)
-- Field grouping and categorization
+`HIS.UC.PlusInfo` (147 file) cung cấp các trường có thể mở rộng cho dữ liệu bệnh nhân và điều trị bổ sung.
 
-**Sources:** [UC/HIS.UC.PlusInfo/](#)
+**Các tính năng chính:**
+- Định nghĩa các trường tùy chỉnh.
+- Dựng hình các trường động.
+- Nhập liệu đa kiểu (văn bản, số, ngày, dropdown).
+- Nhóm và phân loại các trường.
 
-## Medical Domain UCs
+**Nguồn tham khảo:** [UC/HIS.UC.PlusInfo/](#)
 
-### Patient and Treatment Controls
+---
 
-These UCs handle core patient management and treatment workflows. For detailed documentation, see [Patient & Treatment UCs](#1.3.2).
+## Các UC chuyên ngành Y tế
 
-| UC Component | Files | Purpose |
+### Các trình điều khiển Bệnh nhân và Điều trị
+
+Các UC này xử lý các quy trình quản lý bệnh nhân và điều trị cốt lõi. Để biết tài liệu chi tiết, xem [UC Bệnh nhân & Điều trị](#1.3.2).
+
+| Thành phần UC | Số file | Mục đích |
 |--------------|-------|---------|
-| `HIS.UC.ExamTreatmentFinish` | 103 | Complete examination and finalize treatment plan |
-| `HIS.UC.TreatmentFinish` | 94 | Discharge and treatment termination workflows |
-| `HIS.UC.Hospitalize` | 53 | Patient admission and bed assignment |
-| `HIS.UC.Death` | 47 | Death certificate and related procedures |
-| `HIS.UC.UCPatientRaw` | 47 | Raw patient data entry |
-| `HIS.UC.UCHeniInfo` | 47 | Detailed insurance information |
-| `HIS.UC.PatientSelect` | 39 | Patient search and selection |
+| `HIS.UC.ExamTreatmentFinish` | 103 | Hoàn tất khám bệnh và chốt phác đồ điều trị |
+| `HIS.UC.TreatmentFinish` | 94 | Quy trình kết thúc điều trị và xuất viện |
+| `HIS.UC.Hospitalize` | 53 | Nhập viện và phân giường |
+| `HIS.UC.Death` | 47 | Giấy báo tử và các thủ tục liên quan |
+| `HIS.UC.UCPatientRaw` | 47 | Nhập liệu dữ liệu bệnh nhân thô |
+| `HIS.UC.UCHeniInfo` | 47 | Thông tin bảo hiểm chi tiết |
+| `HIS.UC.PatientSelect` | 39 | Tìm kiếm và lựa chọn bệnh nhân |
 
-**Sources:** [`.devin/wiki.json:215-222`](../../../.devin/wiki.json#L215-L222)
+**Nguồn tham khảo: [`.devin/wiki.json`](../../../.devin/wiki.json)**
 
-### Medicine and Diagnosis Controls
+### Các trình điều khiển Thuốc và Chẩn đoán
 
-These UCs manage medication selection and diagnostic coding. For detailed documentation, see [Medicine & ICD UCs](#1.3.3).
+Các UC này quản lý việc lựa chọn thuốc và mã hóa chẩn đoán. Để biết tài liệu chi tiết, xem [UC Thuốc & ICD](#1.3.3).
 
-| UC Component | Files | Purpose |
+| Thành phần UC | Số file | Mục đích |
 |--------------|-------|---------|
-| `HIS.UC.MaterialType` | 85 | Medical material/supply selection |
-| `HIS.UC.MedicineType` | 82 | Medication search and selection |
-| `HIS.UC.Icd` | 65 | Primary ICD-10 diagnosis code entry |
-| `HIS.UC.SecondaryIcd` | 61 | Secondary diagnoses and comorbidities |
-| `HIS.UC.DHST` | 54 | Vital signs (height, weight, BP, temperature) |
-| `HIS.UC.TreeSereServ7V2` | 52 | Service hierarchy navigation |
+| `HIS.UC.MaterialType` | 85 | Lựa chọn vật tư y tế/công cụ |
+| `HIS.UC.MedicineType` | 82 | Tìm kiếm và lựa chọn thuốc |
+| `HIS.UC.Icd` | 65 | Nhập mã chẩn đoán ICD-10 chính |
+| `HIS.UC.SecondaryIcd` | 61 | Chẩn đoán phụ và các bệnh kèm theo |
+| `HIS.UC.DHST` | 54 | Dấu hiệu sinh tồn (chiều cao, cân nặng, HA, nhiệt độ) |
+| `HIS.UC.TreeSereServ7V2` | 52 | Điều hướng cây phân cấp dịch vụ |
 
-**Sources:** [`.devin/wiki.json:225-232`](../../../.devin/wiki.json#L225-L232)
+**Nguồn tham khảo: [`.devin/wiki.json`](../../../.devin/wiki.json)**
 
-### Service and Room Controls
+### Các trình điều khiển Dịch vụ và Phòng
 
-These UCs handle service management and room operations. For detailed documentation, see [Service & Room UCs](#1.3.4).
+Các UC này quản lý dịch vụ và các hoạt động tại phòng. Để biết tài liệu chi tiết, xem [UC Dịch vụ & Phòng](#1.3.4).
 
-| UC Component | Files | Purpose |
+| Thành phần UC | Số file | Mục đích |
 |--------------|-------|---------|
-| `HIS.UC.ServiceRoom` | 48 | Service-to-room assignment |
-| `HIS.UC.ServiceUnit` | 48 | Service unit management |
-| `HIS.UC.Sick` | 43 | Sick leave documentation |
-| `HIS.UC.ServiceRoomInfo` | 43 | Detailed service room information |
-| `HIS.UC.National` | 41 | Nationality/ethnicity selection |
-| `HIS.UC.RoomExamService` | 40 | Examination room service configuration |
+| `HIS.UC.ServiceRoom` | 48 | Chỉ định dịch vụ cho phòng |
+| `HIS.UC.ServiceUnit` | 48 | Quản lý đơn vị dịch vụ |
+| `HIS.UC.Sick` | 43 | Tài liệu nghỉ ốm |
+| `HIS.UC.ServiceRoomInfo` | 43 | Thông tin phòng dịch vụ chi tiết |
+| `HIS.UC.National` | 41 | Lựa chọn quốc tịch/dân tộc |
+| `HIS.UC.RoomExamService` | 40 | Cấu hình dịch vụ phòng khám |
 
-**Sources:** [`.devin/wiki.json:235-238`](../../../.devin/wiki.json#L235-L238)
+**Nguồn tham khảo: [`.devin/wiki.json`](../../../.devin/wiki.json)**
 
-## UC Communication Patterns
+---
 
-### Event-Driven Architecture
+## Các mô hình Giao tiếp UC
 
-UC components use events to communicate state changes and user actions to consuming plugins:
+### Kiến trúc Hướng Sự kiện
+
+Các thành phần UC sử dụng các sự kiện để thông báo về thay đổi trạng thái và hành động của người dùng cho các plugin tiêu thụ:
 
 ```mermaid
 graph TB
-    subgraph "UC Component Events"
-        DataChanged["Data Changed Event"]
-        ValidationFailed["Validation Failed Event"]
-        SelectionChanged["Selection Changed Event"]
-        ActionRequired["Action Required Event"]
+    subgraph "Các sự kiện của Thành phần UC"
+        DataChanged["Sự kiện Thay đổi Dữ liệu"]
+        ValidationFailed["Sự kiện Kiểm tra thất bại"]
+        SelectionChanged["Sự kiện Thay đổi lựa chọn"]
+        ActionRequired["Sự kiện Yêu cầu Hành động"]
     end
     
-    subgraph "Plugin Handlers"
-        SaveHandler["Save Data Handler"]
-        ValidationHandler["Validation Handler"]
-        RefreshHandler["Refresh Display Handler"]
-        WorkflowHandler["Workflow Progression Handler"]
+    subgraph "Các bộ xử lý của Plugin"
+        SaveHandler["Bộ xử lý Lưu Dữ liệu"]
+        ValidationHandler["Bộ xử lý Kiểm tra"]
+        RefreshHandler["Bộ xử lý Làm mới Hiển thị"]
+        WorkflowHandler["Bộ xử lý Tiến trình Quy trình"]
     end
     
     DataChanged --> SaveHandler
@@ -2197,27 +2084,27 @@ graph TB
     
     SaveHandler --> API["HIS.Desktop.ApiConsumer"]
     ValidationHandler --> LocalStorage["LocalStorage.BackendData"]
-    RefreshHandler --> UC["Update UC Display"]
-    WorkflowHandler --> NextStep["Navigate to Next Step"]
+    RefreshHandler --> UC["Cập nhật hiển thị UC"]
+    WorkflowHandler --> NextStep["Điều hướng đến bước tiếp theo"]
 ```
 
-### Standard UC Events
+### Các sự kiện UC chuẩn
 
-Most UC components expose these standard event types:
+Hầu hết các thành phần UC đều cung cấp các loại sự kiện tiêu chuẩn sau:
 
-| Event Type | Purpose | Data Passed |
+| Loại sự kiện | Mục đích | Dữ liệu được truyền |
 |------------|---------|-------------|
-| `OnDataChanged` | Data modification by user | Modified data object |
-| `OnValidationFailed` | Validation rule violation | Validation error list |
-| `OnSelectionChanged` | Item selected from list | Selected item ID/object |
-| `OnActionRequired` | User initiated action | Action type identifier |
-| `OnSaveRequired` | Data ready to persist | Complete data model |
+| `OnDataChanged` | Người dùng sửa đổi dữ liệu | Đối tượng dữ liệu đã sửa đổi |
+| `OnValidationFailed` | Vi phạm quy tắc kiểm tra | Danh sách lỗi kiểm tra |
+| `OnSelectionChanged` | Chọn một mục từ danh sách | ID/Đối tượng của mục đã chọn |
+| `OnActionRequired` | Người dùng kích hoạt một hành động | Định danh loại hành động |
+| `OnSaveRequired` | Dữ liệu đã sẵn sàng để lưu | Model dữ liệu hoàn chỉnh |
 
-**Sources:** [UC/](#), [HIS/HIS.Desktop/](#)
+**Nguồn tham khảo:** [UC/](#), [HIS/HIS.Desktop/](#)
 
-### Data Binding Pattern
+### Mô hình Liên kết Dữ liệu
 
-UC components support bidirectional data binding:
+Các thành phần UC hỗ trợ liên kết dữ liệu hai chiều:
 
 ```mermaid
 sequenceDiagram
@@ -2232,7 +2119,7 @@ sequenceDiagram
     Plugin->>UC: SetData(ADO)
     UC->>UC: RenderUI()
     
-    Note over UC: User modifies data
+    Note over UC: Người dùng sửa đổi dữ liệu
     
     UC->>ADO: UpdateModel()
     UC->>Plugin: OnDataChanged(ADO)
@@ -2240,73 +2127,78 @@ sequenceDiagram
     Plugin->>API: SaveData()
 ```
 
-**Sources:** [UC/](#), [HIS/HIS.Desktop.ADO/](#)
+**Nguồn tham khảo:** [UC/](#), [HIS/HIS.Desktop.ADO/](#)
 
-## UC Development Patterns
+---
 
-### Creating a New UC Component
+## Các mô hình Phát triển UC
 
-When developing a new UC component, follow these steps:
+### Tạo một Thành phần UC mới
 
-1. **Create project structure:**
-   - Create new Class Library project in `UC/` folder
-   - Follow naming convention: `HIS.UC.[ComponentName]` or `His.UC.[ComponentName]`
-   - Add folders: `ADO/`, `Processor/`, `Design/`, `Run/`, `Base/`
+Khi phát triển một thành phần UC mới, hãy thực hiện theo các bước sau:
 
-2. **Define interfaces:**
-   - Create interface in `Base/` folder defining UC contract
-   - Include initialization, data binding, and event methods
+1. **Tạo cấu trúc dự án:**
+   - Tạo dự án Class Library mới trong thư mục `UC/`.
+   - Tuân theo quy ước đặt tên: `HIS.UC.[TênThànhPhần]` hoặc `His.UC.[TênThànhPhần]`.
+   - Thêm các thư mục: `ADO/`, `Processor/`, `Design/`, `Run/`, `Base/`.
 
-3. **Implement UserControl:**
-   - Create main `.cs` and [[`.Designer.cs`](../../.Designer.cs)](../../.Designer.cs) files
-   - Inherit from appropriate Inventec.UC base control
-   - Implement UI layout in designer
+2. **Định nghĩa các interface:**
+   - Tạo interface trong thư mục `Base/` định nghĩa hợp đồng của UC.
+   - Bao gồm các phương thức khởi tạo, liên kết dữ liệu và sự kiện.
 
-4. **Add ADO models:**
-   - Define data transfer objects in `ADO/` folder
-   - Map to backend entity structures
+3. **Triển khai UserControl:**
+   - Tạo các file `.cs` và `.Designer.cs` chính.
+   - Kế thừa từ trình điều khiển cơ sở Inventec.UC thích hợp.
+   - Triển khai bố cục UI trong designer.
 
-5. **Implement processors:**
-   - Add business logic in `Processor/` folder
-   - Separate concerns (validation, calculation, formatting)
+4. **Thêm các ADO model:**
+   - Định nghĩa các đối tượng truyền dữ liệu trong thư mục `ADO/`.
+   - Ánh xạ tới cấu trúc thực thể backend.
 
-6. **Create factory:**
-   - Add initialization logic in `Run/` folder
-   - Provide clean instantiation API for plugins
+5. **Triển khai các processor:**
+   - Thêm logic nghiệp vụ trong thư mục `Processor/`.
+   - Tách biệt các mối quan tâm (kiểm tra, tính toán, định dạng).
 
-**Sources:** [UC/](#)
+6. **Tạo factory:**
+   - Thêm logic khởi tạo trong thư mục `Run/`.
+   - Cung cấp API khởi tạo sạch sẽ cho các plugin.
 
-### UC Dependencies
+**Nguồn tham khảo:** [UC/](#)
 
-UC components depend on these common libraries:
+### Các phụ thuộc của UC
+
+Các thành phần UC phụ thuộc vào các thư viện chung sau:
 
 ```mermaid
 graph TB
-    UC["HIS.UC.* Component"]
+    UC["Thành phần HIS.UC.*"]
     
-    UC --> InventecUC["Inventec.UC<br/>Base Controls"]
-    UC --> InventecCommon["Inventec.Common<br/>Utilities"]
-    UC --> DevExpress["DevExpress 15.2.9<br/>UI Controls"]
-    UC --> ADO["HIS.Desktop.ADO<br/>Data Models"]
-    UC --> LocalStorage["HIS.Desktop.LocalStorage<br/>Configuration"]
+    UC --> InventecUC["Inventec.UC<br/>Trình điều khiển cơ sở"]
+    UC --> InventecCommon["Inventec.Common<br/>Tiện ích"]
+    UC --> DevExpress["DevExpress 15.2.9<br/>Trình điều khiển UI"]
+    UC --> ADO["HIS.Desktop.ADO<br/>Dữ liệu Model"]
+    UC --> LocalStorage["HIS.Desktop.LocalStorage<br/>Cấu hình"]
     
     InventecUC --> DevExpress
     InventecCommon --> Logging["Inventec.Common.Logging"]
     InventecCommon --> DateTime["Inventec.Common.DateTime"]
 ```
 
-**Sources:** [UC/](#), [Common/Inventec.UC/](#), [Common/Inventec.Common/](#)
+**Nguồn tham khảo:** [UC/](#), [Common/Inventec.UC/](#), [Common/Inventec.Common/](#)
 
-## Summary
+---
 
-The UC Components Library provides 131 reusable medical domain controls that enable consistent UI/UX across the HIS system's 956 plugins. Key characteristics:
+## Tổng kết
 
-- **Two-tier architecture:** Domain UCs build on `Inventec.UC` foundation (1060 files)
-- **Largest component:** `HIS.UC.FormType` (329 files) serves as the core form engine
-- **Specialized domains:** Patient management, clinical workflows, insurance, reporting, medical data
-- **Event-driven integration:** Standard event patterns for plugin communication
-- **Standardized structure:** Consistent folder layout (ADO, Processor, Design, Run, Base)
+Thư viện thành phần UC cung cấp 131 trình điều khiển chuyên biệt cho lĩnh vực y tế, cho phép UI/UX nhất quán trên 956 plugin của hệ thống HIS. Các đặc điểm chính:
 
-The library reduces code duplication, ensures UI consistency, and accelerates plugin development by providing pre-built, tested controls for common medical workflows.
+- **Kiến trúc hai tầng:** Các UC nghiệp vụ xây dựng trên nền tảng `Inventec.UC` (1060 file).
+- **Thành phần lớn nhất:** `HIS.UC.FormType` (329 file) đóng vai trò là bộ máy biểu mẫu cốt lõi.
+- **Các lĩnh vực chuyên biệt:** Quản lý bệnh nhân, quy trình lâm sàng, bảo hiểm, báo cáo, dữ liệu y tế.
+- **Tích hợp hướng sự kiện:** Các mô hình sự kiện chuẩn để giao tiếp với plugin.
+- **Cấu trúc chuẩn hóa:** Bố cục thư mục nhất quán (ADO, Processor, Design, Run, Base).
 
-**Sources:** [UC/](#), [`.devin/wiki.json:200-238`](../../../.devin/wiki.json#L200-L238, [Common/Inventec.UC/](#)
+Thư viện giúp giảm lặp mã, đảm bảo tính nhất quán của giao diện và tăng tốc độ phát triển plugin bằng cách cung cấp các trình điều khiển đã được kiểm thử, dựng sẵn cho các quy trình y tế phổ biến.
+
+**Nguồn tham khảo:** [UC/](#), [`.devin/wiki.json`](../../../.devin/wiki.json), [Common/Inventec.UC/](#)
+```

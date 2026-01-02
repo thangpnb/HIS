@@ -1,5 +1,8 @@
-# Build Commands Reference
+# Danh sách Lệnh Build
 
+## Các lệnh MSBuild cơ bản
+
+```bash
 MSBuild.exe Inventec.Common.sln /p:Configuration=Release /p:Platform=AnyCPU
 ---
 
@@ -22,33 +25,35 @@ MSBuild.exe Common/Inventec.Common.sln /t:Clean
 copy bin\Debug\*.dll ..\..\bin\Debug\Plugins\
 ```
 
-### Debug Configuration
+### Cấu hình Debug
 
-For development, use Debug configuration for better debugging symbols:
+Trong quá trình phát triển, hãy sử dụng cấu hình Debug để có các ký hiệu (symbols) hỗ trợ gỡ lỗi tốt hơn:
 
 ```bash
 MSBuild.exe HIS.Desktop.csproj /p:Configuration=Debug /p:Platform=AnyCPU
 ```
 
-Debug builds include:
-- Full PDB symbol files for all assemblies
-- No code optimization (easier debugging)
-- Debug assertions enabled
-- Larger file sizes (~2x Release build)
+Bản build Debug bao gồm:
+- Toàn bộ file ký hiệu PDB cho tất cả assembly
+- Không có tối ưu hóa mã nguồn (giúp việc gỡ lỗi dễ dàng hơn)
+- Kích hoạt các xác nhận gỡ lỗi (Debug assertions)
+- Kích thước file lớn hơn (~gấp 2 lần bản Release)
 
-### Plugin Development Cycle
+### Chu kỳ Phát triển Plugin
 
-For new plugin development workflow, see [Plugin System Architecture](../01-architecture/plugin-system.md).
+Để tìm hiểu về quy trình phát triển plugin mới,Để biết thêm chi tiết về cấu trúc plugin, xem [Tài liệu Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
-Typical plugin build steps:
-1. Create plugin project in `HIS/Plugins/`
-2. Implement `IModule` interface
+Các bước build plugin điển hình:
+1. Tạo project plugin trong thư mục `HIS/Plugins/`
+2. Triển khai interface `IModule`
 3. Build plugin: [`MSBuild.exe [PluginName].csproj`](../../MSBuild.exe [PluginName].csproj)
-4. Copy DLL to `HIS/bin/Debug/Plugins/`
-5. Launch `HIS.Desktop.exe` to test
+4. Copy file DLL vào thư mục `HIS/bin/Debug/Plugins/`
+5. Chạy `HIS.Desktop.exe` để kiểm tra
 
-### Clean Build
+### Clean Build (Dọn dẹp bản build)
 
-Remove all build artifacts:
+Xóa tất cả các file rác phát sinh sau khi build:
 
 ```bash
+MSBuild.exe HIS.Desktop.sln /t:Clean
+```

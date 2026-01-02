@@ -1,44 +1,46 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the User Control (UC) components in the `UC/` module that manage services, rooms, and related hospital infrastructure entities. These UCs provide reusable UI components for service selection, room management, examination service configuration, and patient nationality/condition tracking.
+Tài liệu này đề cập đến các thành phần Điều khiển người dùng (User Control - UC) trong mô-đun \`UC/\` quản lý các dịch vụ, buồng phòng và các thực thể hạ tầng bệnh viện liên quan. Các UC này cung cấp các thành phần UI có thể tái sử dụng để chọn dịch vụ, quản lý buồng phòng, cấu hình dịch vụ khám bệnh và theo dõi quốc tịch/tình trạng bệnh của bệnh nhân.
 
-The primary components documented here are:
-- `HIS.UC.ServiceRoom` (48 files) - Room-service association management
-- `HIS.UC.ServiceUnit` (48 files) - Service unit configuration
-- `HIS.UC.RoomExamService` (40 files) - Examination room service setup
-- `HIS.UC.ServiceRoomInfo` (43 files) - Service room information display
-- `HIS.UC.Sick` (43 files) - Patient sickness/condition tracking
-- `HIS.UC.National` (41 files) - Patient nationality management
+Các thành phần chính được ghi lại ở đây bao gồm:
+- \`HIS.UC.ServiceRoom\` (48 tệp) - Quản lý mối liên kết buồng-dịch vụ
+- \`HIS.UC.ServiceUnit\` (48 tệp) - Cấu hình đơn vị dịch vụ
+- \`HIS.UC.RoomExamService\` (40 tệp) - Thiết lập dịch vụ phòng khám
+- \`HIS.UC.ServiceRoomInfo\` (43 tệp) - Hiển thị thông tin buồng dịch vụ
+- \`HIS.UC.Sick\` (43 tệp) - Theo dõi tình trạng bệnh/bệnh tật của bệnh nhân
+- \`HIS.UC.National\` (41 tệp) - Quản lý quốc tịch bệnh nhân
 
-For medicine and material UCs, see [1.3.3](#1.3.3). For patient and treatment UCs, see [1.3.2](#1.3.2). For the form engine, see [1.3.1](#1.3.1).
+Đối với các UC thuốc và vật tư, hãy xem [1.3.3](#1.3.3). Đối với các UC bệnh nhân và điều trị, hãy xem [1.3.2](#1.3.2). Đối với form engine, hãy xem [1.3.1](#1.3.1).
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## Architecture Overview
+---
 
-The Service & Room UCs form a mid-sized group within the 131-component UC library. These components are embedded in various plugins across the HIS system, particularly in registration, examination, and service execution workflows.
+## Tổng quan Kiến trúc
 
-```mermaid
+Các UC Dịch vụ & Buồng phòng tạo thành một nhóm quy mô trung bình trong thư viện UC gồm 131 thành phần. Các thành phần này được nhúng trong các plugin khác nhau trên toàn hệ thống HIS, đặc biệt là trong các quy trình đăng ký, khám bệnh và thực hiện dịch vụ.
+
+\`\`\`mermaid
 graph TB
-    subgraph "HIS Plugins Layer"
-        Register["HIS.Desktop.Plugins.Register<br/>Registration Workflows"]
-        Exam["HIS.Desktop.Plugins.Exam<br/>Examination Process"]
-        ServiceExecute["HIS.Desktop.Plugins.ServiceExecute<br/>Service Execution"]
-        RoomConfig["HIS.Desktop.Plugins.*Room*<br/>Room Configuration"]
+    subgraph "Lớp_Plugin_HIS"
+        Register["HIS.Desktop.Plugins.Register<br/>Quy trình Đăng ký"]
+        Exam["HIS.Desktop.Plugins.Exam<br/>Quy trình Khám bệnh"]
+        ServiceExecute["HIS.Desktop.Plugins.ServiceExecute<br/>Thực hiện dịch vụ"]
+        RoomConfig["HIS.Desktop.Plugins.*Room*<br/>Cấu hình Buồng phòng"]
     end
     
-    subgraph "Service & Room UC Components"
-        ServiceRoom["HIS.UC.ServiceRoom<br/>48 files<br/>Room-Service Mapping"]
-        ServiceUnit["HIS.UC.ServiceUnit<br/>48 files<br/>Service Units"]
-        RoomExamService["HIS.UC.RoomExamService<br/>40 files<br/>Exam Room Services"]
-        ServiceRoomInfo["HIS.UC.ServiceRoomInfo<br/>43 files<br/>Room Information"]
-        Sick["HIS.UC.Sick<br/>43 files<br/>Sickness Conditions"]
-        National["HIS.UC.National<br/>41 files<br/>Nationality Data"]
+    subgraph "Các_thành_phần_UC_Dịch_vụ_&_Buồng_phòng"
+        ServiceRoom["HIS.UC.ServiceRoom<br/>48 tệp<br/>Ánh xạ Buồng-Dịch vụ"]
+        ServiceUnit["HIS.UC.ServiceUnit<br/>48 tệp<br/>Đơn vị dịch vụ"]
+        RoomExamService["HIS.UC.RoomExamService<br/>40 tệp<br/>Dịch vụ phòng khám"]
+        ServiceRoomInfo["HIS.UC.ServiceRoomInfo<br/>43 tệp<br/>Thông tin buồng phòng"]
+        Sick["HIS.UC.Sick<br/>43 tệp<br/>Tình trạng bệnh tật"]
+        National["HIS.UC.National<br/>41 tệp<br/>Dữ liệu quốc tịch"]
     end
     
-    subgraph "Foundation Layer"
-        InventecUC["Inventec.UC<br/>1060 files<br/>Base Controls"]
-        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>Cached Service/Room Data"]
+    subgraph "Lớp_Nền_tảng"
+        InventecUC["Inventec.UC<br/>1060 tệp<br/>Các điều khiển cơ sở"]
+        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>Đệm dữ liệu Dịch vụ/Buồng phòng"]
     end
     
     Register --> ServiceRoom
@@ -58,58 +60,62 @@ graph TB
     ServiceRoom -.->|Cache| BackendData
     ServiceUnit -.->|Cache| BackendData
     RoomExamService -.->|Cache| BackendData
-```
+\`\`\`
 
-**Diagram 1: Service & Room UC Integration Architecture**
+**Sơ đồ 1: Kiến trúc Tích hợp UC Dịch vụ & Buồng phòng**
 
-This diagram shows how service and room UCs are consumed by various HIS plugins. The UCs build on the `Inventec.UC` foundation layer and interact with `HIS.Desktop.LocalStorage.BackendData` for cached service and room metadata.
+Sơ đồ này cho thấy cách các UC dịch vụ và buồng phòng được sử dụng bởi các plugin HIS khác nhau. Các UC được xây dựng trên lớp nền tảng \`Inventec.UC\` và tương tác với \`HIS.Desktop.LocalStorage.BackendData\` để lấy siêu dữ liệu dịch vụ và buồng phòng đã được đệm.
 
-Sources: [[`.devin/wiki.json:200-207`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207), [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:200-207\`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207), [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## Component Structure
+---
 
-Each Service & Room UC follows a consistent internal structure:
+## Cấu trúc Thành phần
 
-| Component | Files | Primary Responsibility | Key Classes/Interfaces |
+Mỗi UC Dịch vụ & Buồng phòng tuân theo một cấu trúc nội bộ nhất quán:
+
+| Thành phần | Số tệp | Trách nhiệm chính | Các Lớp/Interface chính |
 |-----------|-------|------------------------|------------------------|
-| `HIS.UC.ServiceRoom` | 48 | Map services to rooms, manage availability | `UCServiceRoom`, `ServiceRoomProcessor`, `ServiceRoomADO` |
-| `HIS.UC.ServiceUnit` | 48 | Configure service measurement units | `UCServiceUnit`, `ServiceUnitProcessor`, `ServiceUnitADO` |
-| `HIS.UC.RoomExamService` | 40 | Examination room service configuration | `UCRoomExamService`, `RoomExamServiceProcessor` |
-| `HIS.UC.ServiceRoomInfo` | 43 | Display service-room information | `UCServiceRoomInfo`, `ServiceRoomInfoProcessor` |
-| `HIS.UC.Sick` | 43 | Track patient sickness conditions | `UCSick`, `SickProcessor`, `SickADO` |
-| `HIS.UC.National` | 41 | Manage patient nationality data | `UCNational`, `NationalProcessor`, `NationalADO` |
+| \`HIS.UC.ServiceRoom\` | 48 | Ánh xạ dịch vụ tới buồng, quản lý tính khả dụng | \`UCServiceRoom\`, \`ServiceRoomProcessor\`, \`ServiceRoomADO\` |
+| \`HIS.UC.ServiceUnit\` | 48 | Cấu hình đơn vị đo lường dịch vụ | \`UCServiceUnit\`, \`ServiceUnitProcessor\`, \`ServiceUnitADO\` |
+| \`HIS.UC.RoomExamService\` | 40 | Cấu hình dịch vụ phòng khám | \`UCRoomExamService\`, \`RoomExamServiceProcessor\` |
+| \`HIS.UC.ServiceRoomInfo\` | 43 | Hiển thị thông tin dịch vụ-buồng phòng | \`UCServiceRoomInfo\`, \`ServiceRoomInfoProcessor\` |
+| \`HIS.UC.Sick\` | 43 | Theo dõi tình trạng bệnh tật của bệnh nhân | \`UCSick\`, \`SickProcessor\`, \`SickADO\` |
+| \`HIS.UC.National\` | 41 | Quản lý dữ liệu quốc tịch bệnh nhân | \`UCNational\`, \`NationalProcessor\`, \`NationalADO\` |
 
-Each UC typically contains:
-- Main user control class ([`UC*.cs`](../../../UC*.cs))
-- Processor class for business logic ([`*Processor.cs`](../../../*Processor.cs))
-- ADO (Active Data Object) classes for data modeling ([`*ADO.cs`](../../../*ADO.cs))
-- Design files ([[`.Designer.cs`](../../../.Designer.cs)](../../../.Designer.cs))
-- Resource files (`Properties/`)
-- Configuration and initialization logic
+Mỗi UC thường bao gồm:
+- Lớp điều khiển người dùng chính ([\`UC*.cs\`](../../../UC*.cs))
+- Lớp Processor cho logic nghiệp vụ ([\`*Processor.cs\`](../../../*Processor.cs))
+- Các lớp ADO (Active Data Object) cho mô hình hóa dữ liệu ([\`*ADO.cs\`](../../../*ADO.cs))
+- Các tệp thiết kế ([[\`.Designer.cs\`](../../../.Designer.cs)](../../../.Designer.cs))
+- Các tệp tài nguyên (\`Properties/\`)
+- Logic cấu hình và khởi tạo
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## ServiceRoom UC
+---
 
-```mermaid
+## UC ServiceRoom
+
+\`\`\`mermaid
 graph LR
     subgraph "UC/HIS.UC.ServiceRoom/"
-        MainControl["UCServiceRoom.cs<br/>Main User Control"]
-        Processor["ServiceRoomProcessor.cs<br/>Business Logic"]
-        ADO["ServiceRoomADO.cs<br/>Data Model"]
-        Run["Run/<br/>Initialization Logic"]
-        Design["Design/<br/>UI Layout"]
+        MainControl["UCServiceRoom.cs<br/>Điều khiển chính"]
+        Processor["ServiceRoomProcessor.cs<br/>Logic nghiệp vụ"]
+        ADO["ServiceRoomADO.cs<br/>Mô hình dữ liệu"]
+        Run["Run/<br/>Logic khởi tạo"]
+        Design["Design/<br/>Bố cục UI"]
     end
     
-    subgraph "Plugin Integration"
-        RegisterPlugin["Register Plugins<br/>Room Selection"]
-        ServicePlugin["Service Plugins<br/>Service Assignment"]
+    subgraph "Tích_hợp_Plugin"
+        RegisterPlugin["Các Plugin Đăng ký<br/>Chọn phòng"]
+        ServicePlugin["Các Plugin Dịch vụ<br/>Chỉ định dịch vụ"]
     end
     
-    subgraph "Data Sources"
-        BackendData["BackendData.Rooms<br/>Cached Room Data"]
-        BackendServices["BackendData.Services<br/>Cached Service Data"]
-        HISROOM["V_HIS_ROOM Entity<br/>Backend Model"]
+    subgraph "Nguồn_Dữ_liệu"
+        BackendData["BackendData.Rooms<br/>Dữ liệu buồng đã đệm"]
+        BackendServices["BackendData.Services<br/>Dữ liệu dịch vụ đã đệm"]
+        HISROOM["Thực thể V_HIS_ROOM<br/>Mô hình Backend"]
     end
     
     RegisterPlugin --> Processor
@@ -117,66 +123,68 @@ graph LR
     Processor --> MainControl
     Processor --> ADO
     
-    Processor -.->|Load| BackendData
-    Processor -.->|Load| BackendServices
-    BackendData -.->|Sync from| HISROOM
-```
+    Processor -.->|Tải| BackendData
+    Processor -.->|Tải| BackendServices
+    BackendData -.->|Đồng bộ từ| HISROOM
+\`\`\`
 
-**Diagram 2: ServiceRoom UC Component Architecture**
+**Sơ đồ 2: Kiến trúc thành phần UC ServiceRoom**
 
-The `HIS.UC.ServiceRoom` component provides UI for mapping services to specific rooms and managing room-service availability. It loads data from `HIS.Desktop.LocalStorage.BackendData` which caches backend entities like `V_HIS_ROOM`.
+Thành phần \`HIS.UC.ServiceRoom\` cung cấp UI để ánh xạ các dịch vụ tới các buồng cụ thể và quản lý tính sẵn có của buồng-dịch vụ. Nó tải dữ liệu từ \`HIS.Desktop.LocalStorage.BackendData\`, nơi đệm các thực thể backend như \`V_HIS_ROOM\`.
 
-### Key Responsibilities
+### Các Trách nhiệm Chính
 
-- **Room-Service Mapping**: Display available services for selected rooms
-- **Service Availability**: Show which services can be performed in which rooms
-- **Room Selection UI**: Provide filterable, searchable room selection grids
-- **Configuration Management**: Handle room-service relationship configuration
+- **Ánh xạ Buồng-Dịch vụ**: Hiển thị các dịch vụ có sẵn cho các buồng được chọn.
+- **Tính sẵn có của Dịch vụ**: Cho biết dịch vụ nào có thể được thực hiện ở buồng nào.
+- **UI chọn Buồng**: Cung cấp các lưới chọn buồng có thể lọc và tìm kiếm.
+- **Quản lý Cấu hình**: Xử lý cấu hình mối quan hệ buồng-dịch vụ.
 
-### Common Usage Pattern
+### Mô hình Sử dụng Thông thường
 
-Plugins typically initialize `ServiceRoom` UC through the processor pattern:
+Các plugin thường khởi tạo UC \`ServiceRoom\` thông qua mô hình processor:
 
-```
+\`\`\`
 UC/HIS.UC.ServiceRoom/
-├── ServiceRoomProcessor.cs - Entry point for plugins
-├── UCServiceRoom.cs - Main control with grid/list UI
-├── ServiceRoomADO.cs - Transfer object for room-service data
+├── ServiceRoomProcessor.cs - Điểm thâm nhập cho các plugin
+├── UCServiceRoom.cs - Điều khiển chính với UI dạng lưới/danh sách
+├── ServiceRoomADO.cs - Đối tượng truyền dữ liệu cho dữ liệu buồng-dịch vụ
 └── Run/
-    └── UCServiceRoomRun.cs - Factory for control initialization
-```
+    └── UCServiceRoomRun.cs - Factory để khởi tạo điều khiển
+\`\`\`
 
-The processor exposes methods for:
-- Loading room-service mappings
-- Filtering by service type or room type
-- Handling selection events
-- Refreshing data from cache
+Processor để lộ các phương thức cho:
+- Tải các ánh xạ buồng-dịch vụ.
+- Lọc theo loại dịch vụ hoặc loại buồng.
+- Xử lý các sự kiện lựa chọn.
+- Làm mới dữ liệu từ bộ đệm.
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## ServiceUnit UC
+---
 
-The `HIS.UC.ServiceUnit` component (48 files) manages service measurement units and unit conversions for medical services.
+## UC ServiceUnit
 
-### Structure
+Thành phần \`HIS.UC.ServiceUnit\` (48 tệp) quản lý các đơn vị đo lường dịch vụ và chuyển đổi đơn vị cho các dịch vụ y tế.
 
-```mermaid
+### Cấu trúc
+
+\`\`\`mermaid
 graph TB
     subgraph "UC/HIS.UC.ServiceUnit/"
-        UCMain["UCServiceUnit.cs<br/>Grid-based Unit Display"]
-        Processor["ServiceUnitProcessor.cs<br/>Unit Management Logic"]
-        ADO["ServiceUnitADO.cs<br/>Unit Data Model"]
+        UCMain["UCServiceUnit.cs<br/>Hiển thị đơn vị dạng lưới"]
+        Processor["ServiceUnitProcessor.cs<br/>Logic quản lý đơn vị"]
+        ADO["ServiceUnitADO.cs<br/>Mô hình dữ liệu đơn vị"]
     end
     
-    subgraph "Usage Context"
-        PrescriptionPlugin["Prescription Plugins<br/>Dosage Units"]
-        ServicePlugin["Service Plugins<br/>Result Units"]
-        LISPlugin["LIS Plugins<br/>Test Units"]
+    subgraph "Ngữ_cảnh_Sử_dụng"
+        PrescriptionPlugin["Các Plugin Đơn thuốc<br/>Đơn vị liều dùng"]
+        ServicePlugin["Các Plugin Dịch vụ<br/>Đơn vị kết quả"]
+        LISPlugin["Các Plugin LIS<br/>Đơn vị xét nghiệm"]
     end
     
-    subgraph "Backend Entities"
-        HISUNIT["HIS_SERVICE_UNIT<br/>Backend Table"]
-        ConversionRules["Unit Conversion Rules"]
+    subgraph "Thực_thể_Backend"
+        HISUNIT["HIS_SERVICE_UNIT<br/>Bảng Backend"]
+        ConversionRules["Quy tắc chuyển đổi đơn vị"]
     end
     
     PrescriptionPlugin --> Processor
@@ -185,125 +193,131 @@ graph TB
     
     Processor --> UCMain
     Processor --> ADO
-    Processor -.->|Load| HISUNIT
-    Processor -.->|Apply| ConversionRules
-```
+    Processor -.->|Tải| HISUNIT
+    Processor -.->|Áp dụng| ConversionRules
+\`\`\`
 
-**Diagram 3: ServiceUnit UC Data Flow**
+**Sơ đồ 3: Luồng dữ liệu UC ServiceUnit**
 
-### Key Features
+### Các Tính năng Chính
 
-- **Unit Display**: Show all configured measurement units (mg, ml, IU, etc.)
-- **Unit Conversion**: Handle conversions between compatible units
-- **Service Association**: Link units to specific service types
-- **Validation**: Ensure valid unit selections for dosages and measurements
+- **Hiển thị Đơn vị**: Hiển thị tất cả các đơn vị đo lường đã cấu hình (mg, ml, đơn vị quốc tế UI, v.v.).
+- **Chuyển đổi Đơn vị**: Xử lý chuyển đổi giữa các đơn vị tương thích.
+- **Liên kết Dịch vụ**: Liên kết các đơn vị với các loại dịch vụ cụ thể.
+- **Xác thực**: Đảm bảo lựa chọn đơn vị hợp lệ cho liều lượng và các số đo.
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## RoomExamService UC
+---
 
-The `HIS.UC.RoomExamService` component (40 files) configures which examination services are available in specific examination rooms.
+## UC RoomExamService
 
-### Architecture
+Thành phần \`HIS.UC.RoomExamService\` (40 tệp) cấu hình những dịch vụ khám bệnh nào có sẵn trong các phòng khám cụ thể.
 
-| File/Component | Purpose |
+### Kiến trúc
+
+| Tệp/Thành phần | Mục đích |
 |----------------|---------|
-| [[`UCRoomExamService.cs`](../../../UCRoomExamService.cs)](../../../UCRoomExamService.cs) | Main control with service-room grid |
-| [[`RoomExamServiceProcessor.cs`](../../../RoomExamServiceProcessor.cs)](../../../RoomExamServiceProcessor.cs) | Load and filter exam service configurations |
-| [[`RoomExamServiceADO.cs`](../../../RoomExamServiceADO.cs)](../../../RoomExamServiceADO.cs) | Data transfer object for room-service pairs |
-| [[`Run/UCRoomExamServiceRun.cs`](../../../Run/UCRoomExamServiceRun.cs)](../../../Run/UCRoomExamServiceRun.cs) | Factory for control instantiation |
-| `Reload/` | Data refresh logic |
-| `Get/` | Query methods for retrieving configurations |
+| [[\`UCRoomExamService.cs\`](../../../UCRoomExamService.cs)](../../../UCRoomExamService.cs) | Điều khiển chính với lưới dịch vụ-buồng |
+| [[\`RoomExamServiceProcessor.cs\`](../../../RoomExamServiceProcessor.cs)](../../../RoomExamServiceProcessor.cs) | Tải và lọc các cấu hình dịch vụ khám |
+| [[\`RoomExamServiceADO.cs\`](../../../RoomExamServiceADO.cs)](../../../RoomExamServiceADO.cs) | Đối tượng truyền dữ liệu cho các cặp buồng-dịch vụ |
+| [[\`Run/UCRoomExamServiceRun.cs\`](../../../Run/UCRoomExamServiceRun.cs)](../../../Run/UCRoomExamServiceRun.cs) | Factory để khởi tạo điều khiển |
+| \`Reload/\` | Logic làm mới dữ liệu |
+| \`Get/\` | Các phương thức truy vấn để lấy thông tin cấu hình |
 
-### Integration Points
+### Các điểm tích hợp
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    subgraph "Examination Workflow"
-        ExamPlugin["Exam Plugins"]
-        CallPatientExam["CallPatientExam Plugin"]
+    subgraph "Quy_trình_Khám_bệnh"
+        ExamPlugin["Các Plugin Khám"]
+        CallPatientExam["Plugin Gọi bệnh nhân khám"]
     end
     
-    subgraph "RoomExamService UC"
+    subgraph "UC_RoomExamService"
         RoomExamProcessor["RoomExamServiceProcessor"]
-        ConfigUI["Service Configuration UI"]
+        ConfigUI["UI Cấu hình Dịch vụ"]
     end
     
-    subgraph "Configuration Data"
-        RoomConfig["V_HIS_EXECUTE_ROOM<br/>Execution Room Config"]
-        ServiceConfig["V_HIS_SERVICE<br/>Service Definitions"]
+    subgraph "Dữ_liệu_Cấu_hình"
+        RoomConfig["V_HIS_EXECUTE_ROOM<br/>Cấu hình phòng thực hiện"]
+        ServiceConfig["V_HIS_SERVICE<br/>Định nghĩa dịch vụ"]
     end
     
-    ExamPlugin -->|"Initialize"| RoomExamProcessor
-    CallPatientExam -->|"Load Config"| RoomExamProcessor
+    ExamPlugin -->|"Khởi tạo"| RoomExamProcessor
+    CallPatientExam -->|"Tải cấu hình"| RoomExamProcessor
     RoomExamProcessor --> ConfigUI
-    RoomExamProcessor -.->|"Query"| RoomConfig
-    RoomExamProcessor -.->|"Query"| ServiceConfig
-```
+    RoomExamProcessor -.->|"Truy vấn"| RoomConfig
+    RoomExamProcessor -.->|"Truy vấn"| ServiceConfig
+\`\`\`
 
-**Diagram 4: RoomExamService Configuration Flow**
+**Sơ đồ 4: Luồng cấu hình RoomExamService**
 
-The `RoomExamService` UC is primarily used in examination room setup and exam workflow plugins to determine which services can be performed in each examination room.
+UC \`RoomExamService\` chủ yếu được sử dụng trong việc thiết lập phòng khám và các plugin quy trình khám bệnh để xác định dịch vụ nào có thể được thực hiện trong mỗi phòng khám.
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## ServiceRoomInfo UC
+---
 
-The `HIS.UC.ServiceRoomInfo` component (43 files) displays detailed information about service-room associations, including schedules, availability, and capacity.
+## UC ServiceRoomInfo
 
-### Key Components
+Thành phần \`HIS.UC.ServiceRoomInfo\` (43 tệp) hiển thị thông tin chi tiết về các liên kết dịch vụ-buồng phòng, bao gồm lịch trình, tính sẵn có và công suất.
 
-```
+### Các Thành phần Chính
+
+\`\`\`
 UC/HIS.UC.ServiceRoomInfo/
-├── UCServiceRoomInfo.cs - Main information display control
-├── ServiceRoomInfoProcessor.cs - Data loading and formatting
-├── ServiceRoomInfoADO.cs - Extended room-service information model
-├── Design/ - UI layout definitions
-├── Validation/ - Data validation logic
-└── Resources/ - Localization and images
-```
+├── UCServiceRoomInfo.cs - Điều khiển hiển thị thông tin chính
+├── ServiceRoomInfoProcessor.cs - Tải và định dạng dữ liệu
+├── ServiceRoomInfoADO.cs - Mô hình thông tin buồng-dịch vụ mở rộng
+├── Design/ - Các định nghĩa bố cục UI
+├── Validation/ - Logic xác thực dữ liệu
+└── Resources/ - Bản địa hóa và hình ảnh
+\`\`\`
 
-### Display Features
+### Các Tính năng Hiển thị
 
-- **Room Details**: Show room name, code, department, and room type
-- **Service List**: Display all services available in the room
-- **Schedule Information**: Show service availability by day/time
-- **Capacity Info**: Display room capacity and current occupancy
-- **Status Indicators**: Show room operational status
+- **Chi tiết Buồng**: Hiển thị tên buồng, mã, khoa và loại buồng.
+- **Danh sách Dịch vụ**: Hiển thị tất cả các dịch vụ có sẵn trong buồng.
+- **Thông tin Lịch trình**: Hiển thị tính sẵn có của dịch vụ theo ngày/giờ.
+- **Thông tin Công suất**: Hiển thị công suất buồng và số lượng bệnh nhân hiện tại.
+- **Chỉ báo Trạng thái**: Hiển thị trạng thái hoạt động của buồng.
 
-### Usage in Plugins
+### Sử dụng trong các Plugin
 
-The `ServiceRoomInfo` UC is commonly used in:
-- Dashboard plugins for room status overview
-- Registration plugins for room selection
-- Service execution plugins for room verification
-- Reporting plugins for room utilization analysis
+UC \`ServiceRoomInfo\` thường được sử dụng trong:
+- Các plugin Dashboard để xem tổng quan trạng thái buồng.
+- Các plugin Đăng ký để chọn buồng.
+- Các plugin Thực hiện dịch vụ để xác minh buồng.
+- Các plugin Báo cáo để phân tích hiệu suất sử dụng buồng.
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## Sick UC
+---
 
-The `HIS.UC.Sick` component (43 files) manages patient sickness conditions, symptoms, and severity tracking.
+## UC Sick
 
-### Data Model
+Thành phần \`HIS.UC.Sick\` (43 tệp) quản lý các tình trạng bệnh tật, triệu chứng và theo dõi mức độ nghiêm trọng của bệnh nhân.
 
-```mermaid
+### Mô hình Dữ liệu
+
+\`\`\`mermaid
 graph TB
-    subgraph "Sick UC Components"
-        UCSick["UCSick.cs<br/>Condition Selection UI"]
-        SickProcessor["SickProcessor.cs<br/>Condition Logic"]
-        SickADO["SickADO.cs<br/>Condition Data Model"]
+    subgraph "Các_thành_phần_UC_Sick"
+        UCSick["UCSick.cs<br/>UI chọn tình trạng"]
+        SickProcessor["SickProcessor.cs<br/>Logic về bệnh tật"]
+        SickADO["SickADO.cs<br/>Mô hình dữ liệu bệnh tật"]
     end
     
-    subgraph "Backend Data"
-        HISSICK["HIS_SICK<br/>Sickness Definitions"]
-        SickType["HIS_SICK_TYPE<br/>Condition Categories"]
+    subgraph "Dữ_liệu_Backend"
+        HISSICK["HIS_SICK<br/>Định nghĩa bệnh tật"]
+        SickType["HIS_SICK_TYPE<br/>Danh mục tình trạng"]
     end
     
-    subgraph "Plugin Usage"
-        ExamPlugin["Exam Plugins<br/>Record Conditions"]
-        TreatmentPlugin["Treatment Plugins<br/>Track Progress"]
-        EmergencyPlugin["Emergency Plugins<br/>Triage"]
+    subgraph "Sử_dụng_trong_Plugin"
+        ExamPlugin["Các Plugin Khám<br/>Ghi lại tình trạng"]
+        TreatmentPlugin["Các Plugin Điều trị<br/>Theo dõi tiến triển"]
+        EmergencyPlugin["Các Plugin Cấp cứu<br/>Phân loại bệnh"]
     end
     
     ExamPlugin --> SickProcessor
@@ -313,79 +327,81 @@ graph TB
     SickProcessor --> UCSick
     SickProcessor --> SickADO
     
-    SickProcessor -.->|Load| HISSICK
-    SickProcessor -.->|Categorize| SickType
-```
+    SickProcessor -.->|Tải| HISSICK
+    SickProcessor -.->|Phân loại| SickType
+\`\`\`
 
-**Diagram 5: Sick UC Integration with Examination Workflow**
+**Sơ đồ 5: Tích hợp UC Sick với quy trình Khám bệnh**
 
-### Key Features
+### Các Tính năng Chính
 
-- **Condition Selection**: Provide searchable list of defined sickness conditions
-- **Severity Levels**: Track condition severity (mild, moderate, severe, critical)
-- **Multiple Conditions**: Support multiple concurrent conditions per patient
-- **Category Filtering**: Filter conditions by type (infectious, chronic, acute, etc.)
-- **History Tracking**: Maintain condition history throughout treatment
+- **Chọn Tình trạng**: Cung cấp danh sách các tình trạng bệnh tật đã định nghĩa có thể tìm kiếm.
+- **Mức độ Nghiêm trọng**: Theo dõi mức độ nghiêm trọng (nhẹ, trung bình, nặng, nguy kịch).
+- **Nhiều Tình trạng**: Hỗ trợ nhiều tình trạng đồng thời cho mỗi bệnh nhân.
+- **Lọc theo Danh mục**: Lọc các tình trạng theo loại (truyền nhiễm, mãn tính, cấp tính, v.v.).
+- **Theo dõi Lịch sử**: Duy trì lịch sử tình trạng bệnh trong suốt quá trình điều trị.
 
-### Data Structure
+### Cấu trúc Dữ liệu
 
-The `SickADO` class typically contains:
-- `SICK_CODE` - Unique condition identifier
-- `SICK_NAME` - Condition display name
-- `SICK_TYPE_CODE` - Category classification
-- `SEVERITY_LEVEL` - Severity indicator
-- `ONSET_DATE` - When condition was first recorded
-- `RESOLUTION_DATE` - When condition was resolved (if applicable)
+Lớp \`SickADO\` thường chứa:
+- \`SICK_CODE\` - Định danh duy nhất cho tình trạng bệnh
+- \`SICK_NAME\` - Tên hiển thị của tình trạng bệnh
+- \`SICK_TYPE_CODE\` - Phân loại danh mục
+- \`SEVERITY_LEVEL\` - Chỉ báo mức độ nghiêm trọng
+- \`ONSET_DATE\` - Ngày ghi nhận tình trạng lần đầu
+- \`RESOLUTION_DATE\` - Ngày tình trạng được giải quyết (nếu có)
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## National UC
+---
 
-The `HIS.UC.National` component (41 files) manages patient nationality data for registration and reporting purposes.
+## UC National
 
-### Structure
+Thành phần \`HIS.UC.National\` (41 tệp) quản lý dữ liệu quốc tịch bệnh nhân cho mục đích đăng ký và báo cáo.
 
-```
+### Cấu trúc
+
+\`\`\`
 UC/HIS.UC.National/
-├── UCNational.cs - Nationality selection control
-├── NationalProcessor.cs - Nationality data processing
-├── NationalADO.cs - Nationality data model
-├── Combo/ - Combo box implementations
-├── Grid/ - Grid view implementations
-└── Validation/ - Nationality validation logic
-```
+├── UCNational.cs - Điều khiển chọn quốc tịch
+├── NationalProcessor.cs - Xử lý dữ liệu quốc tịch
+├── NationalADO.cs - Mô hình dữ liệu quốc tịch
+├── Combo/ - Các triển khai combo box
+├── Grid/ - Các triển khai grid view
+└── Validation/ - Logic xác thực quốc tịch
+\`\`\`
 
-### Functionality
+### Chức năng
 
-| Feature | Description |
+| Tính năng | Mô tả |
 |---------|-------------|
-| **Nationality List** | Display all configured nationalities from `SDA_NATIONAL` |
-| **Default Selection** | Auto-select default nationality (typically Vietnamese) |
-| **Search/Filter** | Quick search by nationality name or code |
-| **Multi-language Support** | Display nationality names in multiple languages |
-| **Validation** | Ensure valid nationality selection for legal reporting |
+| **Danh sách Quốc tịch** | Hiển thị tất cả các quốc tịch đã cấu hình từ \`SDA_NATIONAL\` |
+| **Lựa chọn Mặc định** | Tự động chọn quốc tịch mặc định (thường là Việt Nam) |
+| **Tìm kiếm/Lọc** | Tìm kiếm nhanh theo tên hoặc mã quốc tịch |
+| **Hỗ trợ Đa ngôn ngữ** | Hiển thị tên quốc tịch bằng nhiều ngôn ngữ |
+| **Xác thực** | Đảm bảo lựa chọn quốc tịch hợp lệ cho báo cáo pháp lý |
 
-### Integration with SDA System
+### Tích hợp với Hệ thống SDA
 
-The National UC integrates with the SDA (System Data Administration) module:
+UC National tích hợp với mô-đun SDA (System Data Administration):
 
-```mermaid
+\`\`\`mermaid
 graph LR
-    subgraph "National UC"
-        UCNational["UCNational Control"]
+    subgraph "UC_National"
+        UCNational["Điều khiển UCNational"]
         NationalProcessor["NationalProcessor"]
     end
     
-    subgraph "SDA System Data"
-        SDANational["SDA_NATIONAL<br/>National Definitions"]
-        SDAProvince["SDA_PROVINCE<br/>Province Data"]
-        SDADistrict["SDA_DISTRICT<br/>District Data"]
+    subgraph "Dữ_liệu_Hệ_thống_SDA"
+        SDANational["SDA_NATIONAL<br/>Định nghĩa Quốc tịch"]
+        SDAProvince["SDA_PROVINCE<br/>Dữ liệu Tỉnh/Thành"]
+        SDADistrict["SDA_DISTRICT<br/>Dữ liệu Quận/Huyện"]
     end
     
-    subgraph "Plugin Usage"
-        RegisterPlugin["Register Plugins<br/>Patient Registration"]
-        PatientPlugin["Patient Plugins<br/>Patient Profile"]
-        ReportPlugin["Report Plugins<br/>Demographics"]
+    subgraph "Sử_dụng_trong_Plugin"
+        RegisterPlugin["Các Plugin Đăng ký<br/>Đăng ký bệnh nhân"]
+        PatientPlugin["Các Plugin Bệnh nhân<br/>Hồ sơ bệnh nhân"]
+        ReportPlugin["Các Plugin Báo cáo<br/>Nhân khẩu học"]
     end
     
     RegisterPlugin --> NationalProcessor
@@ -393,183 +409,191 @@ graph LR
     ReportPlugin --> NationalProcessor
     
     NationalProcessor --> UCNational
-    NationalProcessor -.->|Load| SDANational
-    SDANational -.->|Link| SDAProvince
-    SDAProvince -.->|Link| SDADistrict
-```
+    NationalProcessor -.->|Tải| SDANational
+    SDANational -.->|Liên kết| SDAProvince
+    SDAProvince -.->|Liên kết| SDADistrict
+\`\`\`
 
-**Diagram 6: National UC Data Relationships**
+**Sơ đồ 6: Mối quan hệ dữ liệu UC National**
 
-### Common Usage Pattern
+### Mô hình Sử dụng Thông thường
 
-Plugins typically use the National UC in patient registration forms:
+Các plugin thường sử dụng UC National trong các biểu mẫu đăng ký bệnh nhân:
 
-1. Initialize processor with current nationality data from `BackendData`
-2. Display control in registration form
-3. Handle selection changed events
-4. Validate nationality before saving patient record
-5. Store selected `NATIONAL_CODE` with patient data
+1. Khởi tạo processor với dữ liệu quốc tịch hiện tại từ \`BackendData\`.
+2. Hiển thị điều khiển trong biểu mẫu đăng ký.
+3. Xử lý các sự kiện thay đổi lựa chọn.
+4. Xác thực quốc tịch trước khi lưu hồ sơ bệnh nhân.
+5. Lưu trữ \`NATIONAL_CODE\` đã chọn cùng với dữ liệu bệnh nhân.
 
-Sources: [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237), [[`.devin/wiki.json:160-168`](../../../../.devin/wiki.json#L160-L168)](../../../../.devin/wiki.json#L160-L168)
+Nguồn: [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237), [[\`.devin/wiki.json:160-168\`](../../../../.devin/wiki.json#L160-L168)](../../../../.devin/wiki.json#L160-L168)
 
-## Common Design Patterns
+---
 
-All Service & Room UCs follow consistent design patterns inherited from the UC library architecture:
+## Các Mô hình Thiết kế Chung
 
-### Processor Pattern
+Tất cả các UC Dịch vụ & Buồng phòng đều tuân theo các mô hình thiết kế nhất quán kế thừa từ kiến trúc thư viện UC:
 
-```mermaid
+### Mô hình Processor
+
+\`\`\`mermaid
 graph LR
-    Plugin["Plugin Code"] -->|1. Create| Processor["UC Processor"]
-    Processor -->|2. Initialize| UCControl["User Control"]
-    Processor -->|3. Configure| Data["Data Binding"]
-    UCControl -->|4. Events| Callback["Plugin Callbacks"]
-    Data -.->|Load from| Cache["BackendData Cache"]
-```
+    Plugin["Mã Plugin"] -->|1. Tạo| Processor["UC Processor"]
+    Processor -->|2. Khởi tạo| UCControl["User Control"]
+    Processor -->|3. Cấu hình| Data["Liên kết Dữ liệu"]
+    UCControl -->|4. Sự kiện| Callback["Callback Plugin"]
+    Data -.->|Tải từ| Cache["Bộ đệm BackendData"]
+\`\`\`
 
-**Diagram 7: Standard UC Processor Pattern**
+**Sơ đồ 7: Mô hình UC Processor tiêu chuẩn**
 
-Each UC exposes a processor class that:
-- Provides factory methods for control creation
-- Handles data loading and caching
-- Manages event subscriptions
-- Provides methods for data refresh and validation
+Mỗi UC để lộ một lớp processor thực hiện:
+- Cung cấp các phương thức factory để tạo điều khiển.
+- Xử lý việc tải dữ liệu và đệm dữ liệu.
+- Quản lý việc đăng ký sự kiện.
+- Cung cấp các phương thức để làm mới và xác thực dữ liệu.
 
-### ADO (Active Data Object) Pattern
+### Mô hình ADO (Active Data Object)
 
-ADO classes serve as data transfer objects between plugins and UCs:
+Các lớp ADO đóng vai trò là các đối tượng truyền dữ liệu giữa các plugin và các UC:
 
-- **Separation of Concerns**: ADOs decouple backend entities from UI models
-- **Extended Properties**: Add UI-specific properties (selection state, display formatting)
-- **Validation Logic**: Include business rules for data validation
-- **Serialization**: Support JSON serialization for caching and logging
+- **Phân tách Trách nhiệm**: Các ADO tách biệt các thực thể backend khỏi các mô hình UI.
+- **Thuộc tính Mở rộng**: Thêm các thuộc tính dành riêng cho UI (trạng thái lựa chọn, định dạng hiển thị).
+- **Logic Xác thực**: Bao gồm các quy tắc nghiệp vụ để xác thực dữ liệu.
+- **Tuần tự hóa (Serialization)**: Hỗ trợ tuần tự hóa JSON để đệm và ghi log.
 
-### Event Handling
+### Xử lý Sự kiện
 
-Service & Room UCs typically expose these event types:
+Các UC Dịch vụ & Buồng phòng thường để lộ các loại sự kiện sau:
 
-| Event Type | Purpose | Usage |
+| Loại Sự kiện | Mục đích | Cách dùng |
 |------------|---------|-------|
-| `SelectionChanged` | Item selected in grid/combo | Update dependent controls |
-| `DataLoaded` | Data loaded from cache/backend | Enable/disable UI elements |
-| `ValidationFailed` | Invalid data entry | Show error messages |
-| `ConfigChanged` | Configuration modified | Trigger save actions |
+| \`SelectionChanged\` | Mục được chọn trong lưới/combo | Cập nhật các điều khiển phụ thuộc |
+| \`DataLoaded\` | Dữ liệu được tải từ cache/backend | Bật/tắt các yếu tố UI |
+| \`ValidationFailed\` | Nhập dữ liệu không hợp lệ | Hiển thị thông báo lỗi |
+| \`ConfigChanged\` | Cấu hình bị thay đổi | Kích hoạt các hành động lưu |
 
-Sources: [[`.devin/wiki.json:200-207`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207)
+Nguồn: [[\`.devin/wiki.json:200-207\`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207)
 
-## BackendData Integration
+---
 
-All Service & Room UCs interact with `HIS.Desktop.LocalStorage.BackendData` for cached data:
+## Tích hợp BackendData
 
-```mermaid
+Tất cả các UC Dịch vụ & Buồng phòng tương tác với \`HIS.Desktop.LocalStorage.BackendData\` để lấy dữ liệu đã được đệm:
+
+\`\`\`mermaid
 graph TB
-    subgraph "BackendData Cache"
-        Rooms["BackendData.Rooms<br/>V_HIS_ROOM entities"]
-        Services["BackendData.Services<br/>V_HIS_SERVICE entities"]
+    subgraph "Bộ_đệm_BackendData"
+        Rooms["BackendData.Rooms<br/>Các thực thể V_HIS_ROOM"]
+        Services["BackendData.Services<br/>Các thực thể V_HIS_SERVICE"]
         ExecuteRooms["BackendData.ExecuteRooms<br/>V_HIS_EXECUTE_ROOM"]
-        Nationals["BackendData.Nationals<br/>SDA_NATIONAL entities"]
-        Sicks["BackendData.Sicks<br/>HIS_SICK entities"]
+        Nationals["BackendData.Nationals<br/>Các thực thể SDA_NATIONAL"]
+        Sicks["BackendData.Sicks<br/>Các thực thể HIS_SICK"]
     end
     
-    subgraph "Service & Room UCs"
-        ServiceRoom["ServiceRoom UC"]
-        ServiceUnit["ServiceUnit UC"]
-        RoomExamService["RoomExamService UC"]
-        ServiceRoomInfo["ServiceRoomInfo UC"]
-        National["National UC"]
-        Sick["Sick UC"]
+    subgraph "Các_UC_Dịch_vụ_&_Buồng_phòng"
+        ServiceRoom["UC ServiceRoom"]
+        ServiceUnit["UC ServiceUnit"]
+        RoomExamService["UC RoomExamService"]
+        ServiceRoomInfo["UC ServiceRoomInfo"]
+        National["UC National"]
+        Sick["UC Sick"]
     end
     
-    ServiceRoom -.->|Query| Rooms
-    ServiceRoom -.->|Query| Services
-    ServiceUnit -.->|Query| Services
-    RoomExamService -.->|Query| ExecuteRooms
-    RoomExamService -.->|Query| Services
-    ServiceRoomInfo -.->|Query| Rooms
-    ServiceRoomInfo -.->|Query| Services
-    National -.->|Query| Nationals
-    Sick -.->|Query| Sicks
-```
+    ServiceRoom -.->|Truy vấn| Rooms
+    ServiceRoom -.->|Truy vấn| Services
+    ServiceUnit -.->|Truy vấn| Services
+    RoomExamService -.->|Truy vấn| ExecuteRooms
+    RoomExamService -.->|Truy vấn| Services
+    ServiceRoomInfo -.->|Truy vấn| Rooms
+    ServiceRoomInfo -.->|Truy vấn| Services
+    National -.->|Truy vấn| Nationals
+    Sick -.->|Truy vấn| Sicks
+\`\`\`
 
-**Diagram 8: BackendData Cache Access Pattern**
+**Sơ đồ 8: Mô hình truy cập bộ đệm BackendData**
 
-### Cache Loading Sequence
+### Trình tự Tải Bộ đệm
 
-1. Application startup: `BackendData` loads all entities from backend API
-2. UC initialization: Processor queries `BackendData` collections
-3. UI rendering: Control binds to filtered/sorted data
-4. User interaction: Changes update local ADO objects
-5. Save action: Plugin sends updates to backend API
-6. Cache refresh: `BackendData` reloads affected entities
+1. Khởi động ứng dụng: \`BackendData\` tải tất cả các thực thể từ API backend.
+2. Khởi tạo UC: Processor truy vấn các bộ sưu tập \`BackendData\`.
+3. Hiển thị UI: Điều khiển liên kết với dữ liệu đã được lọc/sắp xếp.
+4. Tương tác người dùng: Các thay đổi cập nhật các đối tượng ADO cục bộ.
+5. Hành động lưu: Plugin gửi các bản cập nhật tới API backend.
+6. Làm mới bộ đệm: \`BackendData\` tải lại các thực thể bị ảnh hưởng.
 
-### Performance Considerations
+### Các cân nhắc về Hiệu năng
 
-- **In-Memory Filtering**: All filtering/sorting happens in-memory on cached data
-- **Lazy Loading**: UCs only load data when control is visible
-- **Refresh Strategy**: UCs subscribe to `PubSub` events for cache updates
-- **Data Volume**: Room and service lists typically contain 100-1000 entries
+- **Lọc trong Bộ nhớ**: Tất cả việc lọc/sắp xếp diễn ra trong bộ nhớ trên dữ liệu đã được đệm.
+- **Tải lười (Lazy Loading)**: Các UC chỉ tải dữ liệu khi điều khiển được hiển thị.
+- **Chiến lược làm mới**: Các UC đăng ký các sự kiện \`PubSub\` để cập nhật bộ đệm.
+- **Khối lượng Dữ liệu**: Danh sách buồng và dịch vụ thường chứa từ 100-1000 mục.
 
-Sources: [[`.devin/wiki.json:46-52`](../../../../.devin/wiki.json#L46-L52)](../../../../.devin/wiki.json#L46-L52), [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:46-52\`](../../../../.devin/wiki.json#L46-L52)](../../../../.devin/wiki.json#L46-L52), [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-## Plugin Integration Examples
+---
 
-### Registration Plugin Integration
+## Các Ví dụ Tích hợp Plugin
 
-Registration plugins use multiple Service & Room UCs together:
+### Tích hợp Plugin Đăng ký
 
-```
-HIS.Desktop.Plugins.Register (81-102 files)
-├── Uses ServiceRoom UC for room selection
-├── Uses National UC for patient nationality
-├── Uses Sick UC for initial condition recording
-└── Uses RoomExamService UC for available exam services
-```
+Các plugin đăng ký sử dụng đồng thời nhiều UC Dịch vụ & Buồng phòng:
 
-The registration workflow typically:
-1. Load default room from user's assigned rooms
-2. Display available examination services for selected room
-3. Collect patient nationality during demographics entry
-4. Record initial sickness conditions if emergency registration
-5. Validate all selections before creating treatment record
+\`\`\`
+HIS.Desktop.Plugins.Register (81-102 tệp)
+├── Sử dụng UC ServiceRoom để chọn phòng
+├── Sử dụng UC National cho quốc tịch bệnh nhân
+├── Sử dụng UC Sick để ghi lại tình trạng ban đầu
+└── Sử dụng UC RoomExamService cho các dịch vụ khám có sẵn
+\`\`\`
 
-### Examination Plugin Integration
+Quy trình đăng ký thường:
+1. Tải buồng mặc định từ các buồng được gán cho người dùng.
+2. Hiển thị các dịch vụ khám có sẵn cho buồng đã chọn.
+3. Thu thập quốc tịch bệnh nhân trong quá trình nhập dữ liệu nhân khẩu học.
+4. Ghi lại các tình trạng bệnh tật ban đầu nếu là đăng ký cấp cứu.
+5. Xác thực tất cả các lựa chọn trước khi tạo hồ sơ điều trị.
 
-Examination plugins rely heavily on these UCs:
+### Tích hợp Plugin Khám bệnh
 
-```
-HIS.Desktop.Plugins.Exam* plugins
-├── RoomExamService UC - Show services available in current exam room
-├── Sick UC - Record patient conditions during examination
-├── ServiceUnit UC - Select measurement units for test results
-└── ServiceRoomInfo UC - Display room capabilities and schedule
-```
+Các plugin khám bệnh phụ thuộc nhiều vào các UC này:
 
-### Service Execution Integration
+\`\`\`
+Các plugin HIS.Desktop.Plugins.Exam*
+├── UC RoomExamService - Hiển thị các dịch vụ có sẵn trong phòng khám hiện tại
+├── UC Sick - Ghi lại các tình trạng bệnh nhân trong quá trình khám
+├── UC ServiceUnit - Chọn đơn vị đo lường cho các kết quả xét nghiệm
+└── UC ServiceRoomInfo - Hiển thị khả năng và lịch trình của phòng
+\`\`\`
 
-Service execution plugins use:
+### Tích hợp Thực hiện Dịch vụ
 
-```
-HIS.Desktop.Plugins.ServiceExecute (119 files)
-├── ServiceRoom UC - Verify service can be performed in current room
-├── ServiceUnit UC - Record results with appropriate units
-└── RoomExamService UC - Load execution room configuration
-```
+Các plugin thực hiện dịch vụ sử dụng:
 
-Sources: [[`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77), [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+\`\`\`
+HIS.Desktop.Plugins.ServiceExecute (119 tệp)
+├── UC ServiceRoom - Xác minh dịch vụ có thể được thực hiện trong buồng hiện tại
+├── UC ServiceUnit - Ghi lại kết quả với các đơn vị phù hợp
+└── UC RoomExamService - Tải cấu hình phòng thực hiện
+\`\`\`
 
-## Summary
+Nguồn: [[\`.devin/wiki.json:70-77\`](../../../../.devin/wiki.json#L70-L77)](../../../../.devin/wiki.json#L70-L77), [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
 
-The Service & Room UC components provide essential reusable UI functionality for:
+---
 
-1. **Service-Room Management**: Mapping services to physical rooms (`ServiceRoom`, `RoomExamService`)
-2. **Service Configuration**: Managing service units and measurements (`ServiceUnit`, `ServiceRoomInfo`)
-3. **Patient Data**: Tracking nationality and conditions (`National`, `Sick`)
+## Tóm tắt
 
-These 261 files (combined total) form a critical part of the 131-component UC library, enabling consistent service and room management across 956 HIS plugins. They follow standard UC patterns (Processor, ADO, events) and integrate with the `BackendData` caching system for performance.
+Các thành phần UC Dịch vụ & Buồng phòng cung cấp các chức năng UI có thể tái sử dụng thiết yếu cho:
 
-For more information on related UCs, see:
-- Medicine and material UCs: [1.3.3](#1.3.3)
-- Patient and treatment UCs: [1.3.2](#1.3.2)
+1. **Quản lý Dịch vụ-Buồng phòng**: Ánh xạ dịch vụ tới các buồng vật lý (\`ServiceRoom\`, \`RoomExamService\`)
+2. **Cấu hình Dịch vụ**: Quản lý đơn vị dịch vụ và các phép đo (\`ServiceUnit\`, \`ServiceRoomInfo\`)
+3. **Dữ liệu Bệnh nhân**: Theo dõi quốc tịch và tình trạng bệnh tật (\`National\`, \`Sick\`)
+
+261 tệp này (tổng cộng) tạo thành một phần quan trọng của thư viện UC 131 thành phần, cho phép quản lý dịch vụ và buồng phòng nhất quán trên 956 plugin HIS. Chúng tuân theo các mô hình UC tiêu chuẩn (Processor, ADO, sự kiện) và tích hợp với hệ thống đệm \`BackendData\` để đạt hiệu năng cao.
+
+Để biết thêm thông tin về các UC liên quan, hãy xem:
+- Các UC thuốc và vật tư: [1.3.3](#1.3.3)
+- Các UC bệnh nhân và điều trị: [1.3.2](#1.3.2)
 - Form engine: [1.3.1](#1.3.1)
 
-Sources: [[`.devin/wiki.json:200-207`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207), [[`.devin/wiki.json:235-237`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)
+Nguồn: [[\`.devin/wiki.json:200-207\`](../../../../.devin/wiki.json#L200-L207)](../../../../.devin/wiki.json#L200-L207), [[\`.devin/wiki.json:235-237\`](../../../../.devin/wiki.json#L235-L237)](../../../../.devin/wiki.json#L235-L237)

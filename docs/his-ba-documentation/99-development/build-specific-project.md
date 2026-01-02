@@ -5,59 +5,59 @@ For complete build instructions, see [Build & Development Setup](../99-developme
 
 Sources: [[`Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj:1-57`](../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)](../../Common/HIS.Common.Treatment/HIS.Common.Treatment/HIS.Common.Treatment.csproj#L1-L57)
 
-## Development Guidelines
+## Hướng dẫn Phát triển
 
-### Adding New Common Utilities
+### Thêm các Tiện ích Chung (Common Utilities) mới
 
-**Process:**
-1. Create new project under appropriate namespace:
-   - `Inventec.Common.*` - general utilities
-   - `Inventec.Desktop.*` - desktop framework extensions
-   - `HIS.Common.*` - HIS-specific utilities
+**Quy trình:**
+1. Tạo project mới dưới namespace phù hợp:
+   - `Inventec.Common.*` - các tiện ích chung
+   - `Inventec.Desktop.*` - các phần mở rộng cho desktop framework
+   - `HIS.Common.*` - các tiện ích đặc thù cho HIS
 
-2. Project configuration:
+2. Cấu hình Project:
    - Target .NET Framework 4.5
-   - Use consistent naming conventions
-   - Add XML documentation comments for public APIs
+   - Sử dụng các quy ước đặt tên thống nhất
+   - Thêm các comment tài liệu XML cho các public API
 
-3. Update solution files:
-   - Add to [[`Inventec.Common.sln`](../../Inventec.Common.sln)](../../Inventec.Common.sln) or [[`Inventec.Desktop.sln`](../../Inventec.Desktop.sln)](../../Inventec.Desktop.sln)
-   - Configure build dependencies
+3. Cập nhật các file solution:
+   - Thêm vào [[`Inventec.Common.sln`](../../Inventec.Common.sln)](../../Inventec.Common.sln) hoặc [[`Inventec.Desktop.sln`](../../Inventec.Desktop.sln)](../../Inventec.Desktop.sln)
+   - Cấu hình các phụ thuộc khi build (build dependencies)
 
-4. Documentation:
-   - Update wiki page with new utility
-   - Provide usage examples
-   - Document configuration requirements
+4. Tài liệu (Documentation):
+   - Cập nhật trang wiki với tiện ích mới
+   - Cung cấp các ví dụ sử dụng
+   - Viết tài liệu về các yêu cầu cấu hình
 
-### Code Standards
+### Tiêu chuẩn Mã nguồn (Code Standards)
 
-**Naming Conventions:**
-- Namespaces: PascalCase (e.g., `Inventec.Common.Logging`)
-- Classes: PascalCase (e.g., `LogSystem`)
-- Methods: PascalCase (e.g., `GetMedicines`)
-- Parameters: camelCase (e.g., `patientId`)
+**Quy ước đặt tên (Naming Conventions):**
+- Namespaces: PascalCase (ví dụ: `Inventec.Common.Logging`)
+- Classes: PascalCase (ví dụ: `LogSystem`)
+- Methods: PascalCase (ví dụ: `GetMedicines`)
+- Parameters: camelCase (ví dụ: `patientId`)
 
-**Documentation:**
-- All public classes require XML comments
-- Methods with parameters require `<param>` tags
-- Complex logic requires inline comments
+**Tài liệu (Documentation):**
+- Tất cả các public class đều yêu cầu comment XML
+- Các method có tham số yêu cầu thẻ `<param>`
+- Các logic phức tạp yêu cầu comment nội dòng (inline comments)
 
-**Error Handling:**
-- Use `try-catch` blocks for external calls
-- Log exceptions using `LogSystem.Error()`
-- Return meaningful error messages to callers
+**Xử lý lỗi (Error Handling):**
+- Sử dụng các khối `try-catch` cho các lệnh gọi bên ngoài
+- Ghi log các exception bằng `LogSystem.Error()`
+- Trả về các thông báo lỗi có ý nghĩa cho phía gọi
 
-### Testing
+### Kiểm thử (Testing)
 
 **Unit Testing:**
-- Create test project for each Common library
-- Use NUnit or MSTest framework
-- Aim for 70%+ code coverage on critical paths
+- Tạo project kiểm thử cho mỗi thư viện Common
+- Sử dụng framework NUnit hoặc MSTest
+- Mục tiêu đạt trên 70% độ bao phủ mã nguồn (code coverage) cho các luồng xử lý quan trọng
 
 **Integration Testing:**
-- Test API clients with mock servers
-- Test caching with Redis test instance
-- Validate document generation output
+- Kiểm thử các API client với mock server
+- Kiểm thử việc lưu bộ nhớ đệm (caching) với instance Redis thử nghiệm
+- Xác minh kết quả đầu ra của việc tạo tài liệu (document generation)
 
 Sources: [[`.devin/wiki.json:240-247`](../../../.devin/wiki.json#L240-L247)](../../../.devin/wiki.json#L240-L247)
 
@@ -489,7 +489,7 @@ Inventec.Common utilities rely on several third-party libraries:
 
 The Inventec Desktop Framework is a foundational desktop application framework located in `Common/Inventec.Desktop/` that provides the core plugin architecture, lifecycle management, and essential desktop utilities for the HIS system. It consists of 27 projects totaling approximately 455 files, with `Inventec.Desktop.Core` (208 files) serving as the central plugin engine.
 
-This page documents the framework's plugin discovery mechanism, base plugins, and auto-update system. For information about other Inventec common utilities, see [Inventec Common Utilities](../02-modules/common-libraries/libraries.md#inventec-common). For HIS-specific plugin implementations, see [Plugin System Architecture](../01-architecture/plugin-system.md).
+This page documents the framework's plugin discovery mechanism, base plugins, and auto-update system. For information about other Inventec common utilities, see [Inventec Common Utilities](../02-modules/common-libraries/libraries.md#inventec-common). For HIS-specific plugin implementations, see [Plugin System Architecture](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
@@ -1069,7 +1069,7 @@ The Inventec Desktop Framework provides essential infrastructure for the HIS Des
 - **Version Tracking**: XML-based configuration tracks file versions and enables rollback
 - **Configuration Persistence**: XML serialization maintains update state across sessions
 
-This framework serves as the foundation for the entire plugin-based architecture documented in [Plugin System Architecture](../01-architecture/plugin-system.md), enabling the modular design of the HIS system.
+This framework serves as the foundation for the entire plugin-based architecture documented in [Plugin System Architecture](../01-architecture/plugin-system/01-overview.md), enabling the modular design of the HIS system.
 
 # Inventec UC Shared Controls
 

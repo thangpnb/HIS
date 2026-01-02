@@ -1,33 +1,33 @@
-## Purpose and Scope
+## Mục tiêu và Phạm vi
 
-This document covers the **HIS.Desktop.Plugins.Library.*** namespace, which contains 36 specialized helper plugins that provide reusable functionality for other plugins in the HIS system. These library plugins implement cross-cutting concerns such as electronic invoicing, custom printing operations, treatment workflow extensions, and shared business logic utilities.
+Tài liệu này trình bày về namespace **HIS.Desktop.Plugins.Library.***, bao gồm 36 plugin hỗ trợ chuyên sâu, cung cấp các chức năng có thể tái sử dụng cho các plugin khác trong hệ thống HIS. Các plugin thư viện (library plugins) này giải quyết các vấn đề mang tính nền tảng như: hóa đơn điện tử, các hoạt động in ấn tùy chỉnh, mở rộng quy trình điều trị và các tiện ích logic nghiệp vụ dùng chung.
 
-Unlike the domain-specific plugins documented in sections [1.1.3.1](../02-modules/his-desktop/business-plugins.md) through [1.1.3.10](../03-business-domains/administration/system-data.md), Library plugins are designed to be consumed by multiple plugins rather than implementing standalone business features. For information about the overall plugin architecture and lifecycle, see [Plugin System Architecture](../01-architecture/plugin-system.md). For print system integration, see [MPS Print System](../02-modules/his-desktop/business-plugins.md#mps-print).
+Khác với các plugin theo domain nghiệp vụ (được nêu trong các phần từ [1.1.3.1](../02-modules/his-desktop/business-plugins.md) đến [1.1.3.10](../03-business-domains/administration/system-data.md)), các Plugin Thư viện được thiết kế để nhiều plugin khác nhau cùng khai thác thay vì triển khai một tính năng nghiệp vụ độc lập. Để biết thêm thông tin về kiến trúc tổng thể và vòng đời của plugin, vui lòng xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/02-discovery-lifecycle.md). Về tích hợp hệ thống in, xem [Hệ thống in MPS](../02-modules/his-desktop/business-plugins.md#mps-print).
 
-## Library Plugin Architecture
+## Kiến trúc Plugin Thư viện
 
-Library plugins follow the same structural patterns as business plugins but are explicitly designed for reusability. They expose APIs, data models, and UI components that other plugins can consume through direct references or the `DelegateRegister` communication pattern.
+Các plugin thư viện tuân theo các mô hình cấu trúc tương tự như plugin nghiệp vụ nhưng được thiết kế chuyên biệt để tái sử dụng. Chúng cung cấp các API, model dữ liệu và các thành phần giao diện (UI components) mà các plugin khác có thể sử dụng thông qua tham chiếu trực tiếp hoặc mô hình giao tiếp `DelegateRegister`.
 
 ```mermaid
 graph TB
-    subgraph "Business Plugins Layer"
+    subgraph "Lớp Plugin Nghiệp vụ (Business Plugins Layer)"
         Register["HIS.Desktop.Plugins.Register"]
         Transaction["HIS.Desktop.Plugins.Transaction"]
         Treatment["HIS.Desktop.Plugins.TreatmentFinish"]
         Prescription["HIS.Desktop.Plugins.AssignPrescriptionPK"]
     end
     
-    subgraph "Library Plugins Layer - 36 Plugins"
-        ElectronicBill["Library.ElectronicBill<br/>101 files<br/>Electronic Invoicing"]
-        PrintOtherForm["Library.PrintOtherForm<br/>94 files<br/>Custom Print Forms"]
-        PrintBordereau["Library.PrintBordereau<br/>69 files<br/>Print Lists/Reports"]
-        TreatmentEndTypeExt["Library.TreatmentEndTypeExt<br/>43 files<br/>Treatment End Extensions"]
-        DrugIntervention["Library.DrugInterventionInfo<br/>Drug Interaction Checking"]
-        PrintTreatment["Library.PrintTreatmentFinish<br/>Treatment Print Utilities"]
+    subgraph "Lớp Plugin Thư viện (36 Plugins)"
+        ElectronicBill["Library.ElectronicBill<br/>101 files<br/>Hóa đơn điện tử"]
+        PrintOtherForm["Library.PrintOtherForm<br/>94 files<br/>Mẫu in tùy chỉnh"]
+        PrintBordereau["Library.PrintBordereau<br/>69 files<br/>In bảng kê/báo cáo"]
+        TreatmentEndTypeExt["Library.TreatmentEndTypeExt<br/>43 files<br/>Mở rộng kết thúc điều trị"]
+        DrugIntervention["Library.DrugInterventionInfo<br/>Kiểm tra tương tác thuốc"]
+        PrintTreatment["Library.PrintTreatmentFinish<br/>Tiện ích in ấn điều trị"]
     end
     
-    subgraph "Foundation Layer"
-        MPS["MPS Print System"]
+    subgraph "Lớp Nền tảng (Foundation Layer)"
+        MPS["Hệ thống in MPS"]
         ApiConsumer["HIS.Desktop.ApiConsumer"]
         LocalStorage["HIS.Desktop.LocalStorage"]
     end
@@ -46,31 +46,31 @@ graph TB
     TreatmentEndTypeExt --> LocalStorage
 ```
 
-**Sources:** [HIS/Plugins/](), [`.devin/wiki.json:170-177`](../../../.devin/wiki.json#L170-L177)
+**Nguồn tham khảo:** [HIS/Plugins/](), [`.devin/wiki.json:170-177`](../../../.devin/wiki.json#L170-L177)
 
-## Major Library Plugins
+## Các Plugin Thư viện chính
 
-### ElectronicBill Plugin (101 files)
+### Plugin ElectronicBill (101 files)
 
-The `HIS.Desktop.Plugins.Library.ElectronicBill` plugin is the largest library plugin, providing comprehensive electronic invoicing functionality required by Vietnamese tax regulations. It integrates with multiple electronic invoice providers and manages the complete invoice lifecycle.
+`HIS.Desktop.Plugins.Library.ElectronicBill` là plugin thư viện lớn nhất, cung cấp đầy đủ chức năng về hóa đơn điện tử theo quy định của cơ quan thuế Việt Nam. Nó tích hợp với nhiều nhà cung cấp hóa đơn điện tử khác nhau và quản lý toàn bộ vòng đời của một hóa đơn.
 
 ```mermaid
 graph LR
-    subgraph "ElectronicBill Plugin Structure"
-        Entry["Library.ElectronicBill<br/>Plugin Entry Point"]
+    subgraph "Cấu trúc Plugin ElectronicBill"
+        Entry["Library.ElectronicBill<br/>Điểm khởi đầu Plugin"]
         
-        subgraph "Core Components"
-            Processor["Invoice Processors<br/>Multiple Provider Support"]
-            Models["Invoice Data Models<br/>ADO Objects"]
-            Config["Provider Configuration<br/>Connection Management"]
-            Validation["Invoice Validation<br/>Tax Compliance Rules"]
+        subgraph "Thành phần cốt lõi"
+            Processor["Bộ xử lý hóa đơn<br/>Hỗ trợ nhiều nhà cung cấp"]
+            Models["Model dữ liệu hóa đơn<br/>Đối tượng ADO"]
+            Config["Cấu hình nhà cung cấp<br/>Quản lý kết nối"]
+            Validation["Kiểm tra hóa đơn<br/>Quy định về thuế"]
         end
         
-        subgraph "Provider Integrations"
-            ViettelCA["Viettel CA Integration"]
-            VNPT["VNPT Integration"]
-            MobiFone["MobiFone Integration"]
-            Bkav["Bkav Integration"]
+        subgraph "Tích hợp nhà cung cấp"
+            ViettelCA["Tích hợp Viettel CA"]
+            VNPT["Tích hợp VNPT"]
+            MobiFone["Tích hợp MobiFone"]
+            Bkav["Tích hợp Bkav"]
         end
     end
     
@@ -85,37 +85,37 @@ graph LR
     Processor --> Bkav
 ```
 
-**Key Components:**
-- **Invoice Generation:** Creates electronic invoices from transaction data
-- **Provider Abstraction:** Supports multiple e-invoice service providers
-- **Signature Management:** Handles digital signatures and certificates
-- **Status Tracking:** Monitors invoice submission and approval status
-- **Validation Engine:** Ensures compliance with tax authority requirements
+**Các thành phần then chốt:**
+- **Tạo hóa đơn (Invoice Generation):** Tạo hóa đơn điện tử từ dữ liệu giao dịch.
+- **Trừu tượng hóa nhà cung cấp (Provider Abstraction):** Hỗ trợ đồng thời nhiều nhà cung cấp dịch vụ hóa đơn điện tử.
+- **Quản lý chữ ký (Signature Management):** Xử lý chữ ký số và chứng thư số.
+- **Theo dõi trạng thái (Status Tracking):** Giám sát quá trình gửi và phê duyệt hóa đơn.
+- **Công cụ kiểm tra (Validation Engine):** Đảm bảo tuân thủ các yêu cầu của cơ quan thuế.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBill/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBill/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
 
-### PrintOtherForm Plugin (94 files)
+### Plugin PrintOtherForm (94 files)
 
-The `HIS.Desktop.Plugins.Library.PrintOtherForm` plugin provides flexible printing capabilities for forms that don't fit standard MPS processor templates. It allows dynamic form generation and custom layout rendering.
+`HIS.Desktop.Plugins.Library.PrintOtherForm` cung cấp khả năng in ấn linh hoạt cho các biểu mẫu không nằm trong các template chuẩn của bộ xử lý MPS. Nó cho phép tạo biểu mẫu động và dàn trang tùy chỉnh.
 
 ```mermaid
 graph TB
-    subgraph "PrintOtherForm Architecture"
-        FormSelector["Form Type Selector"]
-        TemplateEngine["Template Engine"]
-        DataBinder["Data Binding Layer"]
+    subgraph "Kiến trúc PrintOtherForm"
+        FormSelector["Bộ chọn loại biểu mẫu"]
+        TemplateEngine["Công cụ Template"]
+        DataBinder["Lớp liên kết dữ liệu"]
         
-        subgraph "Supported Form Types"
-            Custom["Custom Medical Forms"]
-            Administrative["Administrative Documents"]
-            Certificates["Medical Certificates"]
-            Letters["Referral Letters"]
+        subgraph "Các loại biểu mẫu hỗ trợ"
+            Custom["Mẫu y tế tùy chỉnh"]
+            Administrative["Tài liệu hành chính"]
+            Certificates["Giấy chứng nhận y tế"]
+            Letters["Giấy chuyển tuyến"]
         end
         
-        subgraph "Output Handlers"
-            FlexCell["FlexCell Export<br/>Excel/PDF"]
-            DirectPrint["Direct Printer Output"]
-            Preview["Print Preview Window"]
+        subgraph "Bộ xử lý đầu ra"
+            FlexCell["Xuất FlexCell<br/>Excel/PDF"]
+            DirectPrint["In trực tiếp"]
+            Preview["Cửa sổ xem trước khi in"]
         end
     end
     
@@ -132,36 +132,36 @@ graph TB
     TemplateEngine --> Preview
 ```
 
-**Key Features:**
-- Supports custom form templates outside standard MPS processors
-- Dynamic data binding from multiple data sources
-- Real-time print preview with edit capabilities
-- Multiple export formats (PDF, Excel, Word)
+**Các tính năng chính:**
+- Hỗ trợ các template biểu mẫu tùy chỉnh nằm ngoài bộ xử lý MPS chuẩn.
+- Liên kết dữ liệu động từ nhiều nguồn dữ liệu khác nhau.
+- Xem trước khi in (Print preview) thời gian thực với khả năng chỉnh sửa.
+- Hỗ trợ nhiều định dạng xuất (PDF, Excel, Word).
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.PrintOtherForm/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.PrintOtherForm/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
 
-### PrintBordereau Plugin (69 files)
+### Plugin PrintBordereau (69 files)
 
-The `HIS.Desktop.Plugins.Library.PrintBordereau` plugin specializes in printing bordereaus (detailed lists/statements) for insurance claims, billing summaries, and inventory reports.
+`HIS.Desktop.Plugins.Library.PrintBordereau` chuyên biệt cho việc in các bảng kê chi tiết cho yêu cầu bảo hiểm, tổng hợp hóa đơn và báo cáo tồn kho.
 
-**Common Bordereau Types:**
+**Các loại bảng kê thông dụng:**
 
-| Bordereau Type | Purpose | Data Source |
-|----------------|---------|-------------|
-| Insurance Bordereau | Health insurance claim lists | Treatment transactions |
-| Billing Bordereau | Patient billing summaries | Financial transactions |
-| Medication Bordereau | Prescription drug lists | Pharmacy dispensing |
-| Service Bordereau | Medical service summaries | Service execution records |
-| Material Bordereau | Medical supply usage | Material consumption |
+| Loại bảng kê | Mục đích | Nguồn dữ liệu |
+|--------------|----------|---------------|
+| Bảng kê Bảo hiểm | Danh sách yêu cầu bảo hiểm y tế | Giao dịch điều trị |
+| Bảng kê Thanh toán | Tổng hợp thanh toán cho bệnh nhân | Giao dịch tài chính |
+| Bảng kê Thuốc | Danh sách thuốc theo đơn | Phát thuốc tại quầy dược |
+| Bảng kê Dịch vụ | Tổng hợp các dịch vụ y tế | Bản ghi thực hiện dịch vụ |
+| Bảng kê Vật tư | Sử dụng vật tư y tế | Tiêu hao vật tư |
 
 ```mermaid
 graph LR
-    subgraph "PrintBordereau Workflow"
-        DataCollection["Data Collection<br/>From Multiple Sources"]
-        Aggregation["Data Aggregation<br/>Grouping & Summation"]
-        Formatting["Format Application<br/>Insurance Standards"]
-        Generation["Bordereau Generation<br/>Multi-page Support"]
-        Signature["Digital Signature<br/>Authority Approval"]
+    subgraph "Quy trình in bảng kê (PrintBordereau)"
+        DataCollection["Thu thập dữ liệu<br/>Từ nhiều nguồn"]
+        Aggregation["Tổng hợp dữ liệu<br/>Nhóm & Cộng dồn"]
+        Formatting["Áp dụng định dạng<br/>Chuẩn bảo hiểm"]
+        Generation["Tạo bảng kê<br/>Hỗ trợ nhiều trang"]
+        Signature["Chữ ký số<br/>Phê duyệt của cấp có thẩm quyền"]
     end
     
     DataCollection --> Aggregation
@@ -170,34 +170,34 @@ graph LR
     Generation --> Signature
 ```
 
-**Key Capabilities:**
-- Multi-page bordereau with automatic pagination
-- Insurance standard compliance (Vietnam Social Security)
-- Digital signature integration
-- Batch printing for multiple bordereaus
-- Export to required government formats
+**Khả năng chính:**
+- In bảng kê nhiều trang với tính năng phân trang tự động.
+- Tuân thủ các tiêu chuẩn bảo hiểm (Bảo hiểm Xã hội Việt Nam).
+- Tích hợp chữ ký số.
+- In hàng loạt (Batch printing) cho nhiều bảng kê cùng lúc.
+- Xuất dữ liệu theo các định dạng yêu cầu của chính phủ.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.PrintBordereau/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.PrintBordereau/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
 
-### TreatmentEndTypeExt Plugin (43 files)
+### Plugin TreatmentEndTypeExt (43 files)
 
-The `HIS.Desktop.Plugins.Library.TreatmentEndTypeExt` plugin provides extensibility for treatment end workflows, allowing customization of discharge procedures, transfer protocols, and treatment conclusion logic.
+`HIS.Desktop.Plugins.Library.TreatmentEndTypeExt` cung cấp khả năng mở rộng cho các quy trình kết thúc điều trị, cho phép tùy chỉnh các thủ tục xuất viện, giao thức chuyển viện và logic kết thúc điều trị.
 
 ```mermaid
 graph TB
-    subgraph "TreatmentEndTypeExt Components"
-        EndTypeSelector["End Type Selector<br/>Discharge/Transfer/Death/etc"]
-        ValidatorChain["Validation Chain<br/>Business Rules"]
-        ExtensionPoints["Extension Points<br/>Custom Logic Injection"]
+    subgraph "Thành phần TreatmentEndTypeExt"
+        EndTypeSelector["Bộ chọn loại kết thúc<br/>Xuất viện/Chuyển viện/Tử vong/v.v."]
+        ValidatorChain["Chuỗi kiểm tra (Validation Chain)<br/>Quy tắc nghiệp vụ"]
+        ExtensionPoints["Điểm mở rộng<br/>Chèn logic tùy chỉnh"]
         
-        subgraph "End Type Handlers"
-            Discharge["Discharge Handler<br/>Normal/Advised"]
-            Transfer["Transfer Handler<br/>Inter/Intra Hospital"]
-            Death["Death Handler<br/>Certificate Generation"]
-            DAMA["DAMA Handler<br/>Against Medical Advice"]
+        subgraph "Bộ xử lý loại kết thúc"
+            Discharge["Bộ xử lý xuất viện<br/>Thông thường/Theo yêu cầu"]
+            Transfer["Bộ xử lý chuyển viện<br/>Liên viện/Nội viện"]
+            Death["Bộ xử lý tử vong<br/>Tạo giấy chứng tử"]
+            DAMA["Bộ xử lý DAMA<br/>Ra viện trái chỉ định"]
         end
         
-        WorkflowEngine["Workflow Engine<br/>Status Transitions"]
+        WorkflowEngine["Workflow Engine<br/>Chuyển đổi trạng thái"]
     end
     
     EndTypeSelector --> ValidatorChain
@@ -213,31 +213,31 @@ graph TB
     DAMA --> WorkflowEngine
 ```
 
-**Extension Mechanisms:**
-- **Pre-validation Hooks:** Custom validation before end type processing
-- **Post-processing Actions:** Automated tasks after treatment conclusion
-- **Custom End Types:** Facility-specific discharge categories
-- **Document Generation:** Automatic discharge paperwork
-- **Notification Triggers:** Alert relevant departments
+**Cơ chế mở rộng:**
+- **Pre-validation Hooks:** Các bước kiểm tra tùy chỉnh trước khi xử lý loại kết thúc.
+- **Post-processing Actions:** Các tác vụ tự động sau khi hoàn tất điều trị.
+- **Các loại kết thúc tùy chỉnh:** Các danh mục xuất viện đặc thù của từng cơ sở.
+- **Tạo tài liệu:** Tự động tạo các giấy tờ xuất viện.
+- **Kích hoạt thông báo:** Cảnh báo cho các khoa phòng liên quan.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.TreatmentEndTypeExt/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.TreatmentEndTypeExt/](), [`.devin/wiki.json:174-176`](../../../.devin/wiki.json#L174-L176)
 
-## Additional Library Plugins
+## Các Plugin Thư viện bổ sung
 
-### Drug Intervention & Safety Libraries
+### Thư viện An toàn & Tương tác Thuốc
 
 ```mermaid
 graph TB
-    subgraph "Drug Safety Libraries"
-        DrugIntervention["Library.DrugInterventionInfo<br/>Drug Interaction Checking"]
-        AllergyCheck["Library.AllergyCheck<br/>Allergy Validation"]
-        DosageValidation["Library.DosageValidation<br/>Dose Range Checking"]
+    subgraph "Thư viện an toàn thuốc"
+        DrugIntervention["Library.DrugInterventionInfo<br/>Kiểm tra tương tác thuốc"]
+        AllergyCheck["Library.AllergyCheck<br/>Kiểm tra dị ứng"]
+        DosageValidation["Library.DosageValidation<br/>Kiểm tra khoảng liều"]
     end
     
-    subgraph "Clinical Decision Support"
-        InteractionDB["Drug Interaction Database"]
-        AllergyDB["Patient Allergy Records"]
-        DosageRules["Dosage Rule Engine"]
+    subgraph "Hỗ trợ quyết định lâm sàng"
+        InteractionDB["Cơ sở dữ liệu tương tác thuốc"]
+        AllergyDB["Hồ sơ dị ứng bệnh nhân"]
+        DosageRules["Bộ quy tắc về liều lượng"]
     end
     
     DrugIntervention --> InteractionDB
@@ -245,40 +245,40 @@ graph TB
     DosageValidation --> DosageRules
 ```
 
-**DrugInterventionInfo Plugin:**
-- Detects drug-drug interactions
-- Checks contraindications based on patient conditions
-- Severity classification (major, moderate, minor)
-- Alternative medication suggestions
-- Integration with prescription plugins
+**Plugin DrugInterventionInfo:**
+- Phát hiện tương tác thuốc - thuốc.
+- Kiểm tra chống chỉ định dựa trên tình trạng bệnh nhân.
+- Phân loại mức độ nghiêm trọng (nặng, trung bình, nhẹ).
+- Đưa ra gợi ý thuốc thay thế.
+- Tích hợp với các plugin kê đơn.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.DrugInterventionInfo/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.DrugInterventionInfo/]()
 
-### Print Utility Libraries
+### Thư viện Tiện ích In ấn
 
-| Plugin Name | Files | Purpose |
+| Tên Plugin | Số file | Mục đích |
 |-------------|-------|---------|
-| `Library.PrintTreatmentFinish` | ~35 | Treatment conclusion documents |
-| `Library.PrintMedicalReport` | ~28 | Medical report generation |
-| `Library.PrintAppointment` | ~22 | Appointment cards and reminders |
-| `Library.PrintLabel` | ~18 | Barcode and label printing |
-| `Library.PrintCertificate` | ~24 | Medical certificates |
+| `Library.PrintTreatmentFinish` | ~35 | Các tài liệu khi kết thúc điều trị |
+| `Library.PrintMedicalReport` | ~28 | Tạo báo cáo y tế |
+| `Library.PrintAppointment` | ~22 | Thẻ hẹn và nhắc hẹn |
+| `Library.PrintLabel` | ~18 | In mã vạch và nhãn |
+| `Library.PrintCertificate` | ~24 | Giấy chứng nhận y tế |
 
-### Data Import/Export Libraries
+### Thư viện Nhập/Xuất Dữ liệu
 
 ```mermaid
 graph LR
-    subgraph "Import/Export Libraries"
-        ImportExcel["Library.ImportExcel<br/>Bulk Data Import"]
-        ExportReport["Library.ExportReport<br/>Report Export"]
-        DataTransform["Library.DataTransform<br/>Format Conversion"]
+    subgraph "Thư viện Nhập/Xuất"
+        ImportExcel["Library.ImportExcel<br/>Nhập dữ liệu hàng loạt"]
+        ExportReport["Library.ExportReport<br/>Xuất báo cáo"]
+        DataTransform["Library.DataTransform<br/>Chuyển đổi định dạng"]
     end
     
-    subgraph "Data Formats"
-        Excel["Excel Format<br/>XLS/XLSX"]
-        XML["XML Format<br/>HL7/Custom"]
-        CSV["CSV Format<br/>Delimited Data"]
-        JSON["JSON Format<br/>API Export"]
+    subgraph "Định dạng dữ liệu"
+        Excel["Định dạng Excel<br/>XLS/XLSX"]
+        XML["Định dạng XML<br/>HL7/Tùy chỉnh"]
+        CSV["Định dạng CSV<br/>Dữ liệu phân tách"]
+        JSON["Định dạng JSON<br/>Xuất API"]
     end
     
     ImportExcel --> Excel
@@ -292,42 +292,42 @@ graph LR
     DataTransform --> JSON
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
 
-### Communication & Notification Libraries
+### Thư viện Liên lạc & Thông báo
 
-**Key Plugins:**
-- `Library.MessageBus` - Inter-plugin messaging infrastructure
-- `Library.NotificationCenter` - Centralized notification management
-- `Library.EventAggregator` - Event aggregation and distribution
-- `Library.SignalRClient` - Real-time communication client
+**Các plugin then chốt:**
+- `Library.MessageBus`: Hạ tầng nhắn tin giữa các plugin.
+- `Library.NotificationCenter`: Quản lý thông báo tập trung.
+- `Library.EventAggregator`: Tổng hợp và phân phối sự kiện.
+- `Library.SignalRClient`: Client cho giao tiếp thời gian thực.
 
-These plugins extend the base `PubSub` system documented in [Notification & Events](#1.1.5) with domain-specific messaging patterns.
+Các plugin này mở rộng hệ thống `PubSub` cơ bản (được nêu trong [Thông báo & Sự kiện](#1.1.5)) với các mô hình nhắn tin đặc thù cho từng domain.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
 
-## Integration Patterns
+## Các mô hình tích hợp
 
-### Consumption Pattern
+### Mô hình sử dụng (Consumption Pattern)
 
-Library plugins are consumed by business plugins through three primary mechanisms:
+Các plugin thư viện được các plugin nghiệp vụ khai thác thông qua ba cơ chế chính:
 
 ```mermaid
 graph TB
-    subgraph "Business Plugin"
-        PluginEntry["Plugin Entry Point"]
-        BusinessLogic["Business Logic"]
+    subgraph "Plugin Nghiệp vụ"
+        PluginEntry["Điểm khởi đầu Plugin"]
+        BusinessLogic["Logic Nghiệp vụ"]
     end
     
-    subgraph "Library Consumption Methods"
-        DirectRef["1. Direct Reference<br/>Project Reference"]
-        DelegateCall["2. Delegate Pattern<br/>DelegateRegister"]
-        EventSub["3. Event Subscription<br/>PubSub System"]
+    subgraph "Phương thức sử dụng Thư viện"
+        DirectRef["1. Tham chiếu trực tiếp<br/>Tham chiếu Project"]
+        DelegateCall["2. Mô hình Delegate<br/>DelegateRegister"]
+        EventSub["3. Đăng ký sự kiện<br/>Hệ thống PubSub"]
     end
     
-    subgraph "Library Plugin"
+    subgraph "Plugin Thư viện"
         LibraryAPI["Public API"]
-        LibraryImpl["Implementation"]
+        LibraryImpl["Triển khai thực tế"]
     end
     
     PluginEntry --> DirectRef
@@ -341,89 +341,89 @@ graph TB
     LibraryAPI --> LibraryImpl
 ```
 
-**Sources:** [HIS/Plugins/](), [HIS/HIS.Desktop/]()
+**Nguồn tham khảo:** [HIS/Plugins/](), [HIS/HIS.Desktop/]()
 
-### Common Usage Example Structure
+### Ví dụ về cấu trúc sử dụng thông dụng
 
-For example, the `Transaction` plugin consuming `ElectronicBill` library:
+Ví dụ, plugin `Transaction` sử dụng thư viện `ElectronicBill`:
 
-1. **Transaction plugin** generates transaction data
-2. Calls `Library.ElectronicBill` API to create electronic invoice
-3. `ElectronicBill` validates data against tax regulations
-4. Submits invoice to configured provider (Viettel CA, VNPT, etc.)
-5. Returns invoice number and status to `Transaction` plugin
-6. `Transaction` updates transaction record with invoice information
+1. **Plugin Transaction** tạo dữ liệu giao dịch.
+2. Gọi API của `Library.ElectronicBill` để tạo hóa đơn điện tử.
+3. `ElectronicBill` kiểm tra dữ liệu đối chiếu với các quy định về thuế.
+4. Gửi hóa đơn tới nhà cung cấp đã cấu hình (Viettel CA, VNPT, v.v.).
+5. Trả về số hóa đơn và trạng thái cho plugin `Transaction`.
+6. `Transaction` cập nhật bản ghi giao dịch với thông tin hóa đơn.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Transaction/](), [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBill/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Transaction/](), [HIS/Plugins/HIS.Desktop.Plugins.Library.ElectronicBill/]()
 
-## Plugin Structure Pattern
+## Mô hình cấu trúc Plugin
 
-Most Library plugins follow this standard directory structure:
+Hầu hết các Plugin Thư viện đều tuân theo cấu trúc thư mục tiêu chuẩn sau:
 
 ```
-Library.[PluginName]/
-├── [PluginName].cs          # Plugin entry point
-├── Run/                     # Main UI and logic
+Library.[Tên-Plugin]/
+├── [Tên-Plugin].cs          # Điểm khởi đầu của Plugin
+├── Run/                     # Giao diện chính và logic
 │   ├── frmMain.cs
 │   ├── frmMain.Designer.cs
-│   └── [PluginName]Behavior.cs
-├── ADO/                     # Data objects
-│   ├── [PluginName]ADO.cs
-│   └── [Related]ADO.cs
-├── Base/                    # Base classes
+│   └── [Tên-Plugin]Behavior.cs
+├── ADO/                     # Các đối tượng dữ liệu
+│   ├── [Tên-Plugin]ADO.cs
+│   └── [Liên-quan]ADO.cs
+├── Base/                    # Các lớp nền tảng
 │   ├── RequestBase.cs
 │   └── ProcessorBase.cs
-├── Processors/              # Business logic processors
+├── Processors/              # Bộ xử lý logic nghiệp vụ
 │   ├── Processor1.cs
 │   └── Processor2.cs
-├── Config/                  # Configuration
-│   └── [PluginName]CFG.cs
-├── Validation/              # Validation rules
-│   └── [PluginName]ValidationRule.cs
-└── Resources/               # UI resources
+├── Config/                  # Cấu hình
+│   └── [Tên-Plugin]CFG.cs
+├── Validation/              # Các quy tắc kiểm tra
+│   └── [Tên-Plugin]ValidationRule.cs
+└── Resources/               # Tài nguyên giao diện
     └── lang/
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
 
-## Library Plugin Categories
+## Phân loại Plugin Thư viện
 
-The 36 Library plugins can be categorized by functional domain:
+36 Plugin Thư viện có thể được phân loại theo lĩnh vực chức năng:
 
-| Category | Plugin Count | Examples |
+| Lĩnh vực | Số lượng plugin | Ví dụ |
 |----------|--------------|----------|
-| **Electronic Invoicing** | 3 | ElectronicBill, InvoiceSync, TaxIntegration |
-| **Printing Utilities** | 8 | PrintOtherForm, PrintBordereau, PrintTreatmentFinish, PrintLabel |
-| **Treatment Extensions** | 5 | TreatmentEndTypeExt, TreatmentWorkflow, TreatmentValidation |
-| **Drug Safety** | 4 | DrugInterventionInfo, DrugInteractionCheck, AllergyCheck |
-| **Data Import/Export** | 6 | ImportExcel, ExportReport, DataTransform, BulkImport |
-| **Communication** | 4 | MessageBus, NotificationCenter, EventAggregator, SignalRClient |
-| **Validation & Rules** | 3 | ValidationEngine, BusinessRules, ComplianceCheck |
-| **Utilities** | 3 | DateTimeHelper, StringHelper, NumberFormat |
+| **Hóa đơn điện tử** | 3 | ElectronicBill, InvoiceSync, TaxIntegration |
+| **Tiện ích In ấn** | 8 | PrintOtherForm, PrintBordereau, PrintTreatmentFinish, PrintLabel |
+| **Mở rộng Điều trị** | 5 | TreatmentEndTypeExt, TreatmentWorkflow, TreatmentValidation |
+| **An toàn Thuốc** | 4 | DrugInterventionInfo, DrugInteractionCheck, AllergyCheck |
+| **Nhập/Xuất Dữ liệu** | 6 | ImportExcel, ExportReport, DataTransform, BulkImport |
+| **Liên lạc** | 4 | MessageBus, NotificationCenter, EventAggregator, SignalRClient |
+| **Kiểm tra & Quy tắc** | 3 | ValidationEngine, BusinessRules, ComplianceCheck |
+| **Tiện ích khác** | 3 | DateTimeHelper, StringHelper, NumberFormat |
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/](), [`.devin/wiki.json:170-177`](../../../.devin/wiki.json#L170-L177)
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/](), [`.devin/wiki.json:170-177`](../../../.devin/wiki.json#L170-L177)
 
-## API Surface Design
+## Thiết kế bề mặt API (API Surface Design)
 
-Library plugins expose well-defined APIs through interfaces and abstract classes:
+Các plugin thư viện công khai (expose) các API được định nghĩa rõ ràng thông qua interface và abstract class:
 
 ```mermaid
 graph TB
-    subgraph "API Layer"
-        ILibraryPlugin["ILibraryPlugin Interface<br/>Base Contract"]
-        IProcessor["IProcessor Interface<br/>Processing Logic"]
-        IValidator["IValidator Interface<br/>Validation Rules"]
+    subgraph "Lớp API (API Layer)"
+        ILibraryPlugin["Interface ILibraryPlugin<br/>Hợp đồng cơ bản"]
+        IProcessor["Interface IProcessor<br/>Logic xử lý"]
+        IValidator["Interface IValidator<br/>Quy tắc kiểm tra"]
     end
     
-    subgraph "Implementation Layer"
-        ConcretePlugin["Concrete Plugin Implementation"]
-        ProcessorImpl["Processor Implementation"]
-        ValidatorImpl["Validator Implementation"]
+    subgraph "Lớp Triển khai (Implementation Layer)"
+        ConcretePlugin["Triển khai Plugin cụ thể"]
+        ProcessorImpl["Triển khai bộ xử lý"]
+        ValidatorImpl["Triển khai bộ kiểm tra"]
     end
     
-    subgraph "Consumption"
-        BusinessPlugin["Business Plugins"]
-        OtherLibraries["Other Library Plugins"]
+    subgraph "Sử dụng (Consumption)"
+        BusinessPlugin["Plugin Nghiệp vụ"]
+        OtherLibraries["Plugin Thư viện khác"]
     end
     
     ILibraryPlugin --> ConcretePlugin
@@ -439,97 +439,92 @@ graph TB
     OtherLibraries --> ILibraryPlugin
 ```
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
 
-## Dependencies and References
+## Phụ thuộc và Tham chiếu
 
-Library plugins minimize dependencies to ensure broad reusability:
+Các plugin thư viện hạn chế tối đa việc phụ thuộc (dependencies) để đảm bảo khả năng tái sử dụng rộng rãi:
 
-**Allowed Dependencies:**
-- `HIS.Desktop.Common` - Shared interfaces and base classes
-- `HIS.Desktop.ADO` - Data models
-- `HIS.Desktop.LocalStorage` - Configuration and caching
-- `HIS.Desktop.ApiConsumer` - Backend API access
-- `Inventec.Common.*` - Foundation utilities
-- `Inventec.UC.*` - Shared UI controls
+**Các phụ thuộc được phép:**
+- `HIS.Desktop.Common`: Các interface và class cơ bản dùng chung.
+- `HIS.Desktop.ADO`: Các model dữ liệu.
+- `HIS.Desktop.LocalStorage`: Cấu hình và bộ nhớ đệm.
+- `HIS.Desktop.ApiConsumer`: Truy cập API backend.
+- `Inventec.Common.*`: Các tiện ích nền tảng.
+- `Inventec.UC.*`: Các control giao diện dùng chung.
 
-**Prohibited Dependencies:**
-- Direct references to other business plugins
-- Circular dependencies with consumer plugins
-- External libraries without approval
+**Các phụ thuộc bị cấm:**
+- Tham chiếu trực tiếp đến các plugin nghiệp vụ khác.
+- Phụ thuộc vòng (circular dependencies) với các plugin sử dụng.
+- Các thư viện bên ngoài khi chưa được phê duyệt.
 
-**Sources:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Library.*/]()
 
-## Registration and Discovery
+## Đăng ký và Khám phá (Registration and Discovery)
 
-Library plugins register with the plugin system but are marked as non-instantiable for direct UI access. They are discovered through the standard plugin discovery mechanism but consumed programmatically:
+Các plugin thư viện đăng ký với hệ thống plugin nhưng được đánh dấu là không thể khởi tạo trực tiếp từ giao diện. Chúng được tìm thấy thông qua cơ chế khám phá plugin chuẩn nhưng được sử dụng thông qua lập trình:
 
-**Plugin Descriptor Example:**
+**Ví dụ về Plugin Descriptor:**
 - **IsLibrary:** `true`
-- **IsVisible:** `false` (not shown in UI menu)
-- **IsAutoLoad:** `true` (loaded at startup)
-- **ExportTypes:** List of exposed interfaces
+- **IsVisible:** `false` (không hiển thị trên menu UI)
+- **IsAutoLoad:** `true` (được tải khi khởi động)
+- **ExportTypes:** Danh sách các interface được công khai.
 
-**Sources:** [HIS/Plugins/](), [HIS/HIS.Desktop/]()
+**Nguồn tham khảo:** [HIS/Plugins/](), [HIS/HIS.Desktop/]()
 
-## Related Documentation
+## Tài liệu liên quan
 
-- For the overall plugin architecture, see [Plugin System Architecture](../01-architecture/plugin-system.md)
-- For print system integration details, see [MPS Print System](../02-modules/his-desktop/business-plugins.md#mps-print)
-- For electronic bill utilities from Common layer, see [Inventec Common Utilities](../02-modules/common-libraries/libraries.md#inventec-common)
-- For event-based communication, see [Notification & Events](#1.1.5)
+- Về kiến trúc plugin tổng thể, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
+- Về chi tiết tích hợp hệ thống in, xem [Hệ thống in MPS](../02-modules/his-desktop/business-plugins.md#mps-print).
+- Về các tiện ích hóa đơn điện tử từ lớp Common, xem [Tiện ích Inventec Common](../02-modules/common-libraries/libraries.md#inventec-common).
+- Về giao tiếp dựa trên sự kiện, xem [Thông báo & Sự kiện](#1.1.5).
 
-# Data Models & ADO
+# Model## Mục tiêu và Phạm vi
 
+Tài liệu này mô tả về thư mục `HIS.Desktop.ADO/` (74 files), nơi chứa các Đối tượng Dữ liệu Hoạt động (Active Data Objects - ADO) và các model dữ liệu được sử dụng trong ứng dụng HIS Desktop. Các model này đóng vai trò là các đối tượng chuyển đổi dữ liệu (Data Transfer Objects - DTO) giữa lớp hiển thị (plugin), lớp giao tiếp API và bộ nhớ đệm (cache) cục bộ.
 
-
-
-## Purpose and Scope
-
-This document describes the `HIS.Desktop.ADO/` folder (74 files), which contains Active Data Objects (ADO) and data models used throughout the HIS Desktop application. These models serve as data transfer objects between the presentation layer (plugins), API communication layer, and local storage cache.
-
-For information about:
-- API communication and backend integration, see [API Consumer Layer](#1.1.2)
-- Local data caching and configuration, see [LocalStorage & Configuration](../02-modules/his-desktop/core.md)
-- How plugins consume these models, see [Plugin System Architecture](../01-architecture/plugin-system.md)
+Để biết thêm thông tin về:
+- Giao tiếp API và tích hợp backend, xem [Lớp API Consumer](#1.1.2).
+- Bộ nhớ đệm dữ liệu cục bộ và cấu hình, xem [LocalStorage & Cấu hình](../02-modules/his-desktop/core.md).
+- Cách các plugin sử dụng các model này, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
-## Overview
+## Tổng quan
 
-The `HIS.Desktop.ADO` project contains 74 data model files that define the structure of data flowing through the application. The term "ADO" refers to Active Data Objects—C# classes that represent entities and data structures used by the 956 plugins in the system.
+Dự án `HIS.Desktop.ADO` bao gồm 74 file model dữ liệu định nghĩa cấu trúc dữ liệu lu chuyển trong ứng dụng. Thuật ngữ "ADO" ở đây ám chỉ các Active Data Objects — các class C# đại diện cho các thực thể và cấu trúc dữ liệu được sử dụng bởi 956 plugin trong hệ thống.
 
-### Key Characteristics
+### Các đặc điểm chính
 
-- **Data Transfer Objects (DTOs)**: Models designed for transferring data between layers
-- **Frontend-Optimized**: Tailored for UI binding and presentation logic
-- **Hybrid Models**: Often combine data from multiple backend entities for specific UI scenarios
-- **No Business Logic**: Pure data containers with properties and basic validation
+- **Đối tượng Chuyển đổi Dữ liệu (DTOs):** Các model được thiết kế để truyền tải dữ liệu giữa các lớp.
+- **Tối ưu cho Frontend:** Được tinh chỉnh để phù hợp với việc liên kết giao diện (UI binding) và logic hiển thị.
+- **Model hỗn hợp (Hybrid Models):** Thường kết hợp dữ liệu từ nhiều thực thể backend cho các kịch bản UI cụ thể.
+- **Không chứa Logic nghiệp vụ:** Đơn thuần là các bộ chứa dữ liệu với các thuộc tính và các quy tắc kiểm tra (validation) cơ bản.
 
 ---
 
-## Architecture & Data Flow
+## Kiến trúc & Luồng dữ liệu
 
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
-        P1["HIS.Desktop.Plugins.*<br/>956 Business Plugins"]
-        P2["HIS.UC.*<br/>131 User Controls"]
+    subgraph "Lớp hiển thị (Presentation Layer)"
+        P1["HIS.Desktop.Plugins.*<br/>956 Plugin Nghiệp vụ"]
+        P2["HIS.UC.*<br/>131 User Control"]
         P3["HIS.UC.FormType<br/>329 files Form Engine"]
     end
     
-    subgraph "Data Model Layer"
+    subgraph "Lớp Model dữ liệu"
         ADO["HIS.Desktop.ADO<br/>74 files<br/>Data Models"]
     end
     
-    subgraph "Data & Communication"
+    subgraph "Dữ liệu & Liên lạc"
         LocalStorage["HIS.Desktop.LocalStorage.BackendData<br/>69 files Cache"]
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 files REST Client"]
     end
     
-    subgraph "Backend"
+    subgraph "Hệ thống Backend"
         API["Backend REST APIs<br/>HIS/ACS/EMR/LIS/SAR/SDA"]
-        DB[("Database<br/>SQL Server")]
+        DB[("Cơ sở dữ liệu<br/>SQL Server")]
     end
     
     P1 --> ADO
@@ -542,59 +537,59 @@ graph TB
     ApiConsumer --> API
     API --> DB
     
-    API -.->|"Response JSON"| ApiConsumer
-    ApiConsumer -.->|"Deserialize to ADO"| ADO
-    ADO -.->|"Cache"| LocalStorage
-    LocalStorage -.->|"Retrieve"| ADO
-    ADO -.->|"Bind to UI"| P1
+    API -.->|"JSON phản hồi"| ApiConsumer
+    ApiConsumer -.->|"Deserialize sang ADO"| ADO
+    ADO -.->|"Lưu Cache"| LocalStorage
+    LocalStorage -.->|"Truy xuất"| ADO
+    ADO -.->|"Liên kết UI"| P1
 ```
 
-**Data Flow Pattern**:
-1. **Plugin Request**: Plugin needs data for a specific business operation
-2. **ADO Model Creation**: Plugin creates or requests ADO model instance
-3. **Cache Check**: System checks `LocalStorage.BackendData` for cached data
-4. **API Call** (if not cached): `ApiConsumer` retrieves from backend API
-5. **Deserialization**: JSON response deserialized into ADO models
-6. **UI Binding**: ADO model bound to UI controls for display/editing
-7. **Validation & Submission**: Modified data sent back through `ApiConsumer`
+**Mô hình Luồng dữ liệu:**
+1. **Yêu cầu từ Plugin:** Plugin cần dữ liệu cho một hoạt động nghiệp vụ cụ thể.
+2. **Khởi tạo ADO Model:** Plugin tạo mới hoặc yêu cầu một thực thể ADO model.
+3. **Kiểm tra Cache:** Hệ thống kiểm tra dữ liệu trong `LocalStorage.BackendData`.
+4. **Gọi API** (nếu không có trong cache): `ApiConsumer` truy xuất từ API backend.
+5. **Deserialization:** Chuyển đổi JSON phản hồi thành các ADO model.
+6. **Liên kết UI:** ADO model được liên kết với các UI control để hiển thị hoặc chỉnh sửa.
+7. **Kiểm tra & Gửi dữ liệu:** Dữ liệu đã thay đổi được gửi ngược lại thông qua `ApiConsumer`.
 
-**Sources**: Based on Diagram 3 from system architecture overview, [HIS/HIS.Desktop/ADO/ folder structure]()
+**Nguồn tham khảo:** Dựa trên Sơ đồ 3 từ tổng quan kiến trúc hệ thống, [cấu trúc thư mục HIS/HIS.Desktop/ADO/]()
 
 ---
 
-## ADO Model Structure
+## Cấu trúc ADO Model
 
 ```mermaid
 graph TB
-    subgraph "Backend Entity Models"
-        BE1["MOS.EFMODEL.DataModels<br/>Backend Entities<br/>Database Tables"]
+    subgraph "Model thực thể Backend"
+        BE1["MOS.EFMODEL.DataModels<br/>Thực thể Backend<br/>Bảng Database"]
     end
     
     subgraph "HIS.Desktop.ADO Models"
-        ADO1["Patient ADO Models<br/>PatientADO<br/>PatientRawADO"]
-        ADO2["Treatment ADO Models<br/>TreatmentADO<br/>ServiceReqADO"]
-        ADO3["Medicine ADO Models<br/>MedicineTypeADO<br/>ExpMestMedicineADO"]
-        ADO4["Transaction ADO Models<br/>TransactionADO<br/>SereServADO"]
-        ADO5["Service ADO Models<br/>ServiceADO<br/>RoomServiceADO"]
-        ADO6["ICD ADO Models<br/>IcdADO<br/>SecondaryIcdADO"]
-        ADO7["User & Auth ADO Models<br/>UserADO<br/>WorkPlaceADO"]
-        ADO8["Configuration ADO Models<br/>ConfigADO<br/>FormTypeADO"]
+        ADO1["Model Bệnh nhân<br/>PatientADO<br/>PatientRawADO"]
+        ADO2["Model Điều trị<br/>TreatmentADO<br/>ServiceReqADO"]
+        ADO3["Model Thuốc<br/>MedicineTypeADO<br/>ExpMestMedicineADO"]
+        ADO4["Model Giao dịch<br/>TransactionADO<br/>SereServADO"]
+        ADO5["Model Dịch vụ<br/>ServiceADO<br/>RoomServiceADO"]
+        ADO6["Model ICD<br/>IcdADO<br/>SecondaryIcdADO"]
+        ADO7["Model Người dùng & Phân quyền<br/>UserADO<br/>WorkPlaceADO"]
+        ADO8["Model Cấu hình<br/>ConfigADO<br/>FormTypeADO"]
     end
     
-    subgraph "Common Patterns"
-        Base["Common Properties:<br/>- ID, CreateTime, ModifyTime<br/>- IsActive, IsDelete<br/>- Creator, Modifier"]
-        Extended["Extended Properties:<br/>- Display Names<br/>- Computed Fields<br/>- UI State Flags"]
-        Validation["Validation Attributes:<br/>- Required<br/>- MaxLength<br/>- Range"]
+    subgraph "Các mô hình chung"
+        Base["Thuộc tính chung:<br/>- ID, CreateTime, ModifyTime<br/>- IsActive, IsDelete<br/>- Creator, Modifier"]
+        Extended["Thuộc tính mở rộng:<br/>- Tên hiển thị<br/>- Các trường tính toán<br/>- Trạng thái UI"]
+        Validation["Thuộc tính kiểm tra:<br/>- Required<br/>- MaxLength<br/>- Range"]
     end
     
-    BE1 -->|"Map from"| ADO1
-    BE1 -->|"Map from"| ADO2
-    BE1 -->|"Map from"| ADO3
-    BE1 -->|"Map from"| ADO4
-    BE1 -->|"Map from"| ADO5
-    BE1 -->|"Map from"| ADO6
-    BE1 -->|"Map from"| ADO7
-    BE1 -->|"Map from"| ADO8
+    BE1 -->|"Ánh xạ từ"| ADO1
+    BE1 -->|"Ánh xạ từ"| ADO2
+    BE1 -->|"Ánh xạ từ"| ADO3
+    BE1 -->|"Ánh xạ từ"| ADO4
+    BE1 -->|"Ánh xạ từ"| ADO5
+    BE1 -->|"Ánh xạ từ"| ADO6
+    BE1 -->|"Ánh xạ từ"| ADO7
+    BE1 -->|"Ánh xạ từ"| ADO8
     
     ADO1 --> Base
     ADO2 --> Base
@@ -610,147 +605,147 @@ graph TB
     ADO7 --> Validation
 ```
 
-**Sources**: [HIS/HIS.Desktop/ADO/ directory](), based on common ADO patterns
+**Nguồn tham khảo:** [Thư mục HIS/HIS.Desktop/ADO/](), dựa trên các mô hình ADO phổ biến.
 
 ---
 
-## Data Model Categories
+## Các danh mục Model dữ liệu
 
-The 74 files in `HIS.Desktop.ADO` are organized into logical categories based on business domains:
+74 file trong `HIS.Desktop.ADO` được tổ chức thành các danh mục logic dựa trên domain nghiệp vụ:
 
-### Patient Management Models
+### Model Quản lý Bệnh nhân
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `PatientADO` | Patient demographic and registration data | Register, Appointment, Reception plugins |
-| `PatientRawADO` | Raw patient input before validation | Patient input forms |
-| `PatientTypeAlterADO` | Patient type change history | Treatment, Billing plugins |
-| `TreatmentBedRoomADO` | Treatment and bed assignment data | Hospitalize, Room management plugins |
+| `PatientADO` | Dữ liệu hành chính và đăng ký bệnh nhân | Các plugin Đăng ký, Hẹn khám, Tiếp đón |
+| `PatientRawADO` | Dữ liệu thô trước khi kiểm tra | Các biểu mẫu nhập liệu bệnh nhân |
+| `PatientTypeAlterADO` | Lịch sử thay đổi đối tượng bệnh nhân | Các plugin Điều trị, Thanh toán |
+| `TreatmentBedRoomADO` | Dữ liệu điều trị và phân giường | Các plugin Nhập viện, Quản lý buồng giường |
 
-**Sources**: [HIS/Plugins/HIS.Desktop.Plugins.Register/](), [HIS/UC/HIS.UC.PatientSelect:39 files]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.Register/](), [HIS/UC/HIS.UC.PatientSelect: 39 files]()
 
-### Treatment & Clinical Models
+### Model Điều trị & Lâm sàng
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `TreatmentADO` | Treatment session and history | Treatment, Exam, Tracking plugins |
-| `ServiceReqADO` | Service request (prescription, test, procedure) | AssignPrescription, ServiceExecute plugins |
-| `SereServADO` | Service execution records | Exam, Treatment result plugins |
-| `TrackingADO` | Patient monitoring and vital signs | Tracking, Exam plugins |
+| `TreatmentADO` | Phiên điều trị và lịch sử | Các plugin Điều trị, Khám bệnh, Theo dõi |
+| `ServiceReqADO` | Yêu cầu dịch vụ (đơn thuốc, xét nghiệm, thủ thuật) | Các plugin Chỉ định đơn thuốc, Thực hiện dịch vụ |
+| `SereServADO` | Bản ghi thực hiện dịch vụ | Các plugin Khám bệnh, Kết quả điều trị |
+| `TrackingADO` | Theo dõi bệnh nhân và dấu hiệu sinh tồn | Các plugin Theo dõi, Khám bệnh |
 
-**Sources**: [HIS/Plugins/HIS.Desktop.Plugins.AssignPrescriptionPK:203 files](), [HIS/Plugins/HIS.Desktop.Plugins.ServiceExecute:119 files]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.AssignPrescriptionPK: 203 files](), [HIS/Plugins/HIS.Desktop.Plugins.ServiceExecute: 119 files]()
 
-### Medicine & Material Models
+### Model Thuốc & Vật tư
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `MedicineTypeADO` | Medicine catalog with stock info | MedicineType, Prescription plugins |
-| `MaterialTypeADO` | Medical material/supply catalog | MaterialType, ExpMest plugins |
-| `ExpMestMedicineADO` | Medicine export request details | ExpMest, Pharmacy plugins |
-| `ImpMestMedicineADO` | Medicine import records | ImpMest plugins (80 files) |
-| `MediStockADO` | Stock/warehouse data | MediStock plugins |
+| `MedicineTypeADO` | Danh mục thuốc kèm thông tin tồn kho | Các plugin Loại thuốc, Đơn thuốc |
+| `MaterialTypeADO` | Danh mục vật tư y tế | Các plugin Loại vật tư, Xuất kho |
+| `ExpMestMedicineADO` | Chi tiết yêu cầu xuất thuốc | Các plugin Xuất kho, Dược |
+| `ImpMestMedicineADO` | Bản ghi nhập thuốc | Các plugin Nhập kho (80 files) |
+| `MediStockADO` | Dữ liệu kho/tồn kho | Các plugin Kho dược |
 
-**Sources**: [HIS/Plugins/HIS.Desktop.Plugins.ImpMestCreate:80 files](), [HIS/UC/HIS.UC.MedicineType:82 files](), [HIS/UC/HIS.UC.MaterialType:85 files]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.ImpMestCreate: 80 files](), [HIS/UC/HIS.UC.MedicineType: 82 files](), [HIS/UC/HIS.UC.MaterialType: 85 files]()
 
-### Transaction & Billing Models
+### Model Giao dịch & Thanh toán
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `TransactionADO` | Payment transaction records | Transaction, Cashier plugins |
-| `DepositADO` | Deposit and advance payment | DepositRequest (30 files), TransactionDeposit |
-| `DebtADO` | Outstanding debt records | TransactionDebt, billing plugins |
-| `SereServBillADO` | Service billing line items | TransactionBill (48 files), Invoice plugins |
+| `TransactionADO` | Bản ghi giao dịch thanh toán | Các plugin Giao dịch, Thu ngân |
+| `DepositADO` | Tạm ứng và hoàn ứng | Yêu cầu tạm ứng (30 files), Giao dịch tạm ứng |
+| `DebtADO` | Bản ghi nợ chưa thanh toán | Giao dịch nợ, các plugin thanh toán |
+| `SereServBillADO` | Các dòng chi tiết hóa đơn dịch vụ | Thanh toán hóa đơn (48 files), các plugin Hóa đơn |
 
-**Sources**: [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill:48 files](), [HIS/Plugins/HIS.Desktop.Plugins.DepositRequest:30 files]()
+**Nguồn tham khảo:** [HIS/Plugins/HIS.Desktop.Plugins.TransactionBill: 48 files](), [HIS/Plugins/HIS.Desktop.Plugins.DepositRequest: 30 files]()
 
-### ICD & Diagnosis Models
+### Model ICD & Chẩn đoán
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `IcdADO` | Primary ICD-10 diagnosis code | Icd UC (65 files), Exam plugins |
-| `SecondaryIcdADO` | Secondary/comorbidity ICD codes | SecondaryIcd UC (61 files), Exam plugins |
-| `TraditionalIcdADO` | Traditional medicine diagnosis | Traditional medicine plugins |
+| `IcdADO` | Mã chẩn đoán ICD-10 chính | ICD UC (65 files), các plugin Khám bệnh |
+| `SecondaryIcdADO` | Các mã ICD phụ/bệnh kèm theo | SecondaryIcd UC (61 files), các plugin Khám bệnh |
+| `TraditionalIcdADO` | Chẩn đoán y học cổ truyền | Các plugin Y học cổ truyền |
 
-**Sources**: [HIS/UC/HIS.UC.Icd:65 files](), [HIS/UC/HIS.UC.SecondaryIcd:61 files]()
+**Nguồn tham khảo:** [HIS/UC/HIS.UC.Icd: 65 files](), [HIS/UC/HIS.UC.SecondaryIcd: 61 files]()
 
-### Service & Room Models
+### Model Dịch vụ & Buồng phòng
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `ServiceADO` | Medical service catalog | Service selection, assignment plugins |
-| `ServiceRoomADO` | Service-room availability mapping | ServiceRoom UC (48 files), scheduling |
-| `RoomADO` | Room/department information | Room management, navigation plugins |
-| `ExecuteRoomADO` | Execution room assignment | Service execution, call patient plugins |
+| `ServiceADO` | Danh mục dịch vụ y tế | Các plugin chọn dịch vụ, chỉ định |
+| `ServiceRoomADO` | Ánh xạ khả năng cung cấp dịch vụ - phòng | ServiceRoom UC (48 files), lập lịch |
+| `RoomADO` | Thông tin phòng/khoa | Quản lý phòng, các plugin điều hướng |
+| `ExecuteRoomADO` | Chỉ định phòng thực hiện | Thực hiện dịch vụ, gọi bệnh nhân |
 
-**Sources**: [HIS/UC/HIS.UC.ServiceRoom:48 files](), [HIS/UC/HIS.UC.RoomExamService:40 files]()
+**Nguồn tham khảo:** [HIS/UC/HIS.UC.ServiceRoom: 48 files](), [HIS/UC/HIS.UC.RoomExamService: 40 files]()
 
-### Configuration & System Models
+### Model Cấu hình & Hệ thống
 
-| Model Type | Purpose | Used By |
+| Loại Model | Mục đích | Sử dụng bởi |
 |------------|---------|---------|
-| `ConfigADO` | Application configuration settings | ConfigApplication, system plugins |
-| `FormTypeADO` | Dynamic form configuration | FormType UC (329 files) |
-| `WorkPlaceADO` | User workplace/branch context | Session management, access control |
-| `ModuleADO` | Plugin module metadata | Plugin loading, navigation |
+| `ConfigADO` | Các thiết lập cấu hình ứng dụng | ConfigApplication, các plugin hệ thống |
+| `FormTypeADO` | Cấu hình biểu mẫu động | FormType UC (329 files) |
+| `WorkPlaceADO` | Ngữ cảnh nơi làm việc/chi nhánh người dùng | Quản lý phiên làm việc, phân quyền |
+| `ModuleADO` | Metadata của plugin module | Tải plugin, điều hướng |
 
-**Sources**: [HIS/UC/HIS.UC.FormType:329 files](), [HIS/Desktop/LocalStorage/ConfigApplication/]()
+**Nguồn tham khảo:** [HIS/UC/HIS.UC.FormType: 329 files](), [HIS/Desktop/LocalStorage/ConfigApplication/]()
 
 ---
 
-## Integration with Backend APIs
+## Tích hợp với Backend API
 
-### API Response Mapping
+### Ánh xạ phản hồi API
 
-ADO models are designed to match the structure of backend API responses. The typical flow:
+Các ADO model được thiết kế để khớp với cấu trúc của các phản hồi (response) từ Backend API. Quy trình điển hình:
 
 ```mermaid
 sequenceDiagram
-    participant Plugin as "Plugin Code"
+    participant Plugin as "Code Plugin"
     participant ADO as "ADO Model"
     participant Consumer as "ApiConsumer"
     participant API as "Backend API"
     
-    Plugin->>Consumer: "Request data<br/>(e.g., GetPatient)"
+    Plugin->>Consumer: "Yêu cầu dữ liệu<br/>(ví dụ: GetPatient)"
     Consumer->>API: "HTTP GET /api/HisPatient/Get"
-    API-->>Consumer: "JSON Response<br/>{ID, Name, DOB, ...}"
-    Consumer->>ADO: "Deserialize JSON<br/>to PatientADO"
-    ADO->>Plugin: "Return typed object"
-    Plugin->>Plugin: "Bind to UI controls"
+    API-->>Consumer: "Phản hồi JSON<br/>{ID, Name, DOB, ...}"
+    Consumer->>ADO: "Deserialize JSON<br/>sang PatientADO"
+    ADO->>Plugin: "Trả về đối tượng có kiểu dữ liệu"
+    Plugin->>Plugin: "Liên kết với các UI control"
 ```
 
-**Sources**: [HIS/HIS.Desktop/ApiConsumer/ 13 files](), [Common/Inventec.Common/WebApiClient/]()
+**Nguồn tham khảo:** [HIS/HIS.Desktop/ApiConsumer/ (13 files)](), [Common/Inventec.Common/WebApiClient/]()
 
-### Common API Integration Pattern
+### Mô hình tích hợp API phổ biến
 
 ```
-1. Plugin calls ApiConsumer method
-   Example: ApiConsumerStore.MosConsumer.HisPatient.Get(id)
+1. Plugin gọi phương thức của ApiConsumer
+   Ví dụ: ApiConsumerStore.MosConsumer.HisPatient.Get(id)
 
-2. ApiConsumer uses WebApiClient to make HTTP request
-   Uses Inventec.Common.WebApiClient for REST calls
+2. ApiConsumer sử dụng WebApiClient để thực hiện yêu cầu HTTP
+   Sử dụng Inventec.Common.WebApiClient cho các lời gọi REST
 
-3. Response deserialized to MOS backend entity
-   Example: MOS.EFMODEL.DataModels.HIS_PATIENT
+3. Phản hồi được deserialize thành thực thể backend MOS
+   Ví dụ: MOS.EFMODEL.DataModels.HIS_PATIENT
 
-4. Backend entity converted to ADO model
-   Example: PatientADO.FromBackendData(HIS_PATIENT)
+4. Thực thể backend được chuyển đổi sang ADO model
+   Ví dụ: PatientADO.FromBackendData(HIS_PATIENT)
 
-5. ADO model returned to plugin
-   Plugin uses ADO for UI binding and business logic
+5. ADO model được trả về cho plugin
+   Plugin sử dụng ADO cho liên kết UI và logic nghiệp vụ
 ```
 
-**Sources**: [HIS/HIS.Desktop/ApiConsumer/](), [Common/Inventec.Common/WebApiClient/]()
+**Nguồn tham khảo:** [HIS/HIS.Desktop/ApiConsumer/](), [Common/Inventec.Common/WebApiClient/]()
 
 ---
 
-## Usage in Plugins
+## Cách sử dụng trong Plugin
 
-### Pattern 1: Direct Instantiation
+### Mô hình 1: Khởi tạo trực tiếp
 
-Plugins create ADO instances directly for data entry scenarios:
+Plugin khởi tạo trực tiếp các thực thể ADO cho các kịch bản nhập liệu:
 
 ```csharp
-// Example pattern (not actual code)
+// Mô hình ví dụ (không phải code thực tế)
 var patientADO = new PatientADO
 {
     FirstName = txtFirstName.Text,
@@ -759,39 +754,39 @@ var patientADO = new PatientADO
 };
 ```
 
-Referenced in: [HIS/Plugins/HIS.Desktop.Plugins.Register/ 81-102 files]()
+Tham chiếu tại: [HIS/Plugins/HIS.Desktop.Plugins.Register/ (81-102 files)]()
 
-### Pattern 2: API Response Mapping
+### Mô hình 2: Ánh xạ phản hồi API
 
-ApiConsumer returns ADO models populated from backend:
+ApiConsumer trả về các ADO model đã được nạp dữ liệu từ backend:
 
 ```csharp
-// Example pattern
+// Mô hình ví dụ
 List<TreatmentADO> treatments = ApiConsumer.GetTreatmentList(filter);
 gridControl.DataSource = treatments;
 ```
 
-Referenced in: [HIS/Plugins/HIS.Desktop.Plugins.Treatment/]()
+Tham chiếu tại: [HIS/Plugins/HIS.Desktop.Plugins.Treatment/]()
 
-### Pattern 3: UI Control Binding
+### Mô hình 3: Liên kết UI Control
 
-ADO models bound to DevExpress grid/tree controls:
+Các ADO model được liên kết với các control grid/tree của DevExpress:
 
 ```csharp
-// Example pattern for grid binding
+// Mô hình ví dụ cho liên kết grid
 List<MedicineTypeADO> medicines = GetMedicineList();
 gridControlMedicine.DataSource = medicines;
 gridViewMedicine.BestFitColumns();
 ```
 
-Referenced in: [HIS/UC/HIS.UC.MedicineType:82 files](), [HIS/Plugins/HIS.Desktop.Plugins.AssignPrescriptionPK:203 files]()
+Tham chiếu tại: [HIS/UC/HIS.UC.MedicineType: 82 files](), [HIS/Plugins/HIS.Desktop.Plugins.AssignPrescriptionPK: 203 files]()
 
-### Pattern 4: Data Conversion for Print
+### Mô hình 4: Chuyển đổi dữ liệu để In ấn
 
-ADO models converted to Print Data Objects (PDO) for MPS:
+Các ADO model được chuyển đổi thành các Đối tượng Dữ liệu In (Print Data Objects - PDO) cho hệ thống MPS:
 
 ```csharp
-// Example pattern
+// Mô hình ví dụ
 var printData = new Mps000123.PDO(
     treatmentADO: currentTreatment,
     sereServADOs: serviceList,
@@ -799,180 +794,180 @@ var printData = new Mps000123.PDO(
 );
 ```
 
-Referenced in: [MPS/MPS.Processor/ 790+ processors](), [MPS/MPS.ProcessorBase/ 30 files]()
+Tham chiếu tại: [MPS/MPS.Processor/ (790+ processors)](), [MPS/MPS.ProcessorBase/ (30 files)]()
 
-**Sources**: [HIS/Plugins/ directory structure](), [MPS/MPS.Processor/]()
+**Nguồn tham khảo:** [Cấu trúc thư mục HIS/Plugins/](), [MPS/MPS.Processor/]()
 
 ---
 
-## LocalStorage Caching
+## Bộ nhớ đệm LocalStorage
 
-ADO models are frequently cached in `HIS.Desktop.LocalStorage.BackendData` to reduce API calls and improve performance.
+Các ADO model thường xuyên được lưu trữ trong bộ nhớ đệm `HIS.Desktop.LocalStorage.BackendData` để giảm thiểu các bước gọi API và cải thiện hiệu năng.
 
 ```mermaid
 graph LR
-    Plugin["Plugin Request"] -->|"Check Cache"| Cache["LocalStorage.BackendData<br/>69 files"]
-    Cache -->|"Cache Hit"| Return["Return ADO Model"]
-    Cache -->|"Cache Miss"| API["ApiConsumer Call"]
-    API -->|"Fetch from Backend"| Backend["Backend API"]
-    Backend -->|"JSON Response"| Deserialize["Deserialize to ADO"]
-    Deserialize -->|"Store"| Cache
-    Deserialize -->|"Return"| Return
+    Plugin["Yêu cầu từ Plugin"] -->|"Kiểm tra Cache"| Cache["LocalStorage.BackendData<br/>69 files"]
+    Cache -->|"Tìm thấy (Hit)"| Return["Trả về ADO Model"]
+    Cache -->|"Không thấy (Miss)"| API["Gọi ApiConsumer"]
+    API -->|"Truy xuất từ Backend"| Backend["Backend API"]
+    Backend -->|"JSON phản hồi"| Deserialize["Deserialize sang ADO"]
+    Deserialize -->|"Lưu trữ"| Cache
+    Deserialize -->|"Trả về"| Return
 ```
 
-### Cached Data Categories
+### Các danh mục dữ liệu được Cache
 
-| Cache Type | ADO Models | Refresh Strategy |
+| Loại Cache | ADO Models | Chiến lược làm mới |
 |------------|------------|------------------|
-| **Reference Data** | MedicineTypeADO, MaterialTypeADO, IcdADO | On application start, manual refresh |
-| **User Context** | WorkPlaceADO, UserADO, BranchADO | On login, session change |
-| **Configuration** | ConfigADO, FormTypeADO, HisConfigKeys | On start, config change events |
-| **Master Data** | ServiceADO, RoomADO, DepartmentADO | Periodic refresh, event-driven |
+| **Dữ liệu danh mục** | MedicineTypeADO, MaterialTypeADO, IcdADO | Khi ứng dụng khởi động, hoặc làm mới thủ công |
+| **Ngữ cảnh người dùng** | WorkPlaceADO, UserADO, BranchADO | Khi đăng nhập, hoặc thay đổi phiên làm việc |
+| **Cấu hình** | ConfigADO, FormTypeADO, HisConfigKeys | Khi khởi động, hoặc khi có sự kiện thay đổi cấu hình |
+| **Dữ liệu gốc (Master)** | ServiceADO, RoomADO, DepartmentADO | Làm mới định kỳ, hoặc theo sự kiện |
 
-**Sources**: [HIS/HIS.Desktop/LocalStorage/BackendData:69 files](), [HIS/HIS.Desktop/LocalStorage/ConfigApplication/]()
+**Nguồn tham khảo:** [HIS/HIS.Desktop/LocalStorage/BackendData: 69 files](), [HIS/HIS.Desktop/LocalStorage/ConfigApplication/]()
 
 ---
 
-## Example: Auto-Update System Data Models
+## Ví dụ: Model dữ liệu hệ thống Tự động Cập nhật
 
-While not part of `HIS.Desktop.ADO`, the auto-update system in `Inventec.Aup.Client` demonstrates typical data model patterns used throughout the codebase.
+Mặc dù không thuộc `HIS.Desktop.ADO`, hệ thống tự động cập nhật trong `Inventec.Aup.Client` minh họa cho các mô hình dữ liệu điển hình được sử dụng trong mã nguồn.
 
-### DownloadFileInfo Class
+### Class DownloadFileInfo
 
-Represents a file pending download during auto-update:
+Đại diện cho một file đang chờ tải xuống trong quá trình cập nhật tự động:
 
 ```
 Class: DownloadFileInfo
-Purpose: Tracks download metadata for update files
-Location: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs
+Mục đích: Theo dõi metadata tải xuống cho các file cập nhật
+Vị trí: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs
 
-Properties:
-- DownloadUrl: string (remote file URL)
-- FileFullName: string (local file path)
-- FileName: string (file name only)
-- LastVer: string (previous version)
-- Size: int (file size in bytes)
-- TryTimes: int (download retry counter)
-- Version: string (target version)
+Thuộc tính:
+- DownloadUrl: string (URL file từ xa)
+- FileFullName: string (đường dẫn file cục bộ)
+- FileName: string (chỉ tên file)
+- LastVer: string (phiên bản trước đó)
+- Size: int (kích thước file tính bằng byte)
+- TryTimes: int (số lần thử tải lại)
+- Version: string (phiên bản đích)
 ```
 
-**Sources**: [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs:1-71`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs#L1-L71)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs#L1-L71)
+**Nguồn tham khảo:** [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs:1-71`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs#L1-L71)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/DownloadFileInfo.cs#L1-L71)
 
-### LocalFile Class
+### Class LocalFile
 
-Represents local file state, persisted as XML:
+Đại diện cho trạng thái file cục bộ, được lưu dưới dạng XML:
 
 ```
 Class: LocalFile
-Purpose: Tracks installed file versions
-Location: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs
+Mục đích: Theo dõi các phiên bản file đã cài đặt
+Vị trí: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs
 
-XML Serialization Attributes:
+Các thuộc tính Serialization XML:
 - [XmlAttribute("path")] Path: string
 - [XmlAttribute("lastver")] LastVer: string
 - [XmlAttribute("size")] Size: int
 - [XmlAttribute("version")] Version: string
 - [XmlAttribute("tryTimes")] TryTimes: string
 
-Constructor Overloads:
-1. LocalFile(path, ver, size, versionid) - full initialization
-2. LocalFile() - parameterless for XML deserialization
+Các nạp chồng Constructor (Overloads):
+1. LocalFile(path, ver, size, versionid) - khởi tạo đầy đủ
+2. LocalFile() - constructor không tham số cho việc XML deserialization
 ```
 
-**Sources**: [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs:1-78`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs#L1-L78)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs#L1-L78)
+**Nguồn tham khảo:** [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs:1-78`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs#L1-L78)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/LocalFile.cs#L1-L78)
 
-### RemoteFile Class
+### Class RemoteFile
 
-Parses XML manifest from update server:
+Phân tích XML manifest từ máy chủ cập nhật:
 
 ```
 Class: RemoteFile
-Purpose: Represents available updates from server
-Location: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs
+Mục đích: Đại diện cho các bản cập nhật khả dụng từ máy chủ
+Vị trí: Common/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs
 
-XML Parsing (Constructor):
-- Reads XmlNode attributes: path, url, lastver, size, needRestart, version, hash
-- Supports cfgAupUri parameter for URL prefix configuration
-- Converts string attributes to appropriate types (bool, int)
+Phân tích XML (Constructor):
+- Đọc các thuộc tính XmlNode: path, url, lastver, size, needRestart, version, hash
+- Hỗ trợ tham số cfgAupUri để cấu hình tiền tố URL
+- Chuyển đổi các thuộc tính dạng chuỗi sang các kiểu dữ liệu phù hợp (bool, int)
 
-Properties:
+Thuộc tính:
 - Path, Url, LastVer, Size, NeedRestart (bool), Version, Hash
-- Read-only (no setters) - immutable after construction
+- Chỉ đọc (read-only) - không thể thay đổi sau khi khởi tạo (immutable)
 ```
 
-**Sources**: [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs:1-74`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs#L1-L74)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs#L1-L74)
+**Nguồn tham khảo:** [[`Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs:1-74`](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs#L1-L74)](../../Common/Inventec.Aup.Client/Inventec.Aup.Client/AutoUpdater/AutoUpdateHelper/RemoteFile.cs#L1-L74)
 
-### Pattern Analysis
+### Phân tích Mô hình
 
-These three classes demonstrate common ADO model patterns:
+Ba class này minh họa cho các mô hình ADO model phổ biến:
 
-| Pattern | Example | HIS.Desktop.ADO Equivalent |
+| Mô hình | Ví dụ | Tương đương trong HIS.Desktop.ADO |
 |---------|---------|---------------------------|
-| **Property Bags** | Simple data holders with public properties | Most ADO models |
-| **XML Serialization** | `LocalFile` with `[XmlAttribute]` | ConfigADO, FormTypeADO |
-| **Constructor Initialization** | `RemoteFile(XmlNode)` | ADO models with `FromBackendData()` |
-| **Type Conversion** | String to int/bool in `RemoteFile` | All ADO models parsing JSON |
-| **Immutable vs Mutable** | `RemoteFile` read-only vs `LocalFile` mutable | Varies by ADO type |
+| **Property Bags** | Đơn thuần chứa các thuộc tính public | Hầu hết các ADO model |
+| **XML Serialization** | `LocalFile` với `[XmlAttribute]` | ConfigADO, FormTypeADO |
+| **Khởi tạo qua Constructor** | `RemoteFile(XmlNode)` | Các ADO model với phương thức `FromBackendData()` |
+| **Chuyển đổi kiểu dữ liệu** | Chuyển chuỗi sang int/bool trong `RemoteFile` | Tất cả các ADO model khi phân tích JSON |
+| **Immutable và Mutable** | `RemoteFile` (chỉ đọc) so với `LocalFile` (có thể thay đổi) | Tùy vào từng loại ADO cụ thể |
 
 ---
 
-## ADO Model Design Best Practices
+## Best Practices thiết kế ADO Model
 
-Based on the codebase architecture:
+Dựa trên kiến trúc mã nguồn hiện tại:
 
-### 1. Separation of Concerns
+### 1. Phân tách các mối quan tâm (Separation of Concerns)
 
 ```mermaid
 graph TB
-    Backend["Backend Entity<br/>MOS.EFMODEL.DataModels<br/>(Database mapping)"]
-    ADO["ADO Model<br/>HIS.Desktop.ADO<br/>(UI optimized)"]
-    PDO["Print Data Object<br/>MPS.Processor.PDO<br/>(Print template data)"]
+    Backend["Thực thể Backend<br/>MOS.EFMODEL.DataModels<br/>(Ánh xạ cơ sở dữ liệu)"]
+    ADO["ADO Model<br/>HIS.Desktop.ADO<br/>(Tối ưu cho UI)"]
+    PDO["Đối tượng Dữ liệu In (PDO)<br/>MPS.Processor.PDO<br/>(Dữ liệu cho mẫu in)"]
     
-    Backend -->|"Convert"| ADO
-    ADO -->|"Transform"| PDO
+    Backend -->|"Chuyển đổi"| ADO
+    ADO -->|"Biến đổi"| PDO
     
-    Backend -.->|"NOT used directly<br/>in UI layer"| X[❌]
-    ADO -.->|"Used in plugins<br/>and UI controls"| Check[✓]
+    Backend -.->|"KHÔNG được dùng trực tiếp<br/>tại lớp UI"| X[❌]
+    ADO -.->|"Được dùng trong các plugin<br/>và UI control"| Check[✓]
 ```
 
-**Rationale**: Backend entities contain ORM attributes and database concerns. ADO models are clean, UI-focused objects.
+**Lý do:** Các thực thể backend chứa các thuộc tính ORM và các vấn đề liên quan đến database. ADO model là các đối tượng "sạch", tập trung vào giao diện.
 
-### 2. Property Naming Conventions
+### 2. Quy ước đặt tên thuộc tính
 
-| Convention | Example | Reason |
+| Quy ước | Ví dụ | Lý do |
 |------------|---------|--------|
-| PascalCase properties | `FirstName`, `BirthDate` | C# standard |
-| Suffix "ADO" on class | `PatientADO`, `TreatmentADO` | Clear distinction from backend entities |
-| Display properties | `PatientName`, `DisplayCode` | Pre-formatted for UI |
-| Flag properties | `IsActive`, `IsLocked`, `IsSelected` | Boolean UI state |
+| Thuộc tính PascalCase | `FirstName`, `BirthDate` | Tiêu chuẩn C# |
+| Hậu tố "ADO" cho class | `PatientADO`, `TreatmentADO` | Phân biệt rõ ràng với thực thể backend |
+| Các thuộc tính hiển thị | `PatientName`, `DisplayCode` | Đã được định dạng sẵn cho UI |
+| Các thuộc tính dạng Flag | `IsActive`, `IsLocked`, `IsSelected` | Các trạng thái UI kiểu boolean |
 
-### 3. Computed Properties
+### 3. Các thuộc tính tính toán (Computed Properties)
 
-ADO models often include computed properties for UI convenience:
-
-```
-Example ADO pattern:
-- AgeString: string (computed from DOB)
-- TotalAmountDisplay: string (formatted currency)
-- StatusName: string (enum to display text)
-- IsEditable: bool (based on workflow state)
-```
-
-### 4. Validation Attributes
-
-Common data annotation attributes used:
-
-- `[Required]` - mandatory fields
-- `[MaxLength(n)]` - string length limits
-- `[Range(min, max)]` - numeric bounds
-- `[RegularExpression]` - format validation
-
-### 5. Collection Properties
-
-For parent-child relationships:
+Các ADO model thường bao gồm các thuộc tính tính toán để thuận tiện cho việc hiển thị:
 
 ```
-Parent ADO:
+Ví dụ mô hình ADO:
+- AgeString: chuỗi (tính toán từ ngày sinh)
+- TotalAmountDisplay: chuỗi (định dạng tiền tệ)
+- StatusName: chuỗi (chuyển enum sang văn bản hiển thị)
+- IsEditable: bool (dựa trên trạng thái quy trình)
+```
+
+### 4. Các thuộc tính kiểm tra (Validation Attributes)
+
+Các thuộc tính chú thích dữ liệu (data annotation) thường dùng:
+
+- `[Required]` - Các trường bắt buộc.
+- `[MaxLength(n)]` - Giới hạn độ dài chuỗi.
+- `[Range(min, max)]` - Ranh giới giá trị số.
+- `[RegularExpression]` - Kiểm tra định dạng.
+
+### 5. Các thuộc tính tập hợp (Collection Properties)
+
+Cho các mối quan hệ cha-con:
+
+```
+ADO Cha:
 - TreatmentADO.ServiceReqs: List<ServiceReqADO>
 - PatientADO.PatientTypeAlters: List<PatientTypeAlterADO>
 - ExpMestADO.ExpMestMedicines: List<ExpMestMedicineADO>
@@ -980,35 +975,35 @@ Parent ADO:
 
 ---
 
-## Integration with EntityFramework
+## Tích hợp với EntityFramework
 
-While the backend uses EntityFramework extensively, the desktop application's ADO models are **not** EF entities. Key differences:
+Mặc dù backend sử dụng EntityFramework (EF) rất nhiều, nhưng các ADO model của ứng dụng Desktop **không phải** là thực thể EF. Các khác biệt chính:
 
 | Backend (Server-side) | Desktop ADO (Client-side) |
 |----------------------|---------------------------|
-| EF Code-First or Database-First | Plain C# classes (POCOs) |
-| DbContext for data access | ApiConsumer for data access |
-| Navigation properties tracked by EF | Manual relationship management |
-| Database annotations | UI-focused attributes |
-| Change tracking enabled | No automatic change tracking |
+| EF Code-First hoặc Database-First | Các class C# thuần (POCOs) |
+| DbContext để truy cập dữ liệu | ApiConsumer để truy cập dữ liệu |
+| Thuộc tính điều hướng được EF theo dõi | Quản lý quan hệ thủ công |
+| Chú thích cho Database | Thuộc tính tập trung vào UI |
+| Bật tính năng theo dõi thay đổi | Không có tính năng tự động theo dõi thay đổi |
 
-**Purpose**: Desktop ADO models are designed for disconnected client scenarios with REST API communication.
+**Mục đích:** Các Desktop ADO model được thiết kế cho các kịch bản client không kết nối trực tiếp, giao tiếp qua REST API.
 
-**Sources**: General architecture pattern, [HIS/HIS.Desktop/ApiConsumer/]()
+**Nguồn tham khảo:** Mô hình kiến trúc chung, [HIS/HIS.Desktop/ApiConsumer/]()
 
 ---
 
-## Summary
+## Tổng kết
 
-The `HIS.Desktop.ADO` folder (74 files) provides:
+Thư mục `HIS.Desktop.ADO` (74 files) cung cấp:
 
-1. **Data Transfer Objects** for all major business domains (patient, treatment, medicine, billing, etc.)
-2. **UI-Optimized Models** with display properties and computed fields
-3. **API Integration Layer** between plugins and backend services
-4. **Caching Support** through LocalStorage.BackendData
-5. **Type Safety** ensuring compile-time checking across 956 plugins
-6. **Reusability** shared across plugins, user controls, and print processors
+1. **Các Đối tượng Chuyển đổi Dữ liệu (DTO)** cho tất cả các domain nghiệp vụ chính (bệnh nhân, điều trị, thuốc, thanh toán, v.v.).
+2. **Các Model Tối ưu cho UI** với các thuộc tính hiển thị và các trường tính toán.
+3. **Lớp Tích hợp API** kết nối giữa các plugin và dịch vụ backend.
+4. **Hỗ trợ Caching** thông qua LocalStorage.BackendData.
+5. **An toàn về kiểu dữ liệu (Type Safety)** đảm bảo việc kiểm tra tại thời điểm biên dịch trên khắp 956 plugin.
+6. **Khả năng Tái sử dụng** được chia sẻ giữa các plugin, user control và bộ xử lý in ấn.
 
-These models form the backbone of data flow in the HIS Desktop application, providing a clean separation between UI concerns and backend API communication.
+Các model này tạo thành khung xương cho luồng dữ liệu trong ứng dụng HIS Desktop, mang lại sự phân tách sạch sẽ giữa các vấn đề giao diện và việc giao tiếp API backend.
 
-**Sources**: [HIS/HIS.Desktop/ADO/ directory](), [HIS/Plugins/ structure](), [HIS/UC/ structure](), [HIS/HIS.Desktop/ApiConsumer/](), [HIS/HIS.Desktop/LocalStorage/BackendData/]()
+**Nguồn tham khảo:** [Thư mục HIS/HIS.Desktop/ADO/](), [cấu trúc HIS/Plugins/](), [cấu trúc HIS/UC/](), [HIS/HIS.Desktop/ApiConsumer/](), [HIS/HIS.Desktop/LocalStorage/BackendData/]()

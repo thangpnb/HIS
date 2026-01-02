@@ -1,71 +1,71 @@
-## Purpose and Scope
+## Mục đích và Phạm vi
 
-This document covers the LIS (Laboratory Information System) plugin subsystem within the HIS application. The LIS plugins manage laboratory test workflows including sample collection, test execution, machine integration, result reporting, and quality control. There are 12 specialized plugins located in `HIS/Plugins/LIS.Desktop.Plugins.*` that handle different aspects of laboratory operations.
+Tài liệu này bao gồm phân hệ plugin LIS (Laboratory Information System - Hệ thống thông tin Phòng xét nghiệm) trong ứng dụng HIS. Các plugin LIS quản lý quy trình xét nghiệm bao gồm thu thập mẫu, thực hiện xét nghiệm, tích hợp máy xét nghiệm, báo cáo kết quả và kiểm soát chất lượng. Có 12 plugin chuyên dụng nằm trong `HIS/Plugins/LIS.Desktop.Plugins.*` xử lý các khía cạnh khác nhau của hoạt động phòng xét nghiệm.
 
-For general plugin architecture concepts, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For related clinical plugins dealing with test ordering and service execution, see [HIS Core Business Plugins](../../02-modules/his-desktop/business-plugins.md). For print templates used to generate laboratory reports, see [MPS Print System](../../02-modules/his-desktop/business-plugins.md#mps-print).
+Để biết các khái niệm kiến trúc plugin chung, hãy xem [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/01-overview.md). Đối với các plugin lâm sàng liên quan đến chỉ định xét nghiệm và thực hiện dịch vụ, hãy xem [Các Plugin Nghiệp vụ Cốt lõi của HIS](../../02-modules/his-desktop/business-plugins.md). Đối với các mẫu in được sử dụng để tạo báo cáo xét nghiệm, hãy xem [Hệ thống in MPS](../../02-modules/his-desktop/business-plugins.md#mps-print).
 
 ---
 
-## LIS Plugin Overview
+## Tổng quan về Plugin LIS
 
-The LIS subsystem consists of 12 specialized plugins that collectively manage the laboratory workflow from sample collection through result reporting. These plugins integrate with both internal HIS systems (treatment, service execution) and external laboratory equipment.
+Phân hệ LIS bao gồm 12 plugin chuyên dụng cùng nhau quản lý quy trình làm việc của phòng xét nghiệm từ thu thập mẫu đến báo cáo kết quả. Các plugin này tích hợp với cả hệ thống HIS nội bộ (điều trị, thực hiện dịch vụ) và các thiết bị xét nghiệm bên ngoài.
 
-### Complete Plugin List
+### Danh sách Plugin Đầy đủ
 
-| Plugin Name | File Count | Primary Responsibility |
+| Tên Plugin | Số lượng tệp | Trách nhiệm Chính |
 |------------|-----------|------------------------|
-| `LisSampleUpdate` | 36 files | Update and edit laboratory sample information |
-| `LisSampleAggregation` | 27 files | Aggregate and consolidate sample results |
-| `LisWellPlate` | 26 files | Manage well plate layouts for batch testing |
-| `LisSampleCondition` | 24 files | Configure sample collection and storage conditions |
-| `LisMachine` | 24 files | Manage laboratory equipment and analyzers |
-| `LisMachineIndex` | 22 files | Configure machine test indices and parameters |
-| `LisSampleList` | 21 files | View and search laboratory samples |
-| `LisSample` | ~20 files | Create and register new laboratory samples |
-| `LisAntibiotic` | ~20 files | Manage antibiotic sensitivity testing |
-| `LisBacterium` | ~20 files | Manage bacteriology test results |
-| `LisDelivery` | ~18 files | Handle sample delivery and transport |
-| `LisResultImport` | ~18 files | Import results from laboratory machines |
+| `LisSampleUpdate` | 36 tệp | Cập nhật và chỉnh sửa thông tin mẫu xét nghiệm |
+| `LisSampleAggregation` | 27 tệp | Tổng hợp và hợp nhất kết quả mẫu |
+| `LisWellPlate` | 26 tệp | Quản lý sơ đồ đĩa giếng (well plate) cho xét nghiệm hàng loạt |
+| `LisSampleCondition` | 24 tệp | Cấu hình các điều kiện lấy mẫu và bảo quản |
+| `LisMachine` | 24 tệp | Quản lý thiết bị phòng xét nghiệm và máy phân tích |
+| `LisMachineIndex` | 22 tệp | Cấu hình các chỉ số và tham số xét nghiệm của máy |
+| `LisSampleList` | 21 tệp | Xem và tìm kiếm các mẫu xét nghiệm |
+| `LisSample` | ~20 tệp | Tạo và đăng ký mới các mẫu xét nghiệm |
+| `LisAntibiotic` | ~20 tệp | Quản lý xét nghiệm kháng sinh đồ |
+| `LisBacterium` | ~20 tệp | Quản lý kết quả xét nghiệm vi khuẩn |
+| `LisDelivery` | ~18 tệp | Xử lý việc bàn giao và vận chuyển mẫu |
+| `LisResultImport` | ~18 tệp | Nhập kết quả từ máy xét nghiệm |
 
-**Sources:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
+**Nguồn:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
 
 ---
 
-## System Architecture
+## Kiến trúc Hệ thống
 
-### LIS Plugin Integration
+### Tích hợp Plugin LIS
 
 ```mermaid
 graph TB
-    subgraph "HIS Core System"
-        ServiceExecute["HIS.Desktop.Plugins.ServiceExecute<br/>Test Orders"]
-        Treatment["HIS.Desktop.Plugins.Treatment*<br/>Patient Treatment"]
+    subgraph "Hệ thống Cốt lõi HIS"
+        ServiceExecute["HIS.Desktop.Plugins.ServiceExecute<br/>Chỉ định Xét nghiệm"]
+        Treatment["HIS.Desktop.Plugins.Treatment*<br/>Điều trị Bệnh nhân"]
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>REST API Client"]
     end
     
-    subgraph "LIS Plugins Layer"
-        LisSample["LIS.Desktop.Plugins.LisSample<br/>Sample Registration"]
-        LisSampleList["LIS.Desktop.Plugins.LisSampleList<br/>Sample Search & View"]
-        LisSampleUpdate["LIS.Desktop.Plugins.LisSampleUpdate<br/>36 files<br/>Sample Editing"]
-        LisMachine["LIS.Desktop.Plugins.LisMachine<br/>24 files<br/>Equipment Management"]
-        LisMachineIndex["LIS.Desktop.Plugins.LisMachineIndex<br/>22 files<br/>Test Parameters"]
-        LisResultImport["LIS.Desktop.Plugins.LisResultImport<br/>Machine Result Import"]
+    subgraph "Lớp Plugin LIS"
+        LisSample["LIS.Desktop.Plugins.LisSample<br/>Đăng ký Mẫu"]
+        LisSampleList["LIS.Desktop.Plugins.LisSampleList<br/>Tìm kiếm & Xem Mẫu"]
+        LisSampleUpdate["LIS.Desktop.Plugins.LisSampleUpdate<br/>36 tệp<br/>Chỉnh sửa Mẫu"]
+        LisMachine["LIS.Desktop.Plugins.LisMachine<br/>24 tệp<br/>Quản lý Thiết bị"]
+        LisMachineIndex["LIS.Desktop.Plugins.LisMachineIndex<br/>22 tệp<br/>Tham số Xét nghiệm"]
+        LisResultImport["LIS.Desktop.Plugins.LisResultImport<br/>Nhập Kết quả từ Máy"]
     end
     
-    subgraph "LIS Specialized Processing"
-        LisWellPlate["LIS.Desktop.Plugins.LisWellPlate<br/>26 files<br/>Plate Layout"]
-        LisSampleAggregation["LIS.Desktop.Plugins.LisSampleAggregation<br/>27 files<br/>Result Consolidation"]
-        LisAntibiotic["LIS.Desktop.Plugins.LisAntibiotic<br/>Antibiotic Sensitivity"]
-        LisBacterium["LIS.Desktop.Plugins.LisBacterium<br/>Bacteriology Results"]
-        LisSampleCondition["LIS.Desktop.Plugins.LisSampleCondition<br/>24 files<br/>Collection Conditions"]
+    subgraph "Xử lý Chuyên sâu LIS"
+        LisWellPlate["LIS.Desktop.Plugins.LisWellPlate<br/>26 tệp<br/>Sơ đồ Đĩa giếng"]
+        LisSampleAggregation["LIS.Desktop.Plugins.LisSampleAggregation<br/>27 tệp<br/>Hợp nhất Kết quả"]
+        LisAntibiotic["LIS.Desktop.Plugins.LisAntibiotic<br/>Kháng sinh đồ"]
+        LisBacterium["LIS.Desktop.Plugins.LisBacterium<br/>Kết quả Vi khuẩn học"]
+        LisSampleCondition["LIS.Desktop.Plugins.LisSampleCondition<br/>24 tệp<br/>Điều kiện Lấy mẫu"]
     end
     
-    subgraph "Backend Services"
-        LisAPI["LIS Backend API<br/>Sample & Result Storage"]
+    subgraph "Các dịch vụ Backend"
+        LisAPI["LIS Backend API<br/>Lưu trữ Mẫu & Kết quả"]
     end
     
-    ServiceExecute -->|"Test Orders"| LisSample
-    Treatment -->|"Patient Context"| LisSample
+    ServiceExecute -->|"Chỉ định Xét nghiệm"| LisSample
+    Treatment -->|"Ngữ cảnh Bệnh nhân"| LisSample
     
     LisSample --> ApiConsumer
     LisSampleUpdate --> ApiConsumer
@@ -74,53 +74,53 @@ graph TB
     
     ApiConsumer --> LisAPI
     
-    LisSample -->|"Register"| LisSampleList
-    LisSampleList -->|"Select for Edit"| LisSampleUpdate
+    LisSample -->|"Đăng ký"| LisSampleList
+    LisSampleList -->|"Chọn để Chỉnh sửa"| LisSampleUpdate
     
-    LisMachine -->|"Equipment Config"| LisMachineIndex
-    LisMachine -->|"Receive Results"| LisResultImport
-    LisResultImport -->|"Raw Results"| LisSampleAggregation
+    LisMachine -->|"Cấu hình Thiết bị"| LisMachineIndex
+    LisMachine -->|"Nhận Kết quả"| LisResultImport
+    LisResultImport -->|"Kết quả Thô"| LisSampleAggregation
     
-    LisSampleUpdate -->|"Batch Setup"| LisWellPlate
-    LisSampleUpdate -->|"Microbiology"| LisAntibiotic
-    LisSampleUpdate -->|"Microbiology"| LisBacterium
-    LisSample -->|"Collection Rules"| LisSampleCondition
+    LisSampleUpdate -->|"Thiết lập Hàng loạt"| LisWellPlate
+    LisSampleUpdate -->|"Vi sinh học"| LisAntibiotic
+    LisSampleUpdate -->|"Vi sinh học"| LisBacterium
+    LisSample -->|"Quy tắc Lấy mẫu"| LisSampleCondition
 ```
 
-**Sources:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9, [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67, [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
+**Nguồn:** [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9), [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67), [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
 
 ---
 
-## Laboratory Workflow
+## Quy trình Phòng xét nghiệm
 
-### Sample Processing Flow
+### Quy trình Xử lý Mẫu
 
 ```mermaid
 graph LR
-    subgraph "Sample Collection Phase"
-        TestOrder["Test Order<br/>ServiceExecute"]
-        CreateSample["Register Sample<br/>LisSample"]
-        SetCondition["Define Conditions<br/>LisSampleCondition"]
+    subgraph "Giai đoạn Thu thập Mẫu"
+        TestOrder["Chỉ định Xét nghiệm<br/>ServiceExecute"]
+        CreateSample["Đăng ký Mẫu<br/>LisSample"]
+        SetCondition["Xác định Điều kiện<br/>LisSampleCondition"]
     end
     
-    subgraph "Sample Processing Phase"
-        ViewSamples["Search Samples<br/>LisSampleList"]
-        UpdateSample["Update Info<br/>LisSampleUpdate"]
-        SetupPlate["Configure Plate<br/>LisWellPlate"]
+    subgraph "Giai đoạn Xử lý Mẫu"
+        ViewSamples["Tìm kiếm Mẫu<br/>LisSampleList"]
+        UpdateSample["Cập nhật Thông tin<br/>LisSampleUpdate"]
+        SetupPlate["Cấu hình Đĩa giếng<br/>LisWellPlate"]
     end
     
-    subgraph "Testing Phase"
-        ConfigMachine["Setup Equipment<br/>LisMachine"]
-        ConfigIndex["Test Parameters<br/>LisMachineIndex"]
-        RunTest["Execute Tests<br/>Laboratory Analyzer"]
-        ImportResult["Import Results<br/>LisResultImport"]
+    subgraph "Giai đoạn Xét nghiệm"
+        ConfigMachine["Thiết lập Thiết bị<br/>LisMachine"]
+        ConfigIndex["Tham số Xét nghiệm<br/>LisMachineIndex"]
+        RunTest["Thực hiện Xét nghiệm<br/>Máy phân tích xét nghiệm"]
+        ImportResult["Nhập Kết quả<br/>LisResultImport"]
     end
     
-    subgraph "Result Processing Phase"
-        Aggregate["Consolidate Results<br/>LisSampleAggregation"]
-        BactTest["Bacteriology<br/>LisBacterium"]
-        AntiTest["Sensitivity Test<br/>LisAntibiotic"]
-        FinalResult["Final Report<br/>Treatment Plugin"]
+    subgraph "Giai đoạn Xử lý Kết quả"
+        Aggregate["Hợp nhất Kết quả<br/>LisSampleAggregation"]
+        BactTest["Vi khuẩn học<br/>LisBacterium"]
+        AntiTest["Thử nghiệm nhạy cảm<br/>LisAntibiotic"]
+        FinalResult["Báo cáo Cuối cùng<br/>Plugin Điều trị"]
     end
     
     TestOrder --> CreateSample
@@ -143,107 +143,107 @@ graph LR
     Aggregate --> FinalResult
 ```
 
-**Sources:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
+**Nguồn:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
 
 ---
 
-## Core LIS Plugins
+## Các Plugin LIS Cốt lõi
 
-### Sample Management Plugins
+### Các Plugin Quản lý Mẫu
 
-#### LisSample - Sample Registration
-Primary plugin for creating and registering laboratory samples from test orders. This plugin links service requests from `HIS.Desktop.Plugins.ServiceExecute` to physical laboratory samples.
+#### LisSample - Đăng ký Mẫu
+Plugin chính để tạo và đăng ký các mẫu xét nghiệm từ chỉ định xét nghiệm. Plugin này liên kết các yêu cầu dịch vụ từ `HIS.Desktop.Plugins.ServiceExecute` với các mẫu xét nghiệm vật lý.
 
-**Key Responsibilities:**
-- Create sample records from test orders
-- Assign sample identifiers (barcode/accession numbers)
-- Associate samples with patient treatments
-- Set initial sample status
+**Trách nhiệm chính:**
+- Tạo bản ghi mẫu từ chỉ định xét nghiệm
+- Gán mã định danh mẫu (mã vạch/mã số mẫu)
+- Liên kết mẫu với quá trình điều trị của bệnh nhân
+- Thiết lập trạng thái ban đầu của mẫu
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisSample/`
-
----
-
-#### LisSampleList - Sample Search and Display
-Provides search, filter, and list view capabilities for laboratory samples. Users can query samples by patient, date range, test type, status, or sample ID.
-
-**Key Responsibilities:**
-- Display sample list with filtering options
-- Search by multiple criteria
-- Show sample status and progress
-- Navigate to sample detail or update screens
-
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleList/`
-**File Count:** 21 files
-
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisSample/`
 
 ---
 
-#### LisSampleUpdate - Sample Editing
-The largest LIS plugin with 36 files, providing comprehensive sample editing capabilities including status updates, result entry, and quality control annotations.
+#### LisSampleList - Tìm kiếm và Hiển thị Mẫu
+Cung cấp khả năng tìm kiếm, lọc và xem danh sách các mẫu xét nghiệm. Người dùng có thể truy vấn mẫu theo bệnh nhân, khoảng ngày, loại xét nghiệm, trạng thái hoặc ID mẫu.
 
-**Key Responsibilities:**
-- Edit sample metadata and attributes
-- Update sample status through workflow stages
-- Enter manual test results
-- Add comments and quality control notes
-- Link to specialized testing workflows
+**Trách nhiệm chính:**
+- Hiển thị danh sách mẫu với các tùy chọn lọc
+- Tìm kiếm theo nhiều tiêu chí
+- Hiển thị trạng thái và tiến độ của mẫu
+- Điều hướng đến màn hình chi tiết hoặc cập nhật mẫu
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleUpdate/`
-**File Count:** 36 files
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleList/`
+**Số lượng tệp:** 21 tệp
 
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
-
----
-
-#### LisSampleCondition - Collection Conditions
-Manages the configuration of sample collection requirements including fasting status, timing requirements, and special handling instructions.
-
-**Key Responsibilities:**
-- Define collection conditions for test types
-- Configure fasting requirements
-- Set timing constraints (morning collection, 24-hour collection)
-- Specify storage and transport conditions
-- Associate conditions with test definitions
-
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleCondition/`
-**File Count:** 24 files
-
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-### Machine Integration Plugins
+#### LisSampleUpdate - Chỉnh sửa Mẫu
+Plugin LIS lớn nhất với 36 tệp, cung cấp khả năng chỉnh sửa mẫu toàn diện bao gồm cập nhật trạng thái, nhập kết quả và ghi chú kiểm soát chất lượng.
 
-#### LisMachine - Laboratory Equipment Management
-Manages the configuration and connectivity of laboratory analyzers and testing equipment. Maintains equipment inventory, connection parameters, and operational status.
+**Trách nhiệm chính:**
+- Chỉnh sửa metadata và thuộc tính mẫu
+- Cập nhật trạng thái mẫu qua các giai đoạn quy trình
+- Nhập kết quả xét nghiệm thủ công
+- Thêm nhận xét và ghi chú kiểm soát chất lượng
+- Liên kết đến các quy trình xét nghiệm chuyên biệt
 
-**Key Responsibilities:**
-- Register and configure laboratory analyzers
-- Define machine connection settings (IP, serial port, protocol)
-- Track equipment maintenance and calibration
-- Monitor machine status and availability
-- Map machines to test types
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleUpdate/`
+**Số lượng tệp:** 36 tệp
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisMachine/`
-**File Count:** 24 files
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+
+---
+
+#### LisSampleCondition - Điều kiện Lấy mẫu
+Quản lý việc cấu hình các yêu cầu lấy mẫu bao gồm tình trạng nhịn ăn, yêu cầu về thời điểm và các hướng dẫn xử lý đặc biệt.
+
+**Trách nhiệm chính:**
+- Xác định điều kiện lấy mẫu cho các loại xét nghiệm
+- Cấu hình yêu cầu nhịn ăn
+- Thiết lập các ràng buộc về thời gian (lấy mẫu buổi sáng, lấy mẫu 24 giờ)
+- Chỉ định các điều kiện bảo quản và vận chuyển
+- Liên kết các điều kiện với định nghĩa xét nghiệm
+
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleCondition/`
+**Số lượng tệp:** 24 tệp
+
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+
+---
+
+### Các Plugin Tích hợp Máy xét nghiệm
+
+#### LisMachine - Quản lý Thiết bị Phòng xét nghiệm
+Quản lý việc cấu hình và kết nối của các máy phân tích và thiết bị xét nghiệm. Duy trì danh mục thiết bị, các tham số kết nối và trạng thái hoạt động.
+
+**Trách nhiệm chính:**
+- Đăng ký và cấu hình các máy phân tích xét nghiệm
+- Xác định các thiết lập kết nối máy (IP, cổng nối tiếp, giao thức)
+- Theo dõi việc bảo trì và hiệu chuẩn thiết bị
+- Giám sát trạng thái và tính sẵn sàng của máy
+- Ánh xạ máy với các loại xét nghiệm
+
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisMachine/`
+**Số lượng tệp:** 24 tệp
 
 ```mermaid
 graph TB
     LisMachinePlugin["LIS.Desktop.Plugins.LisMachine"]
     
-    subgraph "Machine Configuration"
-        MachineRegistry["Machine Registry<br/>Equipment Database"]
-        ConnectionConfig["Connection Settings<br/>IP/Serial/Protocol"]
-        CalibrationLog["Calibration Records"]
+    subgraph "Cấu hình Máy"
+        MachineRegistry["Danh mục Máy<br/>Cơ sở dữ liệu thiết bị"]
+        ConnectionConfig["Thiết lập Kết nối<br/>IP/Serial/Giao thức"]
+        CalibrationLog["Nhật ký Hiệu chuẩn"]
     end
     
-    subgraph "Machine Types"
-        Chemistry["Chemistry Analyzer"]
-        Hematology["Hematology Analyzer"]
-        Immunology["Immunoassay System"]
-        Microbiology["Microbiology System"]
+    subgraph "Các loại Máy"
+        Chemistry["Máy phân tích Sinh hóa"]
+        Hematology["Máy phân tích Huyết học"]
+        Immunology["Hệ thống Miễn dịch"]
+        Microbiology["Hệ thống Vi sinh"]
     end
     
     LisMachinePlugin --> MachineRegistry
@@ -256,143 +256,143 @@ graph TB
     MachineRegistry --> Microbiology
 ```
 
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-#### LisMachineIndex - Test Parameter Configuration
-Configures the mapping between machine test codes and HIS test definitions. Each laboratory analyzer uses internal test codes that must be mapped to standardized HIS service codes.
+#### LisMachineIndex - Cấu hình Tham số Xét nghiệm
+Cấu hình việc ánh xạ giữa mã xét nghiệm của máy và định nghĩa xét nghiệm của HIS. Mỗi máy phân tích xét nghiệm sử dụng các mã xét nghiệm nội bộ phải được ánh xạ tới các mã dịch vụ chuẩn của HIS.
 
-**Key Responsibilities:**
-- Map machine test codes to HIS service codes
-- Configure result value mappings and units
-- Define normal ranges per machine and test
-- Set up quality control parameters
-- Configure result transmission formats
+**Trách nhiệm chính:**
+- Ánh xạ mã xét nghiệm của máy tới mã dịch vụ HIS
+- Cấu hình ánh xạ giá trị kết quả và đơn vị
+- Xác định khoảng bình thường theo từng máy và xét nghiệm
+- Thiết lập các tham số kiểm soát chất lượng
+- Cấu hình định dạng truyền kết quả
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisMachineIndex/`
-**File Count:** 22 files
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisMachineIndex/`
+**Số lượng tệp:** 22 tệp
 
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
-
----
-
-#### LisResultImport - Machine Result Import
-Handles the import of test results from laboratory analyzers into the HIS system. Supports various communication protocols and result formats.
-
-**Key Responsibilities:**
-- Connect to laboratory analyzers
-- Parse machine result formats (HL7, ASTM, proprietary)
-- Match results to pending samples
-- Validate imported results
-- Handle import errors and conflicts
-- Trigger result aggregation workflow
-
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisResultImport/`
-
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-### Processing and Analysis Plugins
+#### LisResultImport - Nhập Kết quả từ Máy
+Xử lý việc nhập kết quả xét nghiệm từ các máy phân tích vào hệ thống HIS. Hỗ trợ các giao thức truyền thông và định dạng kết quả khác nhau.
 
-#### LisSampleAggregation - Result Consolidation
-Aggregates and consolidates test results from multiple sources (manual entry, machine import, calculated values) into final reportable results.
+**Trách nhiệm chính:**
+- Kết nối tới các máy phân tích xét nghiệm
+- Phân tích các định dạng kết quả của máy (HL7, ASTM, độc quyền)
+- Khớp kết quả với các mẫu đang chờ
+- Kiểm tra tính hợp lệ của kết quả đã nhập
+- Xử lý lỗi và xung đột khi nhập dữ liệu
+- Kích hoạt quy trình hợp nhất kết quả
 
-**Key Responsibilities:**
-- Combine results from multiple test runs
-- Calculate derived values and panels
-- Apply quality control rules
-- Flag abnormal results
-- Prepare results for reporting
-- Trigger notification for critical values
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisResultImport/`
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleAggregation/`
-**File Count:** 27 files
-
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-#### LisWellPlate - Plate Layout Management
-Manages well plate configurations for batch testing workflows, commonly used in immunoassay and molecular testing.
+### Các Plugin Xử lý và Phân tích
 
-**Key Responsibilities:**
-- Define plate layouts (96-well, 384-well)
-- Assign samples to well positions
-- Configure control and calibrator positions
-- Track plate processing status
-- Export plate layouts to analyzers
-- Import plate results
+#### LisSampleAggregation - Hợp nhất Kết quả
+Tổng hợp và hợp nhất các kết quả xét nghiệm từ nhiều nguồn (nhập thủ công, nhập từ máy, các giá trị tính toán) thành kết quả báo cáo cuối cùng.
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisWellPlate/`
-**File Count:** 26 files
+**Trách nhiệm chính:**
+- Kết hợp kết quả từ nhiều lượt chạy xét nghiệm
+- Tính toán các giá trị phái sinh và các bộ xét nghiệm (panels)
+- Áp dụng các quy tắc kiểm soát chất lượng
+- Đánh dấu các kết quả bất thường
+- Chuẩn bị kết quả để báo cáo
+- Kích hoạt thông báo cho các giá trị cảnh báo (critical values)
 
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisSampleAggregation/`
+**Số lượng tệp:** 27 tệp
 
----
-
-### Microbiology Plugins
-
-#### LisBacterium - Bacteriology Management
-Manages bacteriology test results including organism identification, colony counts, and culture findings.
-
-**Key Responsibilities:**
-- Record isolated organisms
-- Document colony characteristics
-- Track culture growth
-- Link to antibiotic sensitivity testing
-- Store organism taxonomy data
-
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisBacterium/`
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-#### LisAntibiotic - Antibiotic Sensitivity Testing
-Manages antibiotic susceptibility test results including MIC (Minimum Inhibitory Concentration) values and interpretation.
+#### LisWellPlate - Quản lý Sơ đồ Đĩa giếng
+Quản lý các cấu hình đĩa giếng cho các quy trình xét nghiệm hàng loạt, thường được sử dụng trong xét nghiệm miễn dịch và xét nghiệm phân tử.
 
-**Key Responsibilities:**
-- Record antibiotic test results
-- Store MIC/disk diffusion values
-- Apply interpretation rules (S/I/R)
-- Track antibiotic panel configurations
-- Generate antibiogram reports
+**Trách nhiệm chính:**
+- Xác định sơ đồ đĩa (96 giếng, 384 giếng)
+- Gán mẫu vào các vị trí giếng
+- Cấu hình vị trí cho mẫu chứng (control) và mẫu chuẩn (calibrator)
+- Theo dõi trạng thái xử lý đĩa
+- Xuất sơ đồ đĩa sang máy phân tích
+- Nhập kết quả theo đĩa
 
-**Typical Location:** `HIS/Plugins/LIS.Desktop.Plugins.LisAntibiotic/`
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisWellPlate/`
+**Số lượng tệp:** 26 tệp
 
-**Sources:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
 
 ---
 
-## Plugin Communication Patterns
+### Các Plugin Vi sinh học
 
-### Inter-Plugin Communication
+#### LisBacterium - Quản lý Vi khuẩn học
+Quản lý kết quả xét nghiệm vi khuẩn học bao gồm định danh vi sinh vật, đếm số lượng khuẩn lạc và các phát hiện nuôi cấy.
 
-LIS plugins communicate with each other and with HIS core plugins through two primary mechanisms:
+**Trách nhiệm chính:**
+- Ghi lại các vi sinh vật được phân lập
+- Tài liệu hóa các đặc điểm khuẩn lạc
+- Theo dõi sự phát triển của nuôi cấy
+- Liên kết với xét nghiệm kháng sinh đồ
+- Lưu trữ dữ liệu về phân loại vi sinh vật
+
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisBacterium/`
+
+---
+
+#### LisAntibiotic - Xét nghiệm Kháng sinh đồ
+Quản lý kết quả xét nghiệm mức độ nhạy cảm với kháng sinh bao gồm các giá trị MIC (Minimum Inhibitory Concentration - Nồng độ ức chế tối thiểu) và phiên giải.
+
+**Trách nhiệm chính:**
+- Ghi lại kết quả xét nghiệm kháng sinh
+- Lưu trữ các giá trị MIC/đường kính vòng vô khuẩn
+- Áp dụng các quy tắc phiên giải (S/I/R)
+- Theo dõi các bộ cấu hình kháng sinh (antibiotic panels)
+- Tạo báo cáo kháng sinh đồ (antibiogram)
+
+**Vị trí điển hình:** `HIS/Plugins/LIS.Desktop.Plugins.LisAntibiotic/`
+
+**Nguồn:** [`.devin/wiki.json:134-136`](../../../../.devin/wiki.json#L134-L136)
+
+---
+
+## Các Mẫu Giao tiếp Plugin
+
+### Giao tiếp giữa các Plugin
+
+Các plugin LIS giao tiếp với nhau và với các plugin cốt lõi của HIS thông qua hai cơ chế chính:
 
 ```mermaid
 graph TB
-    subgraph "Communication Mechanisms"
-        DelegateRegister["HIS.Desktop.DelegateRegister<br/>Direct Method Calls"]
-        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Event Messages"]
+    subgraph "Cơ chế Giao tiếp"
+        DelegateRegister["HIS.Desktop.DelegateRegister<br/>Gọi phương thức trực tiếp"]
+        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Thông điệp sự kiện"]
     end
     
-    subgraph "Sample Creation Flow"
-        ServiceExecute["ServiceExecute Plugin"]
-        LisSample["LisSample Plugin"]
+    subgraph "Luồng Tạo Mẫu"
+        ServiceExecute["Plugin ServiceExecute"]
+        LisSample["Plugin LisSample"]
     end
     
-    subgraph "Result Update Flow"
-        LisResultImport["LisResultImport Plugin"]
-        LisSampleAggregation["LisSampleAggregation Plugin"]
-        Treatment["Treatment Plugin"]
+    subgraph "Luồng Cập nhật Kết quả"
+        LisResultImport["Plugin LisResultImport"]
+        LisSampleAggregation["Plugin LisSampleAggregation"]
+        Treatment["Plugin Điều trị"]
     end
     
     ServiceExecute -->|"Delegate Call<br/>CreateSample()"| LisSample
-    LisSample -->|"PubSub Event<br/>SampleCreated"| LisSampleList
+    LisSample -->|"Sự kiện PubSub<br/>SampleCreated"| LisSampleList
     
-    LisResultImport -->|"PubSub Event<br/>ResultsImported"| LisSampleAggregation
-    LisSampleAggregation -->|"PubSub Event<br/>ResultsFinalized"| Treatment
+    LisResultImport -->|"Sự kiện PubSub<br/>ResultsImported"| LisSampleAggregation
+    LisSampleAggregation -->|"Sự kiện PubSub<br/>ResultsFinalized"| Treatment
     LisSampleAggregation -->|"Delegate Call<br/>RefreshResults()"| LisSampleUpdate
     
     DelegateRegister -.-> ServiceExecute
@@ -401,45 +401,45 @@ graph TB
     PubSub -.-> LisResultImport
 ```
 
-**Communication Patterns:**
+**Các mẫu giao tiếp:**
 
-1. **Delegate Pattern** - Used for synchronous operations requiring immediate response
-   - Creating samples from test orders
-   - Refreshing data after updates
-   - Validating input before save
+1. **Mẫu Delegate** - Được sử dụng cho các thao tác đồng bộ yêu cầu phản hồi ngay lập tức
+   - Tạo mẫu từ chỉ định xét nghiệm
+   - Làm mới dữ liệu sau khi cập nhật
+   - Kiểm tra dữ liệu đầu vào trước khi lưu
 
-2. **PubSub Pattern** - Used for asynchronous notifications
-   - Sample status changes
-   - Result availability notifications
-   - Machine connection status updates
+2. **Mẫu PubSub** - Được sử dụng cho các thông báo không đồng bộ
+   - Thay đổi trạng thái mẫu
+   - Thông báo có kết quả xét nghiệm
+   - Cập nhật trạng thái kết nối máy
 
-**Sources:** [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67)
+**Nguồn:** [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67)
 
 ---
 
-## Data Models and API Integration
+## Các Mô hình Dữ liệu và Tích hợp API
 
-### LIS Data Flow Architecture
+### Kiến trúc Luồng Dữ liệu LIS
 
 ```mermaid
 graph LR
-    subgraph "Plugin Layer"
-        LISPlugins["LIS.Desktop.Plugins.*<br/>UI & Business Logic"]
+    subgraph "Lớp Plugin"
+        LISPlugins["LIS.Desktop.Plugins.*<br/>UI & Logic Nghiệp vụ"]
     end
     
-    subgraph "Local Storage Layer"
-        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>69 files<br/>Cached Data"]
-        LisConfig["HIS.Desktop.LocalStorage.LisConfig<br/>LIS Configuration"]
+    subgraph "Lớp Lưu trữ Cục bộ"
+        BackendData["HIS.Desktop.LocalStorage.BackendData<br/>69 tệp<br/>Dữ liệu đã Cache"]
+        LisConfig["HIS.Desktop.LocalStorage.LisConfig<br/>Cấu hình LIS"]
     end
     
-    subgraph "API Layer"
-        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 files<br/>REST Client"]
-        WebApiClient["Inventec.Common.WebApiClient<br/>HTTP Infrastructure"]
+    subgraph "Lớp API"
+        ApiConsumer["HIS.Desktop.ApiConsumer<br/>13 tệp<br/>REST Client"]
+        WebApiClient["Inventec.Common.WebApiClient<br/>Hạ tầng HTTP"]
     end
     
-    subgraph "Backend Services"
-        LisBackend["LIS Backend API<br/>Sample & Result Storage"]
-        HisBackend["HIS Backend API<br/>Treatment & Service Data"]
+    subgraph "Các dịch vụ Backend"
+        LisBackend["LIS Backend API<br/>Lưu trữ Mẫu & Kết quả"]
+        HisBackend["HIS Backend API<br/>Dữ liệu Điều trị & Dịch vụ"]
     end
     
     LISPlugins --> BackendData
@@ -453,216 +453,190 @@ graph LR
     WebApiClient --> HisBackend
 ```
 
-**Data Model Components:**
+**Các thành phần Mô hình Dữ liệu:**
 
-- **LIS Sample Models** - Stored in plugin ADO folders, represent sample entities
-- **Machine Configuration** - Cached in `BackendData` for offline access
-- **Test Parameters** - Retrieved from `LisConfig` and backend API
-- **Results** - Synchronized through `ApiConsumer` with server validation
+- **Mô hình Mẫu LIS** - Được lưu trữ trong các thư mục ADO của plugin, đại diện cho các thực thể mẫu
+- **Cấu hình Máy** - Được cache trong `BackendData` để truy cập khi ngoại tuyến
+- **Tham số Xét nghiệm** - Được lấy từ `LisConfig` và API backend
+- **Kết quả** - Được đồng bộ hóa thông qua `ApiConsumer` với sự kiểm tra từ máy chủ
 
-**Sources:** [`.devin/wiki.json:46-52`](../../../../.devin/wiki.json#L46-L52, [`.devin/wiki.json:56-57`](../../../../.devin/wiki.json#L56-L57)
+**Nguồn:** [`.devin/wiki.json:46-52`](../../../../.devin/wiki.json#L46-L52), [`.devin/wiki.json:56-57`](../../../../.devin/wiki.json#L56-L57)
 
 ---
 
-## Integration with Other Subsystems
+## Tích hợp với các Phân hệ khác
 
-### Connection to Core HIS Workflows
+### Kết nối với Quy trình Cốt lõi của HIS
 
-| Integration Point | Source Plugin | Target Plugin(s) | Purpose |
+| Điểm Tích hợp | Plugin Nguồn | Plugin Đích | Mục đích |
 |------------------|---------------|------------------|---------|
-| Test Ordering | `ServiceExecute` | `LisSample` | Create samples from service orders |
-| Patient Context | `Treatment`, `Exam` | All LIS plugins | Associate samples with patient episodes |
-| Result Reporting | `LisSampleAggregation` | `Treatment`, `ExamService` | Deliver finalized test results |
-| Printing | All LIS plugins | `MPS.Processor.Mps*` | Generate laboratory reports |
-| Billing | `LisSample` | `Transaction*` | Link tests to billing transactions |
+| Chỉ định Xét nghiệm | `ServiceExecute` | `LisSample` | Tạo mẫu từ các chỉ định dịch vụ |
+| Ngữ cảnh Bệnh nhân | `Treatment`, `Exam` | Tất cả các plugin LIS | Liên kết mẫu với các đợt điều trị của bệnh nhân |
+| Báo cáo Kết quả | `LisSampleAggregation` | `Treatment`, `ExamService` | Cung cấp kết quả xét nghiệm đã hoàn tất |
+| In ấn | Tất cả các plugin LIS | `MPS.Processor.Mps*` | Tạo các báo cáo xét nghiệm |
+| Thanh toán | `LisSample` | `Transaction*` | Liên kết xét nghiệm với các giao dịch thanh toán |
 
-**Sources:** [`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77, [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-L187)
-
----
-
-## Configuration and LocalStorage
-
-### LIS-Specific Configuration
-
-The LIS subsystem uses dedicated configuration storage:
-
-**Configuration Classes:**
-- `HIS.Desktop.LocalStorage.LisConfig` - LIS-specific settings
-- `HIS.Desktop.LocalStorage.HisConfig` - General HIS configuration including laboratory parameters
-
-**Common Configuration Items:**
-- Default sample collection conditions
-- Automatic result import scheduling
-- Machine communication timeouts
-- Quality control thresholds
-- Critical value alert rules
-- Result approval workflows
-
-**Storage Pattern:**
-Configuration is cached locally in `BackendData` and synchronized with the backend through `ApiConsumer`. Changes are published via `PubSub` to notify active plugins.
-
-**Sources:** [`.devin/wiki.json:46-52`](../../../../.devin/wiki.json#L46-L52)
+**Nguồn:** [`.devin/wiki.json:70-77`](../../../../.devin/wiki.json#L70-L77), [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-L187)
 
 ---
 
-## Plugin Development Guidelines
+## Cấu hình và LocalStorage
 
-### Creating a New LIS Plugin
+### Cấu hình Đặc thù của LIS
 
-To add a new LIS plugin to the system:
+Phân hệ LIS sử dụng bộ lưu trữ cấu hình chuyên dụng:
 
-1. **Plugin Structure** - Follow standard plugin architecture:
-   - Main plugin class implementing `IModule` interface
-   - Run folder containing form implementations
-   - ADO folder for data transfer objects
-   - Base folder for common utilities
-   - Properties folder for plugin metadata
+**Các lớp Cấu hình:**
+- `HIS.Desktop.LocalStorage.LisConfig` - Các thiết lập đặc thù của LIS
+- `HIS.Desktop.LocalStorage.HisConfig` - Cấu hình HIS chung bao gồm các tham số phòng xét nghiệm
 
-2. **Namespace Convention** - Use `LIS.Desktop.Plugins.[PluginName]` pattern
+**Các mục Cấu hình Phổ biến:**
+- Điều kiện lấy mẫu mặc định
+- Lập lịch nhập kết quả tự động
+- Thời gian chờ kết nối máy (timeout)
+- Ngưỡng kiểm soát chất lượng
+- Quy tắc cảnh báo giá trị cảnh báo (critical value)
+- Quy trình phê duyệt kết quả
 
-3. **Registration** - Register with plugin discovery system in `Inventec.Desktop.Core`
+**Mẫu Lưu trữ:**
+Cấu hình được cache cục bộ trong `BackendData` và đồng bộ hóa với backend thông qua `ApiConsumer`. Các thay đổi được công bố qua `PubSub` để thông báo cho các plugin đang hoạt động.
 
-4. **Communication** - Implement both:
-   - Delegate handlers for synchronous operations
-   - PubSub subscriptions for asynchronous notifications
-
-5. **API Integration** - Use `HIS.Desktop.ApiConsumer` for backend communication
-
-6. **Caching** - Leverage `BackendData` for performance optimization
-
-**Plugin Size Reference:**
-- Small plugins: ~18-21 files (basic CRUD operations)
-- Medium plugins: ~24-27 files (complex UI with business logic)
-- Large plugins: ~36 files (comprehensive workflows with integrations)
-
-**Sources:** [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67, [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
+**Nguồn:** [`.devin/wiki.json:46-52`](../../../../.devin/wiki.json#L46-L52)
 
 ---
 
-## Print Integration
+## Hướng dẫn Phát triển Plugin
 
-LIS plugins integrate with the MPS (Medical Print System) to generate laboratory reports, result sheets, and sample labels.
+### Tạo một Plugin LIS mới
 
-### Print Processors for Laboratory Documents
+Để thêm một plugin LIS mới vào hệ thống:
 
-Common MPS processors used by LIS plugins:
+1. **Cấu trúc Plugin** - Tuân theo kiến trúc plugin tiêu chuẩn:
+   - Lớp plugin chính thực hiện interface `IModule`
+   - Thư mục Run chứa các triển khai form
+   - Thư mục ADO cho các đối tượng chuyển đổi dữ liệu
+   - Thư mục Base cho các tiện ích chung
+   - Thư mục Properties cho metadata của plugin
 
-- `Mps0001*` series - Laboratory result reports
-- `Mps0002*` series - Sample collection labels
-- `Mps0003*` series - Batch result summaries
-- `Mps0004*` series - Quality control reports
-- `Mps0005*` series - Microbiology culture reports
+2. **Quy ước Namespace** - Sử dụng mẫu `LIS.Desktop.Plugins.[PluginName]`
 
-Each processor is invoked through the MPS API with a Print Data Object (PDO) containing the required data.
+3. **Đăng ký** - Đăng ký với hệ thống khám phá plugin trong `Inventec.Desktop.Core`
 
-**Sources:** [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-L187)
+4. **Giao tiếp** - Triển khai cả hai:
+   - Các trình xử lý Delegate cho các thao tác đồng bộ
+   - Đăng ký PubSub cho các thông báo không đồng bộ
 
----
+5. **Tích hợp API** - Sử dụng `HIS.Desktop.ApiConsumer` để giao tiếp với backend
 
-## Summary
+6. **Caching** - Tận dụng `BackendData` để tối ưu hóa hiệu suất
 
-The LIS Laboratory Plugins subsystem provides comprehensive laboratory information management within the HIS application. The 12 specialized plugins cover the complete laboratory workflow from sample registration through result reporting, with robust machine integration capabilities.
+**Tham chiếu Kích thước Plugin:**
+- Plugin nhỏ: ~18-21 tệp (các thao tác CRUD cơ bản)
+- Plugin trung bình: ~24-27 tệp (UI phức tạp với logic nghiệp vụ)
+- Plugin lớn: ~36 tệp (quy trình làm việc toàn diện với các tích hợp)
 
-**Key Characteristics:**
-- **Modular Design** - Each plugin handles a specific aspect of laboratory operations
-- **Machine Integration** - Supports multiple analyzer types and communication protocols
-- **Quality Control** - Built-in aggregation and validation workflows
-- **Extensibility** - Plugin architecture allows adding new laboratory workflows without core system changes
-
-**Plugin Categories:**
-1. **Sample Management** - LisSample, LisSampleList, LisSampleUpdate, LisSampleCondition
-2. **Machine Integration** - LisMachine, LisMachineIndex, LisResultImport
-3. **Processing** - LisSampleAggregation, LisWellPlate
-4. **Microbiology** - LisBacterium, LisAntibiotic
-5. **Delivery** - LisDelivery
-
-For plugin communication patterns, see [Plugin System Architecture](../../01-architecture/plugin-system.md). For print template details, see [MPS Print System](../../02-modules/his-desktop/business-plugins.md#mps-print).
-
-**Sources:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137, [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)
-
-# SAR Report Plugins
-
-
-
-
-## Purpose and Scope
-
-This document covers the SAR (System of Advanced Reports) plugin subsystem within the HIS application. SAR plugins provide advanced reporting capabilities, including template management, custom report configuration, print type management, and report execution. These 15 plugins enable users to create, configure, and execute customized medical reports beyond the standard 790+ MPS print processors.
-
-For standard medical form printing (prescriptions, lab reports, invoices), see [MPS Print System](../../02-modules/his-desktop/business-plugins.md#mps-print). For general plugin architecture concepts, see [Plugin System Architecture](../../01-architecture/plugin-system.md).
+**Nguồn:** [`.devin/wiki.json:62-67`](../../../../.devin/wiki.json#L62-L67), [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137)
 
 ---
 
-## Overview
+## Tích hợp In ấn
 
-The SAR subsystem consists of 15 specialized plugins that manage the lifecycle of custom reports:
+Các plugin LIS tích hợp với MPS (Medical Print System) để tạo các báo cáo xét nghiệm, phiếu kết quả và nhãn mẫu.
 
-- **Template Management**: Define and maintain report templates
-- **Type Configuration**: Configure report types and categories
-- **Print Type Management**: Associate reports with print configurations
-- **Execution**: Generate and execute reports based on templates
-- **Field Mapping**: Map form fields to data sources
+### Các bộ xử lý in cho tài liệu phòng xét nghiệm
 
-The SAR system bridges the gap between the static MPS print processors and dynamic, user-configurable reporting needs.
+Các bộ xử lý MPS phổ biến được sử dụng bởi các plugin LIS:
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+- Dòng `Mps0001*` - Báo cáo kết quả xét nghiệm
+- Dòng `Mps0002*` - Nhãn thu thập mẫu
+- Dòng `Mps0003*` - Tổng hợp kết quả hàng loạt
+- Dòng `Mps0004*` - Báo cáo kiểm soát chất lượng
+- Dòng `Mps0005*` - Báo cáo nuôi cấy vi sinh
+
+Mỗi bộ xử lý được gọi thông qua API MPS với một Đối tượng Dữ liệu In (PDO) chứa dữ liệu cần thiết.
+
+**Nguồn:** [`.devin/wiki.json:181-187`](../../../../.devin/wiki.json#L181-L187)
 
 ---
 
-## SAR Plugin Inventory
+## Tóm tắt
 
-The following table lists all 15 SAR plugins with their file counts and primary responsibilities:
+Phân hệ Plugin Phòng xét nghiệm LIS cung cấp việc quản lý thông tin phòng xét nghiệm toàn diện trong ứng dụng HIS. 12 plugin chuyên dụng bao gồm toàn bộ quy trình phòng xét nghiệm từ đăng ký mẫu đến báo cáo kết quả, với khả năng tích hợp máy mạnh mẽ.
 
-| Plugin Name | Files | Primary Responsibility |
+**Các đặc điểm chính:**
+- **Thiết kế Mô-đun** - Mỗi plugin xử lý một khía cạnh cụ thể của hoạt động phòng xét nghiệm
+- **Tích hợp Máy** - Hỗ trợ nhiều loại máy phân tích và giao thức truyền thông
+- **Kiểm soát Chất lượng** - Tích hợp các quy trình hợp nhất và kiểm tra (validation)
+- **Tính mở rộng** - Kiến trúc plugin cho phép thêm các quy trình xét nghiệm mới mà không thay đổi hệ thống cốt lõi
+
+**Các Danh mục Plugin:**
+1. **Quản lý Mẫu** - LisSample, LisSampleList, LisSampleUpdate, LisSampleCondition
+2. **Tích hợp Máy** - LisMachine, LisMachineIndex, LisResultImport
+3. **Xử lý** - LisSampleAggregation, LisWellPlate
+4. **Vi sinh học** - LisBacterium, LisAntibiotic
+5. **Bàn giao** - LisDelivery
+
+Để biết các mẫu giao tiếp plugin, hãy xem [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/04-communication.md). Để biết chi tiết mẫu in, hãy xem [Hệ thống in MPS](../../02-modules/his-desktop/business-plugins.md#mps-print).
+
+**Nguồn:** [`.devin/wiki.json:130-137`](../../../../.devin/wiki.json#L130-L137), [`.devin/wiki.json:8-9`](../../../../.devin/wiki.json#L8-L9)
+
+# 
+---
+
+## Danh mục Plugin SAR
+
+Bảng dưới đây liệt kê tất cả 15 plugin SAR với số lượng tệp và trách nhiệm chính của chúng:
+
+| Tên Plugin | Số tệp | Trách nhiệm Chính |
 |-------------|-------|----------------------|
-| `SAR.Desktop.Plugins.SarReportTemplate` | 38 | Manage report templates, template editor, template versioning |
-| `SAR.Desktop.Plugins.SarPrintType` | 34 | Configure print types, associate templates with printers |
-| `SAR.Desktop.Plugins.SarRetyFofi` | 28 | Report type to form field mapping (Rety-Fofi associations) |
-| `SAR.Desktop.Plugins.SarPrintList` | 25 | View and manage print job history |
-| `SAR.Desktop.Plugins.SarReportType` | 23 | Define and categorize report types |
-| `SAR.Desktop.Plugins.SarFormField` | 21 | Manage form field definitions for dynamic binding |
-| `SAR.Desktop.Plugins.SarReport` | 21 | Execute and generate reports |
-| `SAR.Desktop.Plugins.SarReportTypeGroup` | 21 | Group and organize report types hierarchically |
-| `SAR.Desktop.Plugins.SarReportCalendar` | ~18 | Schedule report generation |
-| `SAR.Desktop.Plugins.SarReportMps` | ~18 | Bridge SAR reports to MPS processors |
-| `SAR.Desktop.Plugins.SarFormData` | ~16 | Manage form data sources |
-| `SAR.Desktop.Plugins.SarReportMax` | ~15 | Report aggregation and maximum value queries |
-| `SAR.Desktop.Plugins.SarReportType2` | ~15 | Alternative report type configuration |
-| `SAR.Desktop.Plugins.SarUserPrintType` | ~14 | User-specific print type preferences |
-| `SAR.Desktop.Plugins.SarReportHoldReturn` | ~12 | Hold and return report queue management |
+| `SAR.Desktop.Plugins.SarReportTemplate` | 38 | Quản lý các mẫu báo cáo, trình chỉnh sửa mẫu, phiên bản mẫu |
+| `SAR.Desktop.Plugins.SarPrintType` | 34 | Cấu hình kiểu in, liên kết mẫu với máy in |
+| `SAR.Desktop.Plugins.SarRetyFofi` | 28 | Ánh xạ kiểu báo cáo tới trường biểu mẫu (liên kết Rety-Fofi) |
+| `SAR.Desktop.Plugins.SarPrintList` | 25 | Xem và quản lý lịch sử lệnh in |
+| `SAR.Desktop.Plugins.SarReportType` | 23 | Định nghĩa và phân loại các kiểu báo cáo |
+| `SAR.Desktop.Plugins.SarFormField` | 21 | Quản lý định nghĩa các trường biểu mẫu để ràng buộc động |
+| `SAR.Desktop.Plugins.SarReport` | 21 | Thực thi và tạo báo cáo |
+| `SAR.Desktop.Plugins.SarReportTypeGroup` | 21 | Nhóm và tổ chức các kiểu báo cáo theo phân cấp |
+| `SAR.Desktop.Plugins.SarReportCalendar` | ~18 | Lập lịch tạo báo cáo |
+| `SAR.Desktop.Plugins.SarReportMps` | ~18 | Cầu nối các báo cáo SAR tới các bộ xử lý MPS |
+| `SAR.Desktop.Plugins.SarFormData` | ~16 | Quản lý các nguồn dữ liệu biểu mẫu |
+| `SAR.Desktop.Plugins.SarReportMax` | ~15 | Tổng hợp báo cáo và các truy vấn giá trị lớn nhất |
+| `SAR.Desktop.Plugins.SarReportType2` | ~15 | Cấu hình kiểu báo cáo thay thế |
+| `SAR.Desktop.Plugins.SarUserPrintType` | ~14 | Các tùy chọn kiểu in cụ thể cho từng người dùng |
+| `SAR.Desktop.Plugins.SarReportHoldReturn` | ~12 | Quản lý hàng đợi giữ và trả lại báo cáo |
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## SAR System Architecture
+## Kiến trúc Hệ thống SAR
 
 ```mermaid
 graph TB
-    subgraph "SAR Plugin Layer"
-        SarReportTemplate["SAR.Desktop.Plugins.SarReportTemplate<br/>38 files<br/>Template CRUD"]
-        SarReportType["SAR.Desktop.Plugins.SarReportType<br/>23 files<br/>Type Definitions"]
-        SarFormField["SAR.Desktop.Plugins.SarFormField<br/>21 files<br/>Field Mapping"]
-        SarRetyFofi["SAR.Desktop.Plugins.SarRetyFofi<br/>28 files<br/>Type-Field Associations"]
-        SarPrintType["SAR.Desktop.Plugins.SarPrintType<br/>34 files<br/>Print Configuration"]
+    subgraph "Lớp Plugin SAR"
+        SarReportTemplate["SAR.Desktop.Plugins.SarReportTemplate<br/>38 tệp<br/>CRUD Mẫu"]
+        SarReportType["SAR.Desktop.Plugins.SarReportType<br/>23 tệp<br/>Định nghĩa Kiểu"]
+        SarFormField["SAR.Desktop.Plugins.SarFormField<br/>21 tệp<br/>Ánh xạ Trường"]
+        SarRetyFofi["SAR.Desktop.Plugins.SarRetyFofi<br/>28 tệp<br/>Liên kết Kiểu-Trường"]
+        SarPrintType["SAR.Desktop.Plugins.SarPrintType<br/>34 tệp<br/>Cấu hình In"]
     end
     
-    subgraph "Execution Layer"
-        SarReport["SAR.Desktop.Plugins.SarReport<br/>21 files<br/>Report Execution"]
-        SarReportMps["SAR.Desktop.Plugins.SarReportMps<br/>MPS Integration"]
-        SarPrintList["SAR.Desktop.Plugins.SarPrintList<br/>25 files<br/>Print History"]
+    subgraph "Lớp Thực thi"
+        SarReport["SAR.Desktop.Plugins.SarReport<br/>21 tệp<br/>Thực thi Báo cáo"]
+        SarReportMps["SAR.Desktop.Plugins.SarReportMps<br/>Tích hợp MPS"]
+        SarPrintList["SAR.Desktop.Plugins.SarPrintList<br/>25 tệp<br/>Lịch sử In"]
     end
     
-    subgraph "Organization Layer"
-        SarReportTypeGroup["SAR.Desktop.Plugins.SarReportTypeGroup<br/>21 files<br/>Type Grouping"]
-        SarUserPrintType["SAR.Desktop.Plugins.SarUserPrintType<br/>User Preferences"]
-        SarReportCalendar["SAR.Desktop.Plugins.SarReportCalendar<br/>Scheduling"]
+    subgraph "Lớp Tổ chức"
+        SarReportTypeGroup["SAR.Desktop.Plugins.SarReportTypeGroup<br/>21 tệp<br/>Nhóm Kiểu"]
+        SarUserPrintType["SAR.Desktop.Plugins.SarUserPrintType<br/>Tùy chọn Người dùng"]
+        SarReportCalendar["SAR.Desktop.Plugins.SarReportCalendar<br/>Lập lịch"]
     end
     
-    subgraph "External Systems"
-        BackendAPI["HIS.Desktop.ApiConsumer<br/>SAR API Endpoints"]
-        MPS["MPS Print System<br/>790+ Processors"]
-        LocalStorage["HIS.Desktop.LocalStorage<br/>Template Cache"]
+    subgraph "Hệ thống Bên ngoài"
+        BackendAPI["HIS.Desktop.ApiConsumer<br/>Các Endpoint API SAR"]
+        MPS["Hệ thống In MPS<br/>Hơn 790 Bộ xử lý"]
+        LocalStorage["HIS.Desktop.LocalStorage<br/>Bộ nhớ đệm Mẫu"]
     end
     
     SarReportTemplate --> BackendAPI
@@ -687,122 +661,121 @@ graph TB
     SarPrintList --> SarReport
 ```
 
-**Diagram 1: SAR Plugin Architecture and Dependencies**
+**Sơ đồ 1: Kiến trúc Plugin SAR và các Phụ thuộc**
 
-This diagram shows how SAR plugins are organized into three logical layers. The plugin layer manages configuration data, the execution layer generates reports, and the organization layer provides grouping and user preferences.
+Sơ đồ này cho thấy cách các plugin SAR được tổ chức thành ba lớp logic. Lớp plugin quản lý dữ liệu cấu hình, lớp thực thi tạo ra các báo cáo, và lớp tổ chức cung cấp tính năng nhóm và tùy chọn người dùng.
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## Core Components
+## Các Thành phần Cốt lõi
 
-### SarReportTemplate (38 files)
+### SarReportTemplate (38 tệp)
 
-The largest SAR plugin, responsible for template management:
+Plugin SAR lớn nhất, chịu trách nhiệm quản lý mẫu:
 
-**Key Components:**
-- Template editor interface
-- Template versioning system
-- Template import/export functionality
-- Template validation logic
+**Các thành phần chính:**
+- Giao diện trình chỉnh sửa mẫu
+- Hệ thống quản lý phiên bản mẫu
+- Tính năng nhập/xuất mẫu
+- Logic kiểm tra tính hợp lệ của mẫu
 
-**Typical File Structure:**
+**Cấu trúc tệp điển hình:**
 ```
 HIS/Plugins/SAR.Desktop.Plugins.SarReportTemplate/
 ├── Run/
-│   ├── frmSarReportTemplate.cs          // Main template editor form
-│   ├── frmSarReportTemplateList.cs      // Template list view
-│   └── UCTemplatePrint.cs               // Template preview control
+│   ├── frmSarReportTemplate.cs          // Form chính trình chỉnh sửa mẫu
+│   ├── frmSarReportTemplateList.cs      // Chế độ xem danh sách mẫu
+│   └── UCTemplatePrint.cs               // Control xem trước mẫu
 ├── ADO/
-│   └── SarReportTemplateADO.cs          // Data transfer objects
+│   └── SarReportTemplateADO.cs          // Các đối tượng chuyển đổi dữ liệu
 ├── Validations/
-│   └── TemplateValidationRule.cs        // Template validation
-└── SarReportTemplate.cs                  // Plugin entry point
+│   └── TemplateValidationRule.cs        // Kiểm tra tính hợp lệ của mẫu
+└── SarReportTemplate.cs                  // Điểm truy cập plugin
 ```
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
-### SarPrintType (34 files)
+### SarPrintType (34 tệp)
 
-Manages print type configurations and associations:
+Quản lý các cấu hình và liên kết kiểu in:
 
-**Responsibilities:**
-- Define print types (A4, A5, thermal, continuous, etc.)
-- Associate templates with printer configurations
-- Manage print type metadata (paper size, orientation, margins)
-- Configure default print types per report type
+**Trách nhiệm:**
+- Định nghĩa các kiểu in (A4, A5, in nhiệt, in liên tục, v.v.)
+- Liên kết mẫu với các cấu hình máy in
+- Quản lý metadata kiểu in (khổ giấy, hướng in, lề)
+- Cấu hình kiểu in mặc định cho mỗi kiểu báo cáo
 
-**Key File Paths:**
+**Các đường dẫn tệp chính:**
 - [[`HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/Run/frmSarPrintType.cs`](../../../../HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/Run/frmSarPrintType.cs)](../../../../HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/Run/frmSarPrintType.cs)
 - [[`HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/ADO/SarPrintTypeADO.cs`](../../../../HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/ADO/SarPrintTypeADO.cs)](../../../../HIS/Plugins/SAR.Desktop.Plugins.SarPrintType/ADO/SarPrintTypeADO.cs)
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
-### SarRetyFofi (28 files)
+### SarRetyFofi (28 tệp)
 
-Implements the report type to form field mapping system:
+Triển khai hệ thống ánh xạ kiểu báo cáo tới các trường biểu mẫu:
 
-**Core Functionality:**
-- Map report types to available form fields
-- Define field data sources and bindings
-- Configure field visibility and formatting rules
-- Validate field mappings before report execution
+**Chức năng Cốt lõi:**
+- Ánh xạ kiểu báo cáo tới các trường biểu mẫu có sẵn
+- Định nghĩa nguồn dữ liệu trường và các ràng buộc (bindings)
+- Cấu hình hiển thị trường và các quy tắc định dạng
+- Kiểm tra ánh xạ trường trước khi thực thi báo cáo
 
-The name "RetyFofi" is an abbreviation for "Report Type - Form Field".
+Cái tên "RetyFofi" là viết tắt của "Report Type - Form Field".
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
-### SarFormField (21 files)
+### SarFormField (21 tệp)
 
-Manages the field definition system:
+Quản lý hệ thống định nghĩa trường:
 
-**Field Types:**
-- Text fields
-- Numeric fields
-- Date/time fields
-- Lookup fields (references to master data)
-- Calculated fields (expressions)
+**Các kiểu trường:**
+- Trường văn bản (Text fields)
+- Trường số (Numeric fields)
+- Trường ngày/giờ (Date/time fields)
+- Trường tra cứu (Lookup fields - tham chiếu tới dữ liệu danh mục)
+- Trường tính toán (Calculated fields - các biểu thức)
 
-**Key Classes:**
-- `FormFieldProcessor` - Processes field definitions
-- `FormFieldValidator` - Validates field data
-- `FormFieldDataBinder` - Binds fields to data sources
+**Các lớp chính:**
+- `FormFieldProcessor` - Xử lý các định nghĩa trường
+- `FormFieldValidator` - Kiểm tra tính hợp lệ của dữ liệu trường
+- `FormFieldDataBinder` - Ràng buộc các trường với nguồn dữ liệu
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## Report Generation Data Flow
+## Luồng Dữ liệu Tạo Báo cáo
 
 ```mermaid
 graph LR
-    User["User<br/>Initiates Report"] --> SarReport["SAR.Desktop.Plugins.SarReport"]
+    User["Người dùng<br/>Khởi tạo Báo cáo"] --> SarReport["SAR.Desktop.Plugins.SarReport"]
     
-    SarReport --> LoadTemplate["Load Template<br/>from SarReportTemplate"]
-    SarReport --> LoadMapping["Load Mappings<br/>from SarRetyFofi"]
-    SarReport --> LoadPrintType["Load Print Config<br/>from SarPrintType"]
+    SarReport --> LoadTemplate["Tải Mẫu<br/>từ SarReportTemplate"]
+    SarReport --> LoadMapping["Tải Ánh xạ<br/>từ SarRetyFofi"]
+    SarReport --> LoadPrintType["Tải Cấu hình In<br/>từ SarPrintType"]
     
-    LoadTemplate --> TemplateCache["LocalStorage<br/>Template Cache"]
+    LoadTemplate --> TemplateCache["LocalStorage<br/>Bộ nhớ đệm Mẫu"]
     LoadMapping --> API["HIS.Desktop.ApiConsumer<br/>GET /api/SarRetyFofi"]
     LoadPrintType --> API2["HIS.Desktop.ApiConsumer<br/>GET /api/SarPrintType"]
     
-    TemplateCache --> BuildReport["Build Report Data<br/>Bind Fields"]
+    TemplateCache --> BuildReport["Xây dựng Dữ liệu Báo cáo<br/>Ràng buộc các trường"]
     API --> BuildReport
     API2 --> BuildReport
     
-    BuildReport --> RouteDecision{Route?}
-    RouteDecision -->|Custom| SarReportMps["SarReportMps<br/>MPS Integration"]
-    RouteDecision -->|Standard| DirectPrint["Direct Print<br/>FlexCell/PDF"]
+    BuildReport --> RouteDecision{Lộ trình?}
+    RouteDecision -->|Tùy chỉnh| SarReportMps["SarReportMps<br/>Tích hợp MPS"]
+    RouteDecision -->|Tiêu chuẩn| DirectPrint["In trực tiếp<br/>FlexCell/PDF"]
     
-    SarReportMps --> MPS["MPS.Processor.Mps*<br/>Print Processor"]
-    MPS --> Output["Generated Document"]
+    SarReportMps --> MPS["MPS.Processor.Mps*<br/>Bộ xử lý In"]
+    MPS --> Output["Tài liệu được tạo"]
     DirectPrint --> Output
     
     Output --> SarPrintList["SarPrintList<br/>Log Print Job"]
 ```
 
-**Diagram 2: Report Generation Data Flow Through SAR Components**
 
 This diagram illustrates the complete report generation process, showing how user requests flow through various SAR plugins to produce output documents. The system can route to either MPS processors for complex medical forms or direct print for simpler reports.
 
@@ -810,360 +783,352 @@ Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](
 
 ---
 
-## Template Management System
+## Hệ thống Quản lý Mẫu
 
-### Template Structure
+### Cấu trúc Mẫu
+Các mẫu SAR thường được lưu trữ dưới dạng:
+- **Định nghĩa Mẫu**: Cấu hình XML hoặc JSON
+- **Thông tin Bố cục**: Khổ giấy, lề, hướng in
+- **Ràng buộc Trường**: Ánh xạ các trường dữ liệu tới các vị trí in
+- **Quy tắc Định dạng**: Phông chữ, kiểu dáng, định dạng có điều kiện
 
-SAR templates are typically stored as:
-- **Template Definition**: XML or JSON configuration
-- **Layout Information**: Paper size, margins, orientation
-- **Field Bindings**: Mapping of data fields to print positions
-- **Formatting Rules**: Fonts, styles, conditional formatting
+### Vòng đời của Mẫu
 
-### Template Lifecycle
+1. **Khởi tạo**: Người dùng tạo mẫu thông qua plugin `SarReportTemplate`
+2. **Cấu hình**: Liên kết mẫu với kiểu báo cáo thông qua `SarReportType`
+3. **Ánh xạ Trường**: Định nghĩa các ràng buộc trường thông qua `SarRetyFofi`
+4. **Cấu hình In**: Thiết lập kiểu in thông qua `SarPrintType`
+5. **Thực thi**: Tạo báo cáo thông qua `SarReport`
+6. **Lịch sử**: Theo dõi việc thực thi trong `SarPrintList`
 
-1. **Creation**: User creates template via `SarReportTemplate` plugin
-2. **Configuration**: Associate template with report type via `SarReportType`
-3. **Field Mapping**: Define field bindings via `SarRetyFofi`
-4. **Print Configuration**: Set print type via `SarPrintType`
-5. **Execution**: Generate reports via `SarReport`
-6. **History**: Track executions in `SarPrintList`
-
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
-
----
-
-## Integration with MPS Print System
-
-### SarReportMps Bridge Plugin
-
-The `SarReportMps` plugin serves as an adapter between SAR's dynamic reporting and MPS's static print processors:
-
-**Integration Patterns:**
-
-1. **Template-to-Processor Mapping**: SAR templates can be configured to invoke specific MPS processors
-2. **Data Transformation**: SAR field data is transformed into MPS PDO (Print Data Object) format
-3. **Fallback Mechanism**: If no MPS processor matches, SAR uses direct print via FlexCell
-
-**Example Flow:**
-```
-User selects "Custom Lab Report" 
-→ SarReport loads template 
-→ Checks if template.UseMpsProcessor == true
-→ Invokes MPS.Processor.Mps000123 with transformed data
-→ MPS generates document via FlexCell
-```
-
-Sources: [[`.devin/wiki.json:16-18`](../../../../.devin/wiki.json#L16-L18)](../../../../.devin/wiki.json#L16-L18), [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## Report Type Organization
+## Tích hợp với Hệ thống In MPS
 
-### SarReportTypeGroup (21 files)
+### Plugin Cầu nối SarReportMps
 
-Provides hierarchical organization of report types:
+Plugin `SarReportMps` đóng vai trò là một adapter (bộ chuyển đổi) giữa tính năng báo cáo động của SAR và các bộ xử lý in tĩnh của MPS:
 
-**Group Hierarchy Example:**
+**Các mẫu Tích hợp:**
+
+1. **Ánh xạ Mẫu tới Bộ xử lý**: Các mẫu SAR có thể được cấu hình để gọi các bộ xử lý MPS cụ thể
+2. **Chuyển đổi Dữ liệu**: Dữ liệu trường SAR được chuyển đổi sang định dạng MPS PDO (Print Data Object)
+3. **Cơ chế Dự phòng (Fallback)**: Nếu không có bộ xử lý MPS nào khớp, SAR sẽ sử dụng tính năng in trực tiếp thông qua FlexCell
+
+**Ví dụ Luồng xử lý:**
 ```
-Clinical Reports
-├── Laboratory
-│   ├── Blood Tests
-│   ├── Urine Tests
-│   └── Microbiology
-├── Imaging
-│   ├── X-Ray
-│   └── Ultrasound
-└── Pathology
-
-Administrative Reports
-├── Financial
-│   ├── Revenue
-│   └── Outstanding Debt
-└── Statistical
-    ├── Patient Demographics
-    └── Service Utilization
+Người dùng chọn "Báo cáo Xét nghiệm Tùy chỉnh" 
+→ SarReport tải mẫu 
+→ Kiểm tra nếu template.UseMpsProcessor == true
+→ Gọi MPS.Processor.Mps000123 với dữ liệu đã được chuyển đổi
+→ MPS tạo tài liệu thông qua FlexCell
 ```
 
-**Key Operations:**
-- Create/edit report type groups
-- Assign report types to groups
-- Navigate hierarchy in UI
-- Filter reports by group
-
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:16-18`](../../../../.devin/wiki.json#L16-L18)](../../../../.devin/wiki.json#L16-L18), [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## User Preferences and Scheduling
+## Tổ chức Kiểu Báo cáo
+
+### SarReportTypeGroup (21 tệp)
+
+Cung cấp việc tổ chức phân cấp các kiểu báo cáo:
+
+**Ví dụ Phân cấp Nhóm:**
+```
+Báo cáo Lâm sàng
+├── Xét nghiệm
+│   ├── Xét nghiệm Máu
+│   ├── Xét nghiệm Nước tiểu
+│   └── Vi sinh
+├── Chẩn đoán Hình ảnh
+│   ├── X-Quang
+│   └── Siêu âm
+└── Giải phẫu bệnh
+
+Báo cáo Quản trị
+├── Tài chính
+│   ├── Doanh thu
+│   └── Nợ tồn đọng
+└── Thống kê
+    ├── Nhân khẩu học Bệnh nhân
+    └── Sử dụng Dịch vụ
+```
+
+**Các Thao tác Chính:**
+- Tạo/chỉnh sửa các nhóm kiểu báo cáo
+- Gán các kiểu báo cáo vào nhóm
+- Điều hướng phân cấp trên giao diện người dùng
+- Lọc báo cáo theo nhóm
+
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+
+---
+
+## Tùy chọn Người dùng và Lập lịch
 
 ### SarUserPrintType
 
-Manages user-specific print preferences:
-- Default print types per user
-- Preferred templates for common reports
-- Auto-print settings
-- Print queue preferences
+Quản lý các tùy chọn in cụ thể cho từng người dùng:
+- Các kiểu in mặc định của từng người dùng
+- Các mẫu ưu tiên cho các báo cáo phổ biến
+- Các thiết lập tự động in
+- Các tùy chọn hàng đợi in
 
 ### SarReportCalendar
 
-Provides scheduled report generation:
-- Define recurring report schedules (daily, weekly, monthly)
-- Configure report parameters for scheduled runs
-- Email delivery of generated reports
-- Queue management for scheduled jobs
+Cung cấp tính năng lập lịch tạo báo cáo:
+- Định nghĩa lịch tạo báo cáo định kỳ (hàng ngày, hàng tuần, hàng tháng)
+- Cấu hình tham số báo cáo cho các lượt chạy theo lịch
+- Gửi báo cáo đã tạo qua email
+- Quản lý hàng đợi cho các công việc đã lập lịch
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## Plugin Communication Patterns
+## Các Mẫu Giao tiếp Plugin
 
-SAR plugins communicate through multiple mechanisms:
+Các plugin SAR giao tiếp thông qua nhiều cơ chế:
 
-### DelegateRegister Pattern
+### Mẫu DelegateRegister
 
 ```
-// Example: SarReport notifies SarPrintList after print job
+// Ví dụ: SarReport thông báo cho SarPrintList sau khi công việc in hoàn thành
 HIS.Desktop.DelegateRegister.RegisterDelegate(
     "SAR_PRINT_COMPLETED", 
     PrintCompletedHandler
 );
 ```
 
-### PubSub Events
+### Các sự kiện PubSub
 
 ```
-// Example: Template update notification
+// Ví dụ: Thông báo cập nhật mẫu
 HIS.Desktop.LocalStorage.PubSub.Publish(
     "SAR_TEMPLATE_UPDATED",
     templateId
 );
 ```
 
-### Direct Plugin-to-Plugin Calls
+### Gọi trực tiếp giữa các Plugin
 
-Some SAR plugins directly instantiate other SAR plugin forms for embedded functionality.
+Một số plugin SAR trực tiếp tạo mới các form của plugin SAR khác để sử dụng các tính năng nhúng.
 
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
+Nguồn: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
 
 ---
 
-## API Consumer Integration
+## Tích hợp API Consumer
 
-SAR plugins interact with backend services through `HIS.Desktop.ApiConsumer`:
+Các plugin SAR tương tác với các dịch vụ backend thông qua `HIS.Desktop.ApiConsumer`:
 
-### Common API Endpoints
+### Các Endpoint API Phổ biến
 
-| Endpoint Pattern | Purpose | Used By |
+| Kiểu Endpoint | Mục đích | Được sử dụng bởi |
 |-----------------|---------|---------|
-| `/api/SarReportTemplate/*` | Template CRUD operations | SarReportTemplate |
-| `/api/SarReportType/*` | Report type management | SarReportType |
-| `/api/SarFormField/*` | Field definitions | SarFormField |
-| `/api/SarRetyFofi/*` | Type-field mappings | SarRetyFofi |
-| `/api/SarPrintType/*` | Print configurations | SarPrintType |
-| `/api/SarReport/Generate` | Report execution | SarReport |
+| `/api/SarReportTemplate/*` | Các thao tác CRUD mẫu | SarReportTemplate |
+| `/api/SarReportType/*` | Quản lý kiểu báo cáo | SarReportType |
+| `/api/SarFormField/*` | Định nghĩa trường | SarFormField |
+| `/api/SarRetyFofi/*` | Ánh xạ kiểu-trường | SarRetyFofi |
+| `/api/SarPrintType/*` | Cấu hình in | SarPrintType |
+| `/api/SarReport/Generate` | Thực thi báo cáo | SarReport |
 
-### Caching Strategy
+### Chiến lược Caching
 
-SAR plugins leverage `HIS.Desktop.LocalStorage.BackendData` to cache:
-- Template definitions (frequently accessed)
-- Report type metadata
-- Form field definitions
-- Print type configurations
+Các plugin SAR tận dụng `HIS.Desktop.LocalStorage.BackendData` để cache:
+- Các định nghĩa mẫu (truy cập thường xuyên)
+- Metadata kiểu báo cáo
+- Các định nghĩa trường biểu mẫu
+- Các cấu hình kiểu in
 
-This reduces API calls and improves report generation performance.
+Việc này giúp giảm số lượng gọi API và cải thiện hiệu suất tạo báo cáo.
 
-Sources: [[`.devin/wiki.json:54-57`](../../../../.devin/wiki.json#L54-L57)](../../../../.devin/wiki.json#L54-L57), [[`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)](../../../../.devin/wiki.json#L44-L52)
+Nguồn: [[`.devin/wiki.json:54-57`](../../../../.devin/wiki.json#L54-L57)](../../../../.devin/wiki.json#L54-L57), [[`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)](../../../../.devin/wiki.json#L44-L52)
 
 ---
 
-## Comparison: SAR vs MPS
+## So sánh: SAR và MPS
 
-| Aspect | SAR System | MPS System |
+| Khía cạnh | Hệ thống SAR | Hệ thống MPS |
 |--------|-----------|------------|
-| **Configuration** | Dynamic, user-configurable templates | Static, code-defined processors |
-| **Count** | 15 management plugins | 790+ print processors |
-| **Use Case** | Custom reports, ad-hoc queries | Standard medical forms |
-| **Development** | No code changes needed | Requires new processor development |
-| **Flexibility** | High - templates editable at runtime | Low - requires recompilation |
-| **Complexity** | Lower per report | Higher per processor |
-| **Integration** | Can invoke MPS processors | Standalone |
+| **Cấu hình** | Các mẫu động, người dùng có thể cấu hình | Các bộ xử lý tĩnh, được định nghĩa bằng mã nguồn |
+| **Số lượng** | 15 plugin quản lý | Hơn 790 bộ xử lý in |
+| **Trường hợp sử dụng** | Các báo cáo tùy chỉnh, truy vấn tức thời | Các biểu mẫu y tế tiêu chuẩn |
+| **Phát triển** | Không cần thay đổi mã nguồn | Yêu cầu phát triển bộ xử lý mới |
+| **Tính linh hoạt** | Cao - các mẫu có thể chỉnh sửa lúc chạy | Thấp - yêu cầu biên dịch lại |
+| **Độ phức tạp** | Thấp hơn cho mỗi báo cáo | Cao hơn cho mỗi bộ xử lý |
+| **Tích hợp** | Có thể gọi các bộ xử lý MPS | Độc lập |
 
-**When to Use SAR:**
-- Custom reports specific to facility needs
-- Reports that change frequently
-- Ad-hoc data extraction
-- Statistical summaries
+**Khi nào nên sử dụng SAR:**
+- Các báo cáo tùy chỉnh đặc thù theo nhu cầu của cơ sở
+- Các báo cáo thay đổi thường xuyên
+- Trích xuất dữ liệu tức thời (ad-hoc)
+- Các tóm tắt thống kê
 
-**When to Use MPS:**
-- Legally-required medical forms
-- Forms with complex layouts
-- High-volume standardized documents
-- Forms requiring barcode integration
+**Khi nào nên sử dụng MPS:**
+- Các biểu mẫu y tế bắt buộc theo quy định pháp luật
+- Các biểu mẫu có bố cục phức tạp
+- Các tài liệu tiêu chuẩn hóa số lượng lớn
+- Các biểu mẫu yêu cầu tích hợp mã vạch
 
-Sources: [[`.devin/wiki.json:16-18`](../../../../.devin/wiki.json#L16-L18)](../../../../.devin/wiki.json#L16-L18), [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148), [[`.devin/wiki.json:180-197`](../../../../.devin/wiki.json#L180-L197)](../../../../.devin/wiki.json#L180-L197)
+Nguồn: [[`.devin/wiki.json:16-18`](../../../../.devin/wiki.json#L16-L18)](../../../../.devin/wiki.json#L16-L18), [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148), [[`.devin/wiki.json:180-197`](../../../../.devin/wiki.json#L180-L197)](../../../../.devin/wiki.json#L180-L197)
 
 ---
 
-## Development Patterns
+## Các Mẫu Phát triển
 
-### Creating a New SAR Plugin
+### Tạo một Plugin SAR mới
 
-While the existing 15 SAR plugins cover most reporting needs, the pattern for extending the SAR subsystem follows the standard HIS plugin structure:
+Mặc dù 15 plugin SAR hiện tại đã đáp ứng hầu hết các nhu cầu báo cáo, mẫu để mở rộng phân hệ SAR vẫn tuân theo cấu trúc plugin HIS tiêu chuẩn:
 
-1. **Plugin Entry Point**: [[`PluginName.cs`](../../../PluginName.cs)](../../../PluginName.cs) implementing plugin interface
-2. **Run Folder**: Contains form implementations ([[`frmPluginName.cs`](../../../frmPluginName.cs)](../../../frmPluginName.cs))
-3. **ADO Folder**: Data transfer objects ([[`PluginNameADO.cs`](../../../PluginNameADO.cs)](../../../PluginNameADO.cs))
-4. **Base Folder**: Base classes if needed
-5. **Validation**: Validation rules for data integrity
+1. **Điểm truy cập Plugin**: Triển khai interface plugin trong tệp `PluginName.cs`
+2. **Thư mục Run**: Chứa các triển khai form (`frmPluginName.cs`)
+3. **Thư mục ADO**: Các đối tượng chuyển đổi dữ liệu (`PluginNameADO.cs`)
+4. **Thư mục Base**: Các lớp cơ sở nếu cần thiết
+5. **Validation**: Các quy tắc kiểm tra tính toàn vẹn dữ liệu
 
-### Example: SarReportTemplate Plugin Structure
+### Ví dụ: Cấu trúc Plugin SarReportTemplate
 
 ```
 SAR.Desktop.Plugins.SarReportTemplate/
-├── SarReportTemplate.cs              // Plugin registration
+├── SarReportTemplate.cs              // Đăng ký plugin
 ├── Run/
-│   ├── frmSarReportTemplate.cs      // Template editor
-│   ├── frmSarReportTemplateList.cs  // List view
-│   └── UCTemplatePrint.cs           // Preview control
+│   ├── frmSarReportTemplate.cs      // Trình chỉnh sửa mẫu
+│   ├── frmSarReportTemplateList.cs  // Chế độ xem danh sách
+│   └── UCTemplatePrint.cs           // Control xem trước
 ├── ADO/
-│   ├── SarReportTemplateADO.cs      // Transfer object
-│   └── TemplateVersionADO.cs        // Version info
+│   ├── SarReportTemplateADO.cs      // Đối trọng chuyển đổi
+│   └── TemplateVersionADO.cs        // Thông tin phiên bản
 ├── Validations/
-│   └── TemplateValidationRule.cs    // Validation logic
-└── Properties/
-    └── AssemblyInfo.cs
-```
 
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
+Để biết về in ấn biểu mẫu y tế tiêu chuẩn (đơn thuốc, báo cáo xét nghiệm, hóa đơn), hãy xem [Hệ thống in MPS](../../02-modules/his-desktop/business-plugins.md#mps-print). Để biết các khái niệm kiến trúc plugin chung, hãy xem [Kiến trúc Hệ thống Plugin](../../01-architecture/plugin-system/01-overview.md).
 
 ---
 
-## Summary
+## Tổng quan
 
-The SAR (System of Advanced Reports) subsystem provides flexible, user-configurable reporting capabilities through 15 specialized plugins. It complements the MPS print system by enabling dynamic report creation without code changes, while still being able to leverage MPS processors when needed.
+Phân hệ SAR bao gồm 15 plugin chuyên dụng quản lý vòng đời của các báo cáo tùy chỉnh:
 
-**Key Takeaways:**
-- 15 plugins manage the complete report lifecycle from template creation to execution
-- `SarReportTemplate` (38 files) is the largest, handling template management
-- `SarRetyFofi` creates the critical mapping between report types and form fields
-- SAR can route to MPS processors via `SarReportMps` for complex medical forms
-- System supports scheduling, user preferences, and hierarchical organization
-- Templates and configurations cached in `LocalStorage` for performance
+- **Quản lý Mẫu**: Định nghĩa và duy trì các mẫu báo cáo
+- **Cấu hình Kiểu**: Cấu hình các kiểu và danh mục báo cáo
+- **Quản lý Kiểu in**: Liên kết các báo cáo với các cấu hình in
+- **Thực thi**: Tạo và thực thi các báo cáo dựa trên mẫu
+- **Ánh xạ Trường**: Ánh xạ các trường biểu mẫu tới các nguồn dữ liệu
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
+Hệ thống SAR thu hẹp khoảng cách giữa các bộ xử lý in MPS tĩnh và nhu cầu báo cáo động, có thể cấu hình bởi người dùng.
 
-# TYT Commune Health Station Plugins
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
+# Các Plugin Trạm Y tế (TYT)
 
+## Mục đích và Phạm vi
 
+Tài liệu này mô tả phân hệ plugin TYT (Trạm Y Tế) trong ứng dụng HIS. Các plugin TYT cung cấp các chức năng chuyên biệt để quản lý các cơ sở y tế cấp xã và các chương trình sức khỏe cộng đồng trong mạng lưới chăm sóc sức khỏe ban đầu của Việt Nam.
 
-## Purpose and Scope
+Phân hệ TYT bao gồm 17 plugin nằm trong namespace `TYT.Desktop.Plugins.*`, bao gồm theo dõi sức khỏe bà mẹ, theo dõi bệnh truyền nhiễm (HIV, lao, sốt rét), đăng ký khai tử và các chương trình sức khỏe cộng đồng khác theo quy định của Bộ Y tế.
 
-This document describes the TYT (Trạm Y Tế - Commune Health Station) plugin subsystem within the HIS application. The TYT plugins provide specialized functionality for managing commune-level healthcare facilities and community health programs in Vietnam's primary healthcare network.
+Để biết thông tin về các danh mục plugin khác, hãy xem:
+- Các Plugin Nghiệp vụ Cốt lõi của HIS [#1.1.3.1](../../02-modules/his-desktop/business-plugins.md)
+- Các plugin Kiểm soát Truy cập, xem Các Plugin Kiểm soát Truy cập ACS [#1.1.3.5](../../03-business-domains/administration/access-control.md)
+- Các plugin Phòng xét nghiệm, xem Các Plugin Phòng xét nghiệm LIS [#1.1.3.7](../../03-business-domains/laboratory/lis-plugins.md)
 
-The TYT subsystem consists of 17 plugins located in the `TYT.Desktop.Plugins.*` namespace, covering maternal health monitoring, infectious disease tracking (HIV, tuberculosis, malaria), death registration, and other community health programs mandated by the Ministry of Health.
-
-For information about other plugin categories, see:
-- HIS Core Business Plugins [#1.1.3.1](../../02-modules/his-desktop/business-plugins.md)
-- Access Control plugins, see ACS Access Control Plugins [#1.1.3.5](../../03-business-domains/administration/access-control.md)
-- Laboratory plugins, see LIS Laboratory Plugins [#1.1.3.7](../../03-business-domains/laboratory/lis-plugins.md)
-
-For general plugin architecture concepts, see Plugin System Architecture [#1.1.3](../../01-architecture/plugin-system.md).
+Đối với các khái niệm kiến trúc plugin chung, hãy xem Kiến trúc Hệ thống Plugin [#1.1.3](../../01-architecture/plugin-system/01-overview.md).
 
 ---
 
-## TYT Plugin Overview
+## Tổng quan về Plugin TYT
 
-The TYT plugin category addresses the unique requirements of commune health stations, which serve as the primary point of contact for healthcare in rural and peri-urban Vietnam. These facilities are responsible for:
+Danh mục plugin TYT giải quyết các yêu cầu đặc thù của các trạm y tế xã, nơi đóng vai trò là điểm tiếp xúc đầu tiên trong việc chăm sóc sức khỏe tại các vùng nông thôn và ven đô của Việt Nam. Các cơ sở này chịu trách nhiệm:
 
-- Recording vital statistics (births, deaths)
-- Monitoring maternal and child health
-- Tracking and reporting infectious diseases
-- Managing community health programs
-- Reporting data to district and provincial health authorities
+- Ghi nhận các số liệu quan trọng (sinh, tử)
+- Theo dõi sức khỏe bà mẹ và trẻ em
+- Theo dõi và báo cáo các bệnh truyền nhiễm
+- Quản lý các chương trình sức khỏe cộng đồng
+- Báo cáo dữ liệu cho các cơ quan y tế cấp huyện và cấp tỉnh
 
-All TYT plugins follow the standard HIS plugin architecture, implementing the `IDesktopRoot` interface and communicating via `HIS.Desktop.DelegateRegister` and `HIS.Desktop.LocalStorage.PubSub` event system.
+Tất cả các plugin TYT đều tuân theo kiến trúc plugin HIS tiêu chuẩn, triển khai interface `IDesktopRoot` và giao tiếp thông qua hệ thống sự kiện `HIS.Desktop.DelegateRegister` và `HIS.Desktop.LocalStorage.PubSub`.
 
-**TYT Plugin Namespace Structure:**
+**Cấu trúc Namespace Plugin TYT:**
 
 ```
 HIS/Plugins/TYT.Desktop.Plugins.*
-├── TytDeath/                    (22 files - Death registration)
-├── TytHiv/                      (22 files - HIV case management)
-├── TYTFetusBorn/               (19 files - Birth registration)
-├── TYTTuberculosis/            (19 files - TB case tracking)
-├── TYTMalaria/                 (18 files - Malaria surveillance)
-├── TYTFetusExam/               (17 files - Prenatal examination)
-├── TYTGDSK/                    (17 files - Family planning)
-└── [10 additional plugins]
+├── TytDeath/                    (22 tệp - Đăng ký khai tử)
+├── TytHiv/                      (22 tệp - Quản lý ca bệnh HIV)
+├── TYTFetusBorn/               (19 tệp - Đăng ký khai sinh)
+├── TYTTuberculosis/            (19 tệp - Theo dõi ca bệnh lao)
+├── TYTMalaria/                 (18 tệp - Giám sát sốt rét)
+├── TYTFetusExam/               (17 tệp - Khám thai)
+├── TYTGDSK/                    (17 tệp - Kế hoạch hóa gia đình)
+└── [10 plugin bổ sung]
 ```
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-## TYT Plugin Catalog
+## Danh mục Plugin TYT
 
-### Complete Plugin List
+### Danh sách Plugin Đầy đủ
 
-The following table lists all 17 TYT plugins with their primary functions:
+Bảng dưới đây liệt kê tất cả 17 plugin TYT cùng với các chức năng chính của chúng:
 
-| Plugin Name | File Count | Primary Function | Key Entity Types |
+| Tên Plugin | Số lượng tệp | Chức năng Chính | Các Loại Thực thể Chính |
 |------------|-----------|------------------|------------------|
-| `TytDeath` | 22 | Death certificate registration and reporting | TYT_DEATH |
-| `TytHiv` | 22 | HIV/AIDS case management and monitoring | TYT_HIV |
-| `TYTFetusBorn` | 19 | Newborn birth registration | TYT_FETUS_BORN |
-| `TYTTuberculosis` | 19 | Tuberculosis case tracking and treatment | TYT_TUBERCULOSIS |
-| `TYTMalaria` | 18 | Malaria case surveillance and reporting | TYT_MALARIA |
-| `TYTFetusExam` | 17 | Prenatal care examination records | TYT_FETUS_EXAM |
-| `TYTGDSK` | 17 | Family planning services (Giám Định Sức Khỏe) | TYT_GDSK |
-| `TYTKhh` | ~15 | Reproductive health program | TYT_KHH |
-| `TYTNerves` | ~15 | Neurological disease tracking | TYT_NERVES |
-| `TYTUninfect` | ~15 | Infection control and immunization | TYT_UNINFECT |
-| `TYTNewbornScreening` | ~15 | Newborn screening programs | TYT_NEWBORN_SCREENING |
-| `TYTMentalHealth` | ~15 | Mental health services | TYT_MENTAL_HEALTH |
-| `TYTEarlyChildhood` | ~15 | Early childhood development | TYT_EARLY_CHILDHOOD |
-| `TYTNcd` | ~15 | Non-communicable disease monitoring | TYT_NCD |
-| `TYTVaccine` | ~15 | Vaccination registry | TYT_VACCINE |
-| `TYTNutrition` | ~15 | Nutrition program management | TYT_NUTRITION |
-| `TYTHealthEducation` | ~15 | Health education tracking | TYT_HEALTH_EDUCATION |
+| `TytDeath` | 22 | Đăng ký và báo cáo giấy chứng tử | TYT_DEATH |
+| `TytHiv` | 22 | Quản lý và giám sát ca bệnh HIV/AIDS | TYT_HIV |
+| `TYTFetusBorn` | 19 | Đăng ký khai sinh cho trẻ sơ sinh | TYT_FETUS_BORN |
+| `TYTTuberculosis` | 19 | Theo dõi và điều trị ca bệnh lao | TYT_TUBERCULOSIS |
+| `TYTMalaria` | 18 | Giám sát và báo cáo ca bệnh sốt rét | TYT_MALARIA |
+| `TYTFetusExam` | 17 | Hồ sơ khám thai chăm sóc trước sinh | TYT_FETUS_EXAM |
+| `TYTGDSK` | 17 | Dịch vụ kế hoạch hóa gia đình (Giám Định Sức Khỏe) | TYT_GDSK |
+| `TYTKhh` | ~15 | Chương trình sức khỏe sinh sản | TYT_KHH |
+| `TYTNerves` | ~15 | Theo dõi bệnh thần kinh | TYT_NERVES |
+| `TYTUninfect` | ~15 | Kiểm soát nhiễm khuẩn và tiêm chủng | TYT_UNINFECT |
+| `TYTNewbornScreening` | ~15 | Chương trình sàng lọc sơ sinh | TYT_NEWBORN_SCREENING |
+| `TYTMentalHealth` | ~15 | Dịch vụ sức khỏe tâm thần | TYT_MENTAL_HEALTH |
+| `TYTEarlyChildhood` | ~15 | Phát triển trẻ thơ giai đoạn đầu | TYT_EARLY_CHILDHOOD |
+| `TYTNcd` | ~15 | Theo dõi bệnh không lây nhiễm | TYT_NCD |
+| `TYTVaccine` | ~15 | Sổ đăng ký tiêm chủng | TYT_VACCINE |
+| `TYTNutrition` | ~15 | Quản lý chương trình dinh dưỡng | TYT_NUTRITION |
+| `TYTHealthEducation` | ~15 | Theo dõi giáo dục sức khỏe | TYT_HEALTH_EDUCATION |
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-## Plugin Architecture Diagram
+## Sơ đồ Kiến trúc Plugin
 
-**Diagram: TYT Plugin Integration Architecture**
+**Sơ đồ: Kiến trúc Tích hợp Plugin TYT**
 
 ```mermaid
 graph TB
-    subgraph "HIS Desktop Core"
-        PluginLoader["HIS.Desktop.Modules.Plugin<br/>Plugin Discovery & Lifecycle"]
-        DelegateReg["HIS.Desktop.DelegateRegister<br/>Inter-plugin Communication"]
-        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Event System"]
+    subgraph "Nhân HIS Desktop"
+        PluginLoader["HIS.Desktop.Modules.Plugin<br/>Khám phá & Vòng đời Plugin"]
+        DelegateReg["HIS.Desktop.DelegateRegister<br/>Giao tiếp giữa các plugin"]
+        PubSub["HIS.Desktop.LocalStorage.PubSub<br/>Hệ thống Sự kiện"]
     end
     
-    subgraph "TYT.Desktop.Plugins Namespace"
-        TytDeath["TytDeath (22 files)<br/>frmTytDeath.cs<br/>TytDeathProcessor"]
-        TytHiv["TytHiv (22 files)<br/>frmTytHiv.cs<br/>TytHivProcessor"]
-        FetusBorn["TYTFetusBorn (19 files)<br/>frmTYTFetusBorn.cs"]
-        FetusExam["TYTFetusExam (17 files)<br/>frmTYTFetusExam.cs"]
-        Tuberculosis["TYTTuberculosis (19 files)<br/>frmTYTTuberculosis.cs"]
-        Malaria["TYTMalaria (18 files)<br/>frmTYTMalaria.cs"]
-        GDSK["TYTGDSK (17 files)<br/>frmTYTGDSK.cs"]
-        OtherTYT["10 Additional TYT Plugins<br/>TYTKhh, TYTNerves, etc."]
+    subgraph "Namespace TYT.Desktop.Plugins"
+        TytDeath["TytDeath (22 tệp)<br/>frmTytDeath.cs<br/>TytDeathProcessor"]
+        TytHiv["TytHiv (22 tệp)<br/>frmTytHiv.cs<br/>TytHivProcessor"]
+        FetusBorn["TYTFetusBorn (19 tệp)<br/>frmTYTFetusBorn.cs"]
+        FetusExam["TYTFetusExam (17 tệp)<br/>frmTYTFetusExam.cs"]
+        Tuberculosis["TYTTuberculosis (19 tệp)<br/>frmTYTTuberculosis.cs"]
+        Malaria["TYTMalaria (18 tệp)<br/>frmTYTMalaria.cs"]
+        GDSK["TYTGDSK (17 tệp)<br/>frmTYTGDSK.cs"]
+        OtherTYT["10 Plugin TYT bổ sung<br/>TYTKhh, TYTNerves, v.v."]
     end
     
-    subgraph "Data Layer"
+    subgraph "Lớp Dữ liệu"
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>REST API Client"]
-        BackendData["LocalStorage.BackendData<br/>TYT Entity Cache"]
+        BackendData["LocalStorage.BackendData<br/>Cache thực thể TYT"]
     end
     
-    subgraph "Backend Services"
-        TytApi["TYT API Endpoints<br/>TYT_DEATH, TYT_HIV, etc."]
+    subgraph "Các dịch vụ Backend"
+        TytApi["Các Endpoint API TYT<br/>TYT_DEATH, TYT_HIV, v.v."]
     end
     
     PluginLoader --> TytDeath
@@ -1192,41 +1157,41 @@ graph TB
     ApiConsumer --> TytApi
 ```
 
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-## Common Plugin Structure
+## Cấu trúc Plugin Chung
 
-Each TYT plugin follows a consistent structural pattern inherited from the HIS plugin architecture:
+Mỗi plugin TYT đều tuân theo một mẫu cấu trúc nhất quán được thừa hưởng từ kiến trúc plugin HIS:
 
-### Standard File Organization
+### Tổ chức Tệp Tiêu chuẩn
 
 ```
 TYT.Desktop.Plugins.{PluginName}/
-├── {PluginName}.cs                 # Plugin entry point (IDesktopRoot)
+├── {PluginName}.cs                 # Điểm truy cập plugin (IDesktopRoot)
 ├── Run/
-│   ├── frmTYT{PluginName}.cs      # Main form UI
+│   ├── frmTYT{PluginName}.cs      # UI form chính
 │   ├── frmTYT{PluginName}.Designer.cs
-│   └── UCProcessor.cs              # Business logic processor
+│   └── UCProcessor.cs              # Bộ xử lý logic nghiệp vụ
 ├── ADO/
-│   ├── {Entity}ADO.cs             # Data transfer objects
-│   └── {Entity}ImportADO.cs       # Import/export models
+│   ├── {Entity}ADO.cs             # Các đối tượng chuyển đổi dữ liệu
+│   └── {Entity}ImportADO.cs       # Các mô hình nhập/xuất dữ liệu
 ├── Base/
-│   ├── GlobalStore.cs             # Plugin-level state
-│   └── ResourceMessage.cs         # Localization resources
+│   ├── GlobalStore.cs             # Trạng thái cấp plugin
+│   └── ResourceMessage.cs         # Các tài nguyên nội hóa
 ├── Config/
-│   └── HisConfigCFG.cs            # Configuration keys
+│   └── HisConfigCFG.cs            # Các khóa cấu hình
 └── Properties/
     ├── AssemblyInfo.cs
     └── Resources.resx
 ```
 
-### Plugin Entry Point Pattern
+### Mẫu Điểm truy cập Plugin
 
-Each TYT plugin implements the standard entry point interface:
+Mỗi plugin TYT triển khai interface điểm truy cập tiêu chuẩn:
 
-```
+```csharp
 namespace TYT.Desktop.Plugins.{PluginName}
 {
     [ExtensionOf(typeof(DesktopRootExtensionPoint))]
@@ -1236,13 +1201,13 @@ namespace TYT.Desktop.Plugins.{PluginName}
     {
         public ModuleBase Run(object[] args)
         {
-            // Initialize and return main form
+            // Khởi tạo và trả về form chính
         }
     }
 }
 ```
 
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
+Nguồn: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
 
 ---
 
@@ -1316,183 +1281,183 @@ Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](
 
 ---
 
-### TYTFetusBorn - Birth Registration
+### TYTFetusBorn - Đăng ký Khai sinh
 
-**File Count:** 19 files  
+**Số lượng tệp:** 19 tệp  
 **Namespace:** `TYT.Desktop.Plugins.TYTFetusBorn`
 
-The `TYTFetusBorn` plugin handles newborn birth registration and vital statistics collection.
+Plugin `TYTFetusBorn` xử lý việc đăng ký khai sinh cho trẻ sơ sinh và thu thập các số liệu thống kê quan trọng.
 
-**Key Components:**
+**Các thành phần chính:**
 
-| File/Class | Purpose |
+| Tệp/Lớp | Mục đích |
 |-----------|---------|
-| [[`TYTFetusBorn.cs`](../../../TYTFetusBorn.cs)](../../../TYTFetusBorn.cs) | Plugin entry point |
-| [[`frmTYTFetusBorn.cs`](../../../frmTYTFetusBorn.cs)](../../../frmTYTFetusBorn.cs) | Birth registration form |
-| [[`TYT_FETUS_BORNADO.cs`](../../../TYT_FETUS_BORNADO.cs)](../../../TYT_FETUS_BORNADO.cs) | Birth record data model |
-| [[`MotherInfoUC.cs`](../../../MotherInfoUC.cs)](../../../MotherInfoUC.cs) | Mother information user control |
-| [[`NewbornInfoUC.cs`](../../../NewbornInfoUC.cs)](../../../NewbornInfoUC.cs) | Newborn details user control |
+| [[`TYTFetusBorn.cs`](../../../TYTFetusBorn.cs)](../../../TYTFetusBorn.cs) | Điểm truy cập plugin |
+| [[`frmTYTFetusBorn.cs`](../../../frmTYTFetusBorn.cs)](../../../frmTYTFetusBorn.cs) | Form đăng ký khai sinh |
+| [[`TYT_FETUS_BORNADO.cs`](../../../TYT_FETUS_BORNADO.cs)](../../../TYT_FETUS_BORNADO.cs) | Mô hình dữ liệu bản ghi khai sinh |
+| [[`MotherInfoUC.cs`](../../../MotherInfoUC.cs)](../../../MotherInfoUC.cs) | Control người dùng cho thông tin người mẹ |
+| [[`NewbornInfoUC.cs`](../../../NewbornInfoUC.cs)](../../../NewbornInfoUC.cs) | Control người dùng cho thông tin trẻ sơ sinh |
 
-**Core Functionality:**
-- Birth certificate generation
-- Mother and newborn demographic data
-- Birth weight, length, and APGAR scores
-- Delivery method and complications
-- Links to prenatal examination records (TYTFetusExam)
-- Birth notification to civil registration system
+**Chức năng Cốt lõi:**
+- Tạo bản sao giấy chứng sinh
+- Thu thập dữ liệu nhân khẩu học của mẹ và trẻ sơ sinh
+- Ghi nhận cân nặng, chiều dài khi sinh và điểm APGAR
+- Phương pháp sinh và các biến chứng
+- Liên kết với hồ sơ khám thai (TYTFetusExam)
+- Thông báo khai sinh cho hệ thống hộ tịch
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-### TYTFetusExam - Prenatal Examination
+### TYTFetusExam - Khám thai
 
-**File Count:** 17 files  
+**Số lượng tệp:** 17 tệp  
 **Namespace:** `TYT.Desktop.Plugins.TYTFetusExam`
 
-The `TYTFetusExam` plugin manages prenatal care visit records and maternal health monitoring.
+Plugin `TYTFetusExam` quản lý các bản ghi lượt khám chăm sóc trước sinh và theo dịch sức khỏe bà mẹ.
 
-**Key Components:**
+**Các thành phần chính:**
 
-| File/Class | Purpose |
+| Tệp/Lớp | Mục đích |
 |-----------|---------|
-| [[`TYTFetusExam.cs`](../../../TYTFetusExam.cs)](../../../TYTFetusExam.cs) | Plugin entry point |
-| [[`frmTYTFetusExam.cs`](../../../frmTYTFetusExam.cs)](../../../frmTYTFetusExam.cs) | Prenatal examination form |
-| [[`TYT_FETUS_EXAMADO.cs`](../../../TYT_FETUS_EXAMADO.cs)](../../../TYT_FETUS_EXAMADO.cs) | Examination data model |
-| [[`PregnancyHistoryGrid.cs`](../../../PregnancyHistoryGrid.cs)](../../../PregnancyHistoryGrid.cs) | Previous pregnancy history |
-| [[`ExamScheduleUC.cs`](../../../ExamScheduleUC.cs)](../../../ExamScheduleUC.cs) | ANC visit scheduling |
+| [[`TYTFetusExam.cs`](../../../TYTFetusExam.cs)](../../../TYTFetusExam.cs) | Điểm truy cập plugin |
+| [[`frmTYTFetusExam.cs`](../../../frmTYTFetusExam.cs)](../../../frmTYTFetusExam.cs) | Form khám thai |
+| [[`TYT_FETUS_EXAMADO.cs`](../../../TYT_FETUS_EXAMADO.cs)](../../../TYT_FETUS_EXAMADO.cs) | Mô hình dữ liệu khám thai |
+| [[`PregnancyHistoryGrid.cs`](../../../PregnancyHistoryGrid.cs)](../../../PregnancyHistoryGrid.cs) | Tiền sử thai nghén trước đó |
+| [[`ExamScheduleUC.cs`](../../../ExamScheduleUC.cs)](../../../ExamScheduleUC.cs) | Lập lịch các lượt khám ANC (Antenatal Care) |
 
-**Core Functionality:**
-- Antenatal care (ANC) visit recording
-- Maternal vital signs and weight tracking
-- Fetal development monitoring
-- Risk factor identification
-- Laboratory test results (blood type, Rh, etc.)
-- Pregnancy complications tracking
-- Birth preparation counseling
+**Chức năng Cốt lõi:**
+- Ghi chép các lượt khám chăm sóc trước sinh (ANC)
+- Theo dõi các dấu hiệu sinh tồn và cân nặng của mẹ
+- Giám sát sự phát triển của thai nhi
+- Xác định các yếu tố nguy cơ
+- Kết quả xét nghiệm phòng thí nghiệm (nhóm máu, Rh, v.v.)
+- Theo dõi các biến chứng thai kỳ
+- Tư vấn chuẩn bị sinh
 
-**Integration Points:**
-- Links to TYTFetusBorn for delivery outcomes
-- Connects with general examination services
-- Integrates with laboratory test results
+**Các điểm tích hợp:**
+- Liên kết với TYTFetusBorn cho kết quả sinh
+- Kết nối với các dịch vụ khám bệnh tổng quát
+- Tích hợp với các kết quả xét nghiệm phòng thí nghiệm
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-### TYTTuberculosis - TB Case Tracking
+### TYTTuberculosis - Theo dõi Ca bệnh Lao
 
-**File Count:** 19 files  
+**Số lượng tệp:** 19 tệp  
 **Namespace:** `TYT.Desktop.Plugins.TYTTuberculosis`
 
-The `TYTTuberculosis` plugin supports the National Tuberculosis Control Program (NTP) at the commune level.
+Plugin `TYTTuberculosis` hỗ trợ Chương trình Chống lao Quốc gia (NTP) tại cấp xã.
 
-**Key Components:**
+**Các thành phần chính:**
 
-| File/Class | Purpose |
+| Tệp/Lớp | Mục đích |
 |-----------|---------|
-| [[`TYTTuberculosis.cs`](../../../TYTTuberculosis.cs)](../../../TYTTuberculosis.cs) | Plugin entry point |
-| [[`frmTYTTuberculosis.cs`](../../../frmTYTTuberculosis.cs)](../../../frmTYTTuberculosis.cs) | TB case management form |
-| [[`TYT_TUBERCULOSISADO.cs`](../../../TYT_TUBERCULOSISADO.cs)](../../../TYT_TUBERCULOSISADO.cs) | TB case data model |
-| [[`TreatmentRegimenGrid.cs`](../../../TreatmentRegimenGrid.cs)](../../../TreatmentRegimenGrid.cs) | DOTS treatment tracking |
-| [[`ContactTracingUC.cs`](../../../ContactTracingUC.cs)](../../../ContactTracingUC.cs) | Contact investigation |
+| [[`TYTTuberculosis.cs`](../../../TYTTuberculosis.cs)](../../../TYTTuberculosis.cs) | Điểm truy cập plugin |
+| [[`frmTYTTuberculosis.cs`](../../../frmTYTTuberculosis.cs)](../../../frmTYTTuberculosis.cs) | Form quản lý ca bệnh lao |
+| [[`TYT_TUBERCULOSISADO.cs`](../../../TYT_TUBERCULOSISADO.cs)](../../../TYT_TUBERCULOSISADO.cs) | Mô hình dữ liệu ca bệnh lao |
+| [[`TreatmentRegimenGrid.cs`](../../../TreatmentRegimenGrid.cs)](../../../TreatmentRegimenGrid.cs) | Theo dõi điều trị DOTS |
+| [[`ContactTracingUC.cs`](../../../ContactTracingUC.cs)](../../../ContactTracingUC.cs) | Điều tra tiếp xúc |
 
-**Core Functionality:**
-- TB case detection and registration
-- Classification (pulmonary/extrapulmonary, new/retreatment)
-- DOTS (Directly Observed Treatment, Short-course) tracking
-- Treatment outcome recording
-- Contact screening management
-- Drug resistance monitoring
-- Integration with NTP reporting system
+**Chức năng Cốt lõi:**
+- Phát hiện và đăng ký ca bệnh lao
+- Phân loại (lao phổi/lao ngoài phổi, mới/điều trị lại)
+- Theo dõi DOTS (Điều trị ngắn ngày có kiểm soát trực tiếp)
+- Ghi nhận kết quả điều trị
+- Quản lý sàng lọc tiếp xúc
+- Giám sát tình trạng kháng thuốc
+- Tích hợp với hệ thống báo cáo NTP
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-### TYTMalaria - Malaria Surveillance
+### TYTMalaria - Giám sát Sốt rét
 
-**File Count:** 18 files  
+**Số lượng tệp:** 18 tệp  
 **Namespace:** `TYT.Desktop.Plugins.TYTMalaria`
 
-The `TYTMalaria` plugin provides malaria case surveillance and vector control activity tracking.
+Plugin `TYTMalaria` cung cấp tính năng giám sát ca bệnh sốt rét và theo dõi hoạt động kiểm soát truyền bệnh.
 
-**Key Components:**
+**Các thành phần chính:**
 
-| File/Class | Purpose |
+| Tệp/Lớp | Mục đích |
 |-----------|---------|
-| [[`TYTMalaria.cs`](../../../TYTMalaria.cs)](../../../TYTMalaria.cs) | Plugin entry point |
-| [[`frmTYTMalaria.cs`](../../../frmTYTMalaria.cs)](../../../frmTYTMalaria.cs) | Malaria case form |
-| [[`TYT_MALARIAADO.cs`](../../../TYT_MALARIAADO.cs)](../../../TYT_MALARIAADO.cs) | Malaria case data model |
-| [[`ParasiteSpeciesGrid.cs`](../../../ParasiteSpeciesGrid.cs)](../../../ParasiteSpeciesGrid.cs) | Parasitology results |
-| [[`VectorControlUC.cs`](../../../VectorControlUC.cs)](../../../VectorControlUC.cs) | Intervention tracking |
+| [[`TYTMalaria.cs`](../../../TYTMalaria.cs)](../../../TYTMalaria.cs) | Điểm truy cập plugin |
+| [[`frmTYTMalaria.cs`](../../../frmTYTMalaria.cs)](../../../frmTYTMalaria.cs) | Form ca bệnh sốt rét |
+| [[`TYT_MALARIAADO.cs`](../../../TYT_MALARIAADO.cs)](../../../TYT_MALARIAADO.cs) | Mô hình dữ liệu ca bệnh sốt rét |
+| [[`ParasiteSpeciesGrid.cs`](../../../ParasiteSpeciesGrid.cs)](../../../ParasiteSpeciesGrid.cs) | Kết quả ký sinh trùng học |
+| [[`VectorControlUC.cs`](../../../VectorControlUC.cs)](../../../VectorControlUC.cs) | Theo dõi các biện pháp can thiệp |
 
-**Core Functionality:**
-- Malaria case detection and notification
-- Parasite species identification (P. falciparum, P. vivax)
-- Treatment regimen according to national guidelines
-- Vector control intervention recording (bed nets, spraying)
-- Endemic area mapping
-- Outbreak investigation support
+**Chức năng Cốt lõi:**
+- Phát hiện và thông báo ca bệnh sốt rét
+- Định danh loài ký sinh trùng (P. falciparum, P. vivax)
+- Phác đồ điều trị theo hướng dẫn quốc gia
+- Ghi nhận các biện pháp can thiệp kiểm soát vector (nằm màn, phun thuốc)
+- Bản đồ hóa khu vực dịch tễ
+- Hỗ trợ điều tra ổ dịch
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-### TYTGDSK - Family Planning Services
+### TYTGDSK - Dịch vụ Kế hoạch hóa Gia đình
 
-**File Count:** 17 files  
+**Số lượng tệp:** 17 tệp  
 **Namespace:** `TYT.Desktop.Plugins.TYTGDSK`
 
-The `TYTGDSK` plugin manages family planning services and reproductive health counseling (Giám Định Sức Khỏe - Health Assessment).
+Plugin `TYTGDSK` quản lý các dịch vụ kế hoạch hóa gia đình và tư vấn sức khỏe sinh sản (Giám Định Sức Khỏe).
 
-**Key Components:**
+**Các thành phần chính:**
 
-| File/Class | Purpose |
+| Tệp/Lớp | Mục đích |
 |-----------|---------|
-| [[`TYTGDSK.cs`](../../../TYTGDSK.cs)](../../../TYTGDSK.cs) | Plugin entry point |
-| [[`frmTYTGDSK.cs`](../../../frmTYTGDSK.cs)](../../../frmTYTGDSK.cs) | Family planning service form |
-| [[`TYT_GDSKADO.cs`](../../../TYT_GDSKADO.cs)](../../../TYT_GDSKADO.cs) | Service data model |
-| [[`ContraceptiveMethodUC.cs`](../../../ContraceptiveMethodUC.cs)](../../../ContraceptiveMethodUC.cs) | Method selection UI |
-| [[`FollowUpScheduleGrid.cs`](../../../FollowUpScheduleGrid.cs)](../../../FollowUpScheduleGrid.cs) | Follow-up visit tracking |
+| [[`TYTGDSK.cs`](../../../TYTGDSK.cs)](../../../TYTGDSK.cs) | Điểm truy cập plugin |
+| [[`frmTYTGDSK.cs`](../../../frmTYTGDSK.cs)](../../../frmTYTGDSK.cs) | Form dịch vụ kế hoạch hóa gia đình |
+| [[`TYT_GDSKADO.cs`](../../../TYT_GDSKADO.cs)](../../../TYT_GDSKADO.cs) | Mô hình dữ liệu dịch vụ |
+| [[`ContraceptiveMethodUC.cs`](../../../ContraceptiveMethodUC.cs)](../../../ContraceptiveMethodUC.cs) | UI lựa chọn phương pháp |
+| [[`FollowUpScheduleGrid.cs`](../../../FollowUpScheduleGrid.cs)](../../../FollowUpScheduleGrid.cs) | Theo dõi lịch tái khám |
 
-**Core Functionality:**
-- Family planning counseling records
-- Contraceptive method selection and provision
-- Follow-up visit scheduling
-- Side effect monitoring
-- Method switching tracking
-- Integration with maternal health services
+**Chức năng Cốt lõi:**
+- Ghi chép tư vấn kế hoạch hóa gia đình
+- Lựa chọn và cung cấp các phương pháp tránh thai
+- Lập lịch các lượt thăm khám theo dõi
+- Giám sát các tác dụng phụ
+- Theo dõi việc thay đổi phương pháp
+- Tích hợp với các dịch vụ sức khỏe bà mẹ
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-## Data Flow and Communication Patterns
+## Luồng Dữ liệu và Các Mẫu Giao tiếp
 
-**Diagram: TYT Plugin Data Flow**
+**Sơ đồ: Luồng Dữ liệu Plugin TYT**
 
 ```mermaid
 graph LR
-    subgraph "User Interface Layer"
+    subgraph "Lớp Giao diện Người dùng"
         Form["frmTYT{Plugin}.cs<br/>DevExpress Form"]
-        UC["User Controls<br/>Grid, Editor Components"]
+        UC["Các Control người dùng<br/>Lưới, Thành phần chỉnh sửa"]
     end
     
-    subgraph "Business Logic"
-        Processor["{Plugin}Processor.cs<br/>Validation & Logic"]
-        ADO["{Entity}ADO.cs<br/>Data Transfer Objects"]
-        ValidationRule["ValidationRule.cs<br/>Business Rules"]
+    subgraph "Logic Nghiệp vụ"
+        Processor["{Plugin}Processor.cs<br/>Kiểm tra & Logic"]
+        ADO["{Entity}ADO.cs<br/>Đối tượng Chuyển đổi Dữ liệu"]
+        ValidationRule["ValidationRule.cs<br/>Quy tắc Nghiệp vụ"]
     end
     
-    subgraph "Data Access"
+    subgraph "Truy cập Dữ liệu"
         ApiConsumer["HIS.Desktop.ApiConsumer<br/>REST Client"]
-        LocalCache["BackendData.TYT*<br/>Local Entity Cache"]
+        LocalCache["BackendData.TYT*<br/>Cache Thực thể Cục bộ"]
     end
     
     subgraph "Backend"
-        TytEndpoints["TYT API Endpoints<br/>Create/Update/Delete/Get"]
-        Database["SQL Database<br/>TYT_* Tables"]
+        TytEndpoints["Các Endpoint API TYT<br/>Tạo/Cập nhật/Xóa/Lấy dữ liệu"]
+        Database["Cơ sở dữ liệu SQL<br/>Các bảng TYT_*"]
     end
     
     Form --> UC
@@ -1505,102 +1470,102 @@ graph LR
     TytEndpoints --> Database
 ```
 
-Sources: [[`.devin/wiki.json:54-57`](../../../../.devin/wiki.json#L54-L57)](../../../../.devin/wiki.json#L54-L57), [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
+Nguồn: [[`.devin/wiki.json:54-57`](../../../../.devin/wiki.json#L54-L57)](../../../../.devin/wiki.json#L54-L57), [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
 
 ---
 
-## Communication Between TYT Plugins and HIS Core
+## Giao tiếp giữa các Plugin TYT và Nhân HIS
 
-### Plugin Registration
+### Đăng ký Plugin
 
-TYT plugins register with the HIS Desktop Core through the standard plugin mechanism:
+Các plugin TYT đăng ký với Nhân HIS Desktop thông qua cơ chế plugin tiêu chuẩn:
 
-1. Plugin discovery via `ExtensionOf(typeof(DesktopRootExtensionPoint))` attribute
-2. Plugin metadata defined in `[Plugin]` attribute with unique `PluginId`
-3. Module creation through `IDesktopRoot.Run()` method
+1. Khám phá plugin thông qua thuộc tính `ExtensionOf(typeof(DesktopRootExtensionPoint))`
+2. Metadata của plugin được định nghĩa trong thuộc tính `[Plugin]` với một `PluginId` duy nhất
+3. Khởi tạo module thông qua phương thức `IDesktopRoot.Run()`
 
-### Inter-Plugin Communication
+### Giao tiếp Liên Plugin
 
-TYT plugins communicate with other HIS modules through two primary mechanisms:
+Các plugin TYT giao tiếp với các module HIS khác thông qua hai cơ chế chính:
 
-**1. DelegateRegister Pattern:**
+**1. Mẫu DelegateRegister:**
 
-Used for direct plugin-to-plugin method invocation:
+Được sử dụng để gọi các phương thức trực tiếp giữa các plugin:
 
-```
-// Example: TytDeath calling patient selection
+```csharp
+// Ví dụ: TytDeath gọi việc chọn bệnh nhân
 HIS.Desktop.DelegateRegister.CallSelectPatient(patientId);
 ```
 
-**2. PubSub Event System:**
+**2. Hệ thống Sự kiện PubSub:**
 
-Used for loose-coupled event notifications:
+Được sử dụng cho các thông báo sự kiện lỏng lẻo:
 
-```
-// Example: Publishing death registration event
+```csharp
+// Ví dụ: Công bố sự kiện đăng ký khai tử
 HIS.Desktop.LocalStorage.PubSub.Publish(
     "TYT.DEATH_REGISTERED", 
     deathRecordADO
 );
 
-// Example: Subscribing to patient updates
+// Ví dụ: Đăng ký nhận cập nhật bệnh nhân
 HIS.Desktop.LocalStorage.PubSub.Subscribe<PatientADO>(
     "HIS.PATIENT_UPDATED", 
     OnPatientUpdated
 );
 ```
 
-Sources: [[`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)](../../../../.devin/wiki.json#L44-L52), [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
+Nguồn: [[`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)](../../../../.devin/wiki.json#L44-L52), [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67)
 
 ---
 
-## Integration with Core HIS Functions
+## Tích hợp với các Chức năng Cốt lõi của HIS
 
-**Diagram: TYT Integration with HIS Core**
+**Sơ đồ: Tích hợp TYT với Nhân HIS**
 
 ```mermaid
 graph TB
-    subgraph "TYT Plugins"
-        TYT["TYT.Desktop.Plugins.*<br/>17 Commune Health Plugins"]
+    subgraph "Các Plugin TYT"
+        TYT["TYT.Desktop.Plugins.*<br/>17 Plugin Y tế Xã"]
     end
     
-    subgraph "HIS Core Modules"
-        PatientReg["HIS.Desktop.Plugins.Register<br/>Patient Registration"]
-        Treatment["HIS.Desktop.Plugins.Treatment*<br/>Treatment Management"]
-        Exam["HIS.Desktop.Plugins.Exam*<br/>Examination"]
+    subgraph "Các Module HIS Cốt lõi"
+        PatientReg["HIS.Desktop.Plugins.Register<br/>Đăng ký Bệnh nhân"]
+        Treatment["HIS.Desktop.Plugins.Treatment*<br/>Quản lý Điều trị"]
+        Exam["HIS.Desktop.Plugins.Exam*<br/>Khám bệnh"]
     end
     
-    subgraph "Shared Services"
-        Print["MPS Print System<br/>TYT Report Templates"]
-        Reports["SAR Reporting<br/>TYT Statistical Reports"]
-        PatientData["BackendData.Patient<br/>Patient Demographics"]
-        TreatmentData["BackendData.Treatment<br/>Treatment Records"]
+    subgraph "Các Dịch vụ dùng chung"
+        Print["Hệ thống In MPS<br/>Các mẫu Báo cáo TYT"]
+        Reports["Báo cáo SAR<br/>Báo cáo Thống kê TYT"]
+        PatientData["BackendData.Patient<br/>Nhân khẩu học Bệnh nhân"]
+        TreatmentData["BackendData.Treatment<br/>Hồ sơ Điều trị"]
     end
     
-    TYT -->|"Register births/deaths"| PatientReg
-    TYT -->|"Link to treatments"| Treatment
-    TYT -->|"Reference examinations"| Exam
-    TYT -->|"Generate certificates"| Print
-    TYT -->|"Submit statistics"| Reports
-    TYT -->|"Read/Update"| PatientData
-    TYT -->|"Create/Link"| TreatmentData
+    TYT -->|"Đăng ký sinh/tử"| PatientReg
+    TYT -->|"Liên kết tới điều trị"| Treatment
+    TYT -->|"Tham chiếu các lần khám"| Exam
+    TYT -->|"Tạo chứng chỉ"| Print
+    TYT -->|"Nộp thống kê"| Reports
+    TYT -->|"Đọc/Cập nhật"| PatientData
+    TYT -->|"Tạo/Liên kết"| TreatmentData
 ```
 
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Nguồn: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
 
 ---
 
-## Print Templates for TYT Plugins
+## Mẫu In cho các Plugin TYT
 
-Each TYT plugin integrates with the MPS (Medical Print System) to generate official documents and reports. Common print templates include:
+Mỗi plugin TYT tích hợp với MPS (Medical Print System) để tạo các tài liệu và báo cáo chính thức. Các mẫu in phổ biến bao gồm:
 
-| Plugin | Print Templates | MPS Processor |
+| Plugin | Mẫu In | Bộ xử lý MPS |
 |--------|----------------|---------------|
-| TytDeath | Death Certificate, Death Notification | Mps0005xx series |
-| TytHiv | HIV Case Report, ARV Treatment Card | Mps0006xx series |
-| TYTFetusBorn | Birth Certificate, Birth Notification | Mps0007xx series |
-| TYTFetusExam | Prenatal Care Card, ANC Summary | Mps0008xx series |
-| TYTTuberculosis | TB Treatment Card, DOTS Card | Mps0009xx series |
+| TytDeath | Giấy chứng tử, Thông báo tử vong | Dòng Mps0005xx |
+| TytHiv | Báo cáo ca bệnh HIV, Thẻ điều trị ARV | Dòng Mps0006xx |
+| TYTFetusBorn | Giấy chứng sinh, Thông báo khai sinh | Dòng Mps0007xx |
+| TYTFetusExam | Thẻ chăm sóc trước sinh, Tóm tắt ANC | Dòng Mps0008xx |
+| TYTTuberculosis | Thẻ điều trị lao, Thẻ DOTS | Dòng Mps0009xx |
 | TYTMalaria | Malaria Case Report | Mps00010xx series |
 | TYTGDSK | Family Planning Card | Mps00011xx series |
 
@@ -1635,124 +1600,124 @@ TYT plugins use configuration keys from `HIS.Desktop.LocalStorage.HisConfig` and
 
 ### Customization Points
 
-TYT plugins support customization through:
+Các plugin TYT hỗ trợ tùy chỉnh thông qua:
 
-1. **HisConfig System:** Runtime configuration without recompilation
-2. **ADO Extensions:** Custom fields via ADO class inheritance
-3. **Validation Rules:** Custom validation logic in [[`ValidationRule.cs`](../../../ValidationRule.cs)](../../../ValidationRule.cs)
-4. **Print Templates:** Customizable MPS templates per facility
-5. **Report Formats:** SAR report template modifications
+1. **Hệ thống HisConfig:** Cấu hình lúc chạy mà không cần biên dịch lại
+2. **Mở rộng ADO:** Các trường tùy chỉnh thông qua việc kế thừa lớp ADO
+3. **Các quy tắc Kiểm tra:** Logic kiểm tra tùy chỉnh trong tệp [[`ValidationRule.cs`](../../../ValidationRule.cs)](../../../ValidationRule.cs)
+4. **Mẫu In:** Các mẫu MPS có thể tùy chỉnh theo từng cơ sở
+5. **Định dạng Báo cáo:** Các sửa đổi mẫu báo cáo SAR
 
-Sources: [[`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)](../../../../.devin/wiki.json#L44-L52)
+Nguồn: [`.devin/wiki.json:44-52`](../../../../.devin/wiki.json#L44-L52)
 
 ---
 
-## Reporting and Statistics
+## Báo cáo và Thống kê
 
-### Statistical Report Integration
+### Tích hợp Báo cáo Thống kê
 
-TYT plugins integrate with the SAR (System of Advanced Reports) module to generate statistical reports required by health authorities:
+Các plugin TYT tích hợp với phân hệ SAR (System of Advanced Reports) để tạo ra các báo cáo thống kê theo yêu cầu của các cơ quan quản lý y tế:
 
-**Common TYT Reports:**
+**Các Báo cáo TYT Phổ biến:**
 
-| Report Type | Frequency | Data Source Plugins |
+| Loại Báo cáo | Tần suất | Plugin Nguồn Dữ liệu |
 |-------------|-----------|---------------------|
-| Vital Statistics Summary | Monthly | TytDeath, TYTFetusBorn |
-| HIV/AIDS Program Report | Quarterly | TytHiv |
-| TB Program Report | Quarterly | TYTTuberculosis |
-| Maternal-Child Health Report | Monthly | TYTFetusExam, TYTFetusBorn |
-| Communicable Disease Report | Monthly | TYTMalaria, TYTTuberculosis |
-| Family Planning Report | Quarterly | TYTGDSK |
+| Tóm tắt Số liệu Quan trọng | Hàng tháng | TytDeath, TYTFetusBorn |
+| Báo cáo Chương trình HIV/AIDS | Hàng quý | TytHiv |
+| Báo cáo Chương trình Lao | Hàng quý | TYTTuberculosis |
+| Báo cáo Sức khỏe Bà mẹ - Trẻ em | Hàng tháng | TYTFetusExam, TYTFetusBorn |
+| Báo cáo Bệnh truyền nhiễm | Hàng tháng | TYTMalaria, TYTTuberculosis |
+| Báo cáo Kế hoạch hóa Gia đình | Hàng quý | TYTGDSK |
 
-### Data Export Formats
+### Định dạng Xuất Dữ liệu
 
-TYT plugins support data export in formats required by the Ministry of Health:
+Các plugin TYT hỗ trợ xuất dữ liệu theo các định dạng yêu cầu của Bộ Y tế:
 
-- Excel workbooks (via FlexCell integration)
-- XML for electronic submission
-- CSV for data exchange
-- PDF for official documentation
+- Bảng tính Excel (thông qua tích hợp FlexCell)
+- XML để nộp hồ sơ điện tử
+- CSV để trao đổi dữ liệu
+- PDF cho các tài liệu chính thức
 
-Sources: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
-
----
-
-## Development Guidelines
-
-### Creating a New TYT Plugin
-
-To add a new TYT plugin to the system:
-
-1. **Create Plugin Project:**
-   - Create new project: `TYT.Desktop.Plugins.{NewPlugin}`
-   - Reference required assemblies: `HIS.Desktop.Common`, `HIS.Desktop.ADO`, `Inventec.Desktop.Core`
-
-2. **Implement Plugin Entry Point:**
-   - Inherit from `IDesktopRoot`
-   - Add `[ExtensionOf]` and `[Plugin]` attributes
-   - Implement `Run()` method
-
-3. **Create Form and Processor:**
-   - Main form: [`frmTYT{NewPlugin}.cs`](../../../frmTYT{NewPlugin}.cs)
-   - Business logic: [`{NewPlugin}Processor.cs`](../../../{NewPlugin}Processor.cs)
-   - Data model: [`TYT_{NEW_PLUGIN}ADO.cs`](../../../TYT_{NEW_PLUGIN}ADO.cs)
-
-4. **Define API Consumer Methods:**
-   - Add methods in `HIS.Desktop.ApiConsumer` for CRUD operations
-   - Follow naming convention: `Tyt{Entity}Create()`, `Tyt{Entity}Update()`, etc.
-
-5. **Create Print Templates:**
-   - Add MPS processor in `MPS.Processor.Mps00{xxx}/`
-   - Define PDO in `MPS.Processor.Mps00{xxx}.PDO/`
-
-6. **Register Plugin:**
-   - Plugin is automatically discovered via MEF (Managed Extensibility Framework)
-   - Add menu item in application configuration
-
-Sources: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:189-197`](../../../../.devin/wiki.json#L189-L197)](../../../../.devin/wiki.json#L189-L197)
+Nguồn: [[`.devin/wiki.json:140-148`](../../../../.devin/wiki.json#L140-L148)](../../../../.devin/wiki.json#L140-L148)
 
 ---
 
-## Dependencies and References
+## Hướng dẫn Phát triển
 
-### Required Assemblies
+### Tạo một Plugin TYT mới
 
-All TYT plugins depend on the following core assemblies:
+Để thêm một plugin TYT mới vào hệ thống:
 
-- `HIS.Desktop.Common.dll` - Common interfaces and base classes
-- `HIS.Desktop.ADO.dll` - Data transfer objects
-- `HIS.Desktop.ApiConsumer.dll` - API client layer
-- `HIS.Desktop.LocalStorage.*.dll` - Configuration and caching
-- `Inventec.Desktop.Core.dll` - Plugin framework
-- `Inventec.Common.dll` - Utility libraries
-- `DevExpress.*.dll` - UI framework (v15.2.9)
+1. **Tạo Dự án Plugin:**
+   - Tạo dự án mới: `TYT.Desktop.Plugins.{NewPlugin}`
+   - Tham chiếu các assembly cần thiết: `HIS.Desktop.Common`, `HIS.Desktop.ADO`, `Inventec.Desktop.Core`
 
-### External Dependencies
+2. **Triển khai Điểm truy cập Plugin:**
+   - Kế thừa từ `IDesktopRoot`
+   - Thêm các thuộc tính `[ExtensionOf]` và `[Plugin]`
+   - Triển khai phương thức `Run()`
 
-TYT plugins may also require:
+3. **Tạo Form và Bộ xử lý:**
+   - Form chính: [`frmTYT{NewPlugin}.cs`](../../../frmTYT{NewPlugin}.cs)
+   - Logic nghiệp vụ: [`{NewPlugin}Processor.cs`](../../../{NewPlugin}Processor.cs)
+   - Mô hình dữ liệu: [`TYT_{NEW_PLUGIN}ADO.cs`](../../../TYT_{NEW_PLUGIN}ADO.cs)
 
-- `MPS.Processor.dll` - Print system integration
-- `SAR.*.dll` - Reporting system integration
-- `Inventec.Common.ElectronicBill.dll` - For electronic certificate generation
-- `Inventec.Common.QRCoder.dll` - QR code generation for certificates
+4. **Định nghĩa các Phương thức API Consumer:**
+   - Thêm các phương thức trong `HIS.Desktop.ApiConsumer` cho các thao tác CRUD
+   - Tuân theo quy ước đặt tên: `Tyt{Entity}Create()`, `Tyt{Entity}Update()`, v.v.
 
-Sources: [[`.devin/wiki.json:11-14`](../../../../.devin/wiki.json#L11-L14)](../../../../.devin/wiki.json#L11-L14), [[`.devin/wiki.json:240-268`](../../../../.devin/wiki.json#L240-L268)](../../../../.devin/wiki.json#L240-L268)
+5. **Tạo các Mẫu In:**
+   - Thêm bộ xử lý MPS trong `MPS.Processor.Mps00{xxx}/`
+   - Định nghĩa PDO trong `MPS.Processor.Mps00{xxx}.PDO/`
+
+6. **Đăng ký Plugin:**
+   - Plugin được tự động khám phá thông qua MEF (Managed Extensibility Framework)
+   - Thêm mục menu trong cấu hình ứng dụng
+
+Nguồn: [[`.devin/wiki.json:60-67`](../../../../.devin/wiki.json#L60-L67)](../../../../.devin/wiki.json#L60-L67), [[`.devin/wiki.json:189-197`](../../../../.devin/wiki.json#L189-L197)](../../../../.devin/wiki.json#L189-L197)
 
 ---
 
-## Summary
+## Các Phụ thuộc và Tham chiếu
 
-The TYT Commune Health Station plugin subsystem provides comprehensive functionality for managing primary healthcare services at the commune level in Vietnam. The 17 specialized plugins cover vital statistics, infectious disease surveillance, maternal-child health, and community health programs.
+### Các Assembly bắt buộc
 
-Key characteristics of TYT plugins:
+Tất cả các plugin TYT đều phụ thuộc vào các assembly cốt lõi sau:
 
-- **Standardized Architecture:** All plugins follow the HIS plugin pattern with consistent structure
-- **Health Program Coverage:** Support for national health programs (TB, HIV, malaria, MCH)
-- **Reporting Integration:** Built-in support for MOH statistical reporting requirements
-- **Print System Integration:** Generate official certificates and documents
-- **Data Synchronization:** Support offline data entry with backend synchronization
-- **Modular Design:** Each plugin operates independently while integrating with core HIS functions
+- `HIS.Desktop.Common.dll` - Các interface và lớp cơ sở chung
+- `HIS.Desktop.ADO.dll` - Các đối tượng chuyển đổi dữ liệu
+- `HIS.Desktop.ApiConsumer.dll` - Lớp client API
+- `HIS.Desktop.LocalStorage.*.dll` - Cấu hình và lưu trữ đệm (caching)
+- `Inventec.Desktop.Core.dll` - Khung làm việc plugin
+- `Inventec.Common.dll` - Các thư viện tiện ích
+- `DevExpress.*.dll` - Khung làm việc UI (v15.2.9)
 
-For implementation details of specific plugins, refer to the source code in `HIS/Plugins/TYT.Desktop.Plugins.*` directories.
+### Phụ thuộc Bên ngoài
 
-Sources: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
+Các plugin TYT cũng có thể yêu cầu:
+
+- `MPS.Processor.dll` - Tích hợp hệ thống in
+- `SAR.*.dll` - Tích hợp hệ thống báo cáo
+- `Inventec.Common.ElectronicBill.dll` - Để tạo chứng chỉ điện tử
+- `Inventec.Common.QRCoder.dll` - Tạo mã QR cho các chứng chỉ
+
+Nguồn: [[`.devin/wiki.json:11-14`](../../../../.devin/wiki.json#L11-L14)](../../../../.devin/wiki.json#L11-L14), [[`.devin/wiki.json:240-268`](../../../../.devin/wiki.json#L240-L268)](../../../../.devin/wiki.json#L240-L268)
+
+---
+
+## Tóm tắt
+
+Phân hệ plugin Trạm Y tế TYT cung cấp các chức năng toàn diện để quản lý các dịch vụ chăm sóc sức khỏe ban đầu tại cấp xã ở Việt Nam. 17 plugin chuyên dụng bao gồm các số liệu quan trọng, giám sát bệnh truyền nhiễm, sức khỏe bà mẹ - trẻ em và các chương trình sức khỏe cộng đồng.
+
+Các đặc điểm chính của các plugin TYT:
+
+- **Kiến trúc Chuẩn hóa:** Tất cả các plugin đều tuân theo mẫu plugin HIS với cấu trúc nhất quán
+- **Bao phủ các Chương trình Y tế:** Hỗ trợ cho các chương trình y tế quốc gia (Lao, HIV, sốt rét, MCH)
+- **Tích hợp Báo cáo:** Hỗ trợ sẵn các yêu cầu báo cáo thống kê của Bộ Y tế
+- **Tích hợp Hệ thống In:** Tạo các chứng chỉ và tài liệu chính thức
+- **Đồng bộ hóa Dữ liệu:** Hỗ trợ nhập dữ liệu ngoại tuyến với tính năng đồng bộ hóa backend
+- **Thiết kế Mô-đun:** Mỗi plugin hoạt động độc lập trong khi vẫn tích hợp với các chức năng cốt lõi của HIS
+
+Để biết chi tiết triển khai của các plugin cụ thể, hãy tham khảo mã nguồn trong các thư mục `HIS/Plugins/TYT.Desktop.Plugins.*`.
+
+Nguồn: [[`.devin/wiki.json:150-157`](../../../../.devin/wiki.json#L150-L157)](../../../../.devin/wiki.json#L150-L157)
