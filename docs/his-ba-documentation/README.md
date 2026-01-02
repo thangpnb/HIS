@@ -2,6 +2,9 @@
 
 > Tài liệu phân tích nghiệp vụ (Business Analysis) dành cho hệ thống HisNguonMo.
 
+> [!IMPORTANT]
+> **Lưu ý về Phạm vi Source Code**: Repository này chỉ chứa mã nguồn phía **Client (Desktop App)**. Phần Source Code Backend (API, Database, Stored Procedures) **KHÔNG** có trong repository này. Mọi tài liệu về Backend và Database đều được suy diễn từ mã nguồn Client và API Consumer. Xem chi tiết tại [Hạ tầng Backend](./03-technical-specs/backend-infrastructure/00-technical-overview.md).
+
 ## 📚 Mục lục
 
 ### 1. Kiến trúc Hệ thống
@@ -20,7 +23,15 @@
 - [Service Room Controls](./03-technical-specs/uc-controls/service-room-controls.md) - Các thành phần quản lý phòng dịch vụ.
 
 #### Thư viện dùng chung (Common Libraries)
-- [Libraries](./03-technical-specs/common-libraries/libraries.md) - Danh mục 46 thư viện dùng chung trong toàn hệ thống.
+- [Libraries (Tổng quan)](./03-technical-specs/common-libraries/00-technical-overview.md) - Hệ thống 46 thư viện dùng chung (Logging, Cache, Device, Util...).
+- [Core Infrastructure](./03-technical-specs/common-libraries/01-core-infrastructure.md) - Các thành phần lõi.
+- [External Integrations](./03-technical-specs/common-libraries/02-external-integrations.md) - Tích hợp bên thứ 3.
+
+#### Các Module Hạ tầng khác
+- [Internal Monitoring](./03-technical-specs/internal-monitoring/00-technical-overview.md) - Giám sát Cache và RAM nội bộ.
+- [Custom Controls](./03-technical-specs/custom-controls/00-technical-overview.md) - Bộ control tùy biến (Legacy).
+- [Financial Integrations](./03-technical-specs/financial-integrations/00-technical-overview.md) - Tích hợp thanh toán QR, Hóa đơn điện tử.
+- [MPS Print](./03-technical-specs/mps-print/00-technical-overview.md) - Hệ thống in ấn tập trung.
 
 ### 3. Nghiệp vụ theo Lĩnh vực (Business Domains)
 
@@ -46,7 +57,9 @@
 - [Helper Plugins](./04-integrations/helper-plugins.md) - Danh sách 36 plugin hỗ trợ (library plugins).
  
  ### 5. Cơ sở dữ liệu (Database)
- - [Data Dictionary](./05-database/01-data-dictionary.md) - Từ điển dữ liệu và cấu trúc bảng.
+ ### 5. Cơ sở dữ liệu (Database)
+ - [Architecture Constraint](./03-technical-specs/backend-infrastructure/00-technical-overview.md) - **QUAN TRỌNG**: Cảnh báo về việc thiếu source code Backend & DB.
+ - [Data Dictionary](./05-database/01-data-dictionary.md) - Từ điển dữ liệu và cấu trúc bảng (Suy diễn).
 
 
 ### 6. Vận hành & Bảo trì (Operations)
