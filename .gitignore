@@ -7,3 +7,8 @@ obj/
 *.user
 /HIS/Plugins/HIS.Desktop.Plugins.TreatmentIcdEdit/Properties
 /HIS/Plugins/HIS.Desktop.Plugins.ImportBlood/ADO
+
+*.dll
+*.nupkg
+*.exe
+*.pdb
