@@ -2,7 +2,7 @@
 
 Tài liệu này trình bày về namespace **HIS.Desktop.Plugins.Library.***, bao gồm 36 plugin hỗ trợ chuyên sâu, cung cấp các chức năng có thể tái sử dụng cho các plugin khác trong hệ thống HIS. Các plugin thư viện (library plugins) này giải quyết các vấn đề mang tính nền tảng như: hóa đơn điện tử, các hoạt động in ấn tùy chỉnh, mở rộng quy trình điều trị và các tiện ích logic nghiệp vụ dùng chung.
 
-Khác với các plugin theo domain nghiệp vụ (được nêu trong các phần từ [1.1.3.1](../02-modules/his-desktop/business-plugins.md) đến [1.1.3.10](../03-business-domains/administration/system-data.md)), các Plugin Thư viện được thiết kế để nhiều plugin khác nhau cùng khai thác thay vì triển khai một tính năng nghiệp vụ độc lập. Để biết thêm thông tin về kiến trúc tổng thể và vòng đời của plugin, vui lòng xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/02-discovery-lifecycle.md). Về tích hợp hệ thống in, xem [Hệ thống in MPS](../02-modules/his-desktop/business-plugins.md#mps-print).
+Khác với các plugin theo domain nghiệp vụ (được nêu trong các phần từ [1.1.3.1](../03-technical-specs/his-desktop/business-plugins.md) đến [1.1.3.10](../02-business-processes/administration/03-system-data-business.md)), các Plugin Thư viện được thiết kế để nhiều plugin khác nhau cùng khai thác thay vì triển khai một tính năng nghiệp vụ độc lập. Để biết thêm thông tin về kiến trúc tổng thể và vòng đời của plugin, vui lòng xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/02-discovery-lifecycle.md). Về tích hợp hệ thống in, xem [Hệ thống in MPS](../03-technical-specs/his-desktop/business-plugins.md#mps-print).
 
 ## Kiến trúc Plugin Thư viện
 
@@ -475,8 +475,8 @@ Các plugin thư viện đăng ký với hệ thống plugin nhưng được đ�
 ## Tài liệu liên quan
 
 - Về kiến trúc plugin tổng thể, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
-- Về chi tiết tích hợp hệ thống in, xem [Hệ thống in MPS](../02-modules/his-desktop/business-plugins.md#mps-print).
-- Về các tiện ích hóa đơn điện tử từ lớp Common, xem [Tiện ích Inventec Common](../02-modules/common-libraries/libraries.md#inventec-common).
+- Về chi tiết tích hợp hệ thống in, xem [Hệ thống in MPS](../03-technical-specs/his-desktop/business-plugins.md#mps-print).
+- Về các tiện ích hóa đơn điện tử từ lớp Common, xem [Tiện ích Inventec Common](../03-technical-specs/common-libraries/libraries.md#inventec-common).
 - Về giao tiếp dựa trên sự kiện, xem [Thông báo & Sự kiện](#1.1.5).
 
 # Model## Mục tiêu và Phạm vi
@@ -485,7 +485,7 @@ Tài liệu này mô tả về thư mục `HIS.Desktop.ADO/` (74 files), nơi ch
 
 Để biết thêm thông tin về:
 - Giao tiếp API và tích hợp backend, xem [Lớp API Consumer](#1.1.2).
-- Bộ nhớ đệm dữ liệu cục bộ và cấu hình, xem [LocalStorage & Cấu hình](../02-modules/his-desktop/core.md).
+- Bộ nhớ đệm dữ liệu cục bộ và cấu hình, xem [LocalStorage & Cấu hình](../03-technical-specs/his-desktop/core.md).
 - Cách các plugin sử dụng các model này, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
 ---

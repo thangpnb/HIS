@@ -70,7 +70,7 @@ Sources: [[`.devin/wiki.json:240-247`](../../../.devin/wiki.json#L240-L247)](../
 
 This document covers the **Inventec.Common** utility library collection located in `Common/Inventec.Common/`, which provides 46 foundational utility projects (890 files total) used throughout the HIS application. These utilities provide cross-cutting concerns including electronic invoicing, document generation, barcode/QR code handling, caching, web API communication, logging, and data processing.
 
-For the Desktop framework that provides plugin engine and lifecycle management, see [Inventec Desktop Framework](../02-modules/common-libraries/libraries.md#inventec-desktop). For shared UI controls, see [Inventec UC Shared Controls](../02-modules/common-libraries/libraries.md#inventec-uc).
+For the Desktop framework that provides plugin engine and lifecycle management, see [Inventec Desktop Framework](../03-technical-specs/common-libraries/libraries.md#inventec-desktop). For shared UI controls, see [Inventec UC Shared Controls](../03-technical-specs/common-libraries/libraries.md#inventec-uc).
 
 ## Component Organization
 
@@ -489,7 +489,7 @@ Inventec.Common utilities rely on several third-party libraries:
 
 The Inventec Desktop Framework is a foundational desktop application framework located in `Common/Inventec.Desktop/` that provides the core plugin architecture, lifecycle management, and essential desktop utilities for the HIS system. It consists of 27 projects totaling approximately 455 files, with `Inventec.Desktop.Core` (208 files) serving as the central plugin engine.
 
-This page documents the framework's plugin discovery mechanism, base plugins, and auto-update system. For information about other Inventec common utilities, see [Inventec Common Utilities](../02-modules/common-libraries/libraries.md#inventec-common). For HIS-specific plugin implementations, see [Plugin System Architecture](../01-architecture/plugin-system/01-overview.md).
+This page documents the framework's plugin discovery mechanism, base plugins, and auto-update system. For information about other Inventec common utilities, see [Inventec Common Utilities](../03-technical-specs/common-libraries/libraries.md#inventec-common). For HIS-specific plugin implementations, see [Plugin System Architecture](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
@@ -1080,11 +1080,11 @@ This framework serves as the foundation for the entire plugin-based architecture
 
 `Common/Inventec.UC/` is the foundational user control library containing 1060 files of reusable UI components that form the base layer for all UI controls in the HisNguonMo system. This library provides low-level, generic controls that are domain-agnostic and used throughout the entire application stack.
 
-**Scope**: This page documents the base `Inventec.UC` library located in `Common/Inventec.UC/`. For domain-specific hospital business controls (131 components like `HIS.UC.FormType`, `HIS.UC.PatientSelect`), see [UC Components Library](../02-modules/uc-controls/form-type-controls.md). For the overall desktop framework that manages plugin lifecycle, see [Inventec Desktop Framework](../02-modules/common-libraries/libraries.md#inventec-desktop).
+**Scope**: This page documents the base `Inventec.UC` library located in `Common/Inventec.UC/`. For domain-specific hospital business controls (131 components like `HIS.UC.FormType`, `HIS.UC.PatientSelect`), see [UC Components Library](../03-technical-specs/uc-controls/form-type-controls.md). For the overall desktop framework that manages plugin lifecycle, see [Inventec Desktop Framework](../03-technical-specs/common-libraries/libraries.md#inventec-desktop).
 
 **Key Distinction**: 
 - `Inventec.UC` (this page): Generic, reusable UI controls - 1060 files
-- `HIS.UC.*` (page [1.3](../02-modules/uc-controls/form-type-controls.md)): Domain-specific hospital business controls - 131 components
+- `HIS.UC.*` (page [1.3](../03-technical-specs/uc-controls/form-type-controls.md)): Domain-specific hospital business controls - 131 components
 - `Inventec.Desktop.Core`: Plugin discovery and lifecycle management
 
 Sources: [[`.devin/wiki.json:1-295`](../../../.devin/wiki.json#L1-L295)](../../../.devin/wiki.json#L1-L295)

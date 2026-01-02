@@ -5,7 +5,7 @@ Tài liệu này trình bày về hạ tầng xử lý thông báo và sự ki�
 - **HIS.Desktop.Notify/** (25 files): Hệ thống thông báo người dùng và thông báo trên giao diện (UI notifications).
 - Tích hợp với **Inventec.Common.WSPubSub** để xử lý tin nhắn thời gian thực dựa trên WebSocket.
 
-Hệ thống sự kiện cho phép giảm thiểu sự phụ thuộc trực tiếp (loose coupling) giữa các plugin và module, cho phép chúng giao tiếp với nhau mà không cần tham chiếu trực tiếp. Để biết thêm thông tin về các mô hình giao tiếp trực tiếp giữa cácXem `HIS.Desktop.Modules.Plugin` trong [Tài liệu Hệ thống Plugin](../01-architecture/plugin-system/04-communication.md) để biết chi tiết triển khai.ớ đệm dữ liệu cục bộ, xem [LocalStorage & Cấu hình](../02-modules/his-desktop/core.md).
+Hệ thống sự kiện cho phép giảm thiểu sự phụ thuộc trực tiếp (loose coupling) giữa các plugin và module, cho phép chúng giao tiếp với nhau mà không cần tham chiếu trực tiếp. Để biết thêm thông tin về các mô hình giao tiếp trực tiếp giữa cácXem `HIS.Desktop.Modules.Plugin` trong [Tài liệu Hệ thống Plugin](../01-architecture/plugin-system/04-communication.md) để biết chi tiết triển khai.ớ đệm dữ liệu cục bộ, xem [LocalStorage & Cấu hình](../03-technical-specs/his-desktop/core.md).
 
 ---
 
@@ -1140,7 +1140,7 @@ Hệ thống In ấn MPS cung cấp một kiến trúc mạnh mẽ, có khả n�
 
 Tài liệu này cung cấp hướng dẫn kỹ thuật để phát triển các bộ xử lý in (print processors) mới trong module MPS (Medical Print System). Tài liệu bao gồm kiến trúc bộ xử lý, mô hình thiết kế hai thành phần (logic + đối tượng dữ liệu), kế thừa class cơ sở, quản lý mẫu và các mô hình liên kết dữ liệu. Trang này tập trung vào các chi tiết triển khai của từng bộ xử lý riêng lẻ.
 
-Để biết thông tin về kiến trúc tổng thể và tích hợp của MPS, xem [Hệ thống In ấn MPS](../02-modules/his-desktop/business-plugins.md#mps-print). Để biết thông tin về cách các plugin kích hoạt bộ xử lý in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
+Để biết thông tin về kiến trúc tổng thể và tích hợp của MPS, xem [Hệ thống In ấn MPS](../03-technical-specs/his-desktop/business-plugins.md#mps-print). Để biết thông tin về cách các plugin kích hoạt bộ xử lý in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
 ---
 
@@ -1707,7 +1707,7 @@ Các điểm tích hợp chính:
 - Đăng ký với MPS Core Engine để các plugin có thể kích hoạt.
 - Tuân thủ quy ước đặt tên chuẩn hóa (Mps000xxx).
 
-Để biết thông tin về kiến trúc tổng thể của MPS, xem [Hệ thống In ấn MPS](../02-modules/his-desktop/business-plugins.md#mps-print). Để biết chi tiết về cách các plugin sử dụng hệ thống in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
+Để biết thông tin về kiến trúc tổng thể của MPS, xem [Hệ thống In ấn MPS](../03-technical-specs/his-desktop/business-plugins.md#mps-print). Để biết chi tiết về cách các plugin sử dụng hệ thống in, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md).
 
 **Nguồn tham khảo:** MPS/, MPS.ProcessorBase/, MPS.Processor/, Common/Inventec.Common/
 
@@ -1717,7 +1717,7 @@ Các điểm tích hợp chính:
 
 Tài liệu này bao gồm thư viện UC (User Controls), một tập hợp gồm 131 thành phần UI có thể tái sử dụng nằm trong thư mục `UC/`. Các thành phần này cung cấp các trình điều khiển chuẩn hóa, chuyên biệt theo nghiệp vụ được sử dụng trong 956 plugin của hệ thống HIS. Thư viện UC triển khai kiến trúc hai tầng được xây dựng trên nền tảng `Inventec.UC` và cung cấp các trình điều khiển chuyên biệt cho lĩnh vực y tế.
 
-Để biết thông tin về các tiện ích của lớp nền tảng, xem [Các trình điều khiển dùng chung Inventec UC](../02-modules/common-libraries/libraries.md#inventec-uc). Đối với việc triển khai UI ở cấp độ plugin, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/03-structure-organization.md).
+Để biết thông tin về các tiện ích của lớp nền tảng, xem [Các trình điều khiển dùng chung Inventec UC](../03-technical-specs/common-libraries/libraries.md#inventec-uc). Đối với việc triển khai UI ở cấp độ plugin, xem [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/03-structure-organization.md).
 
 ## Tổng quan
 

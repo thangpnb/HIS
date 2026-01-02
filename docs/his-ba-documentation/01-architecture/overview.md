@@ -74,3 +74,5 @@ graph TD
 
 ## Tài liệu liên quan khác
 *   [Kiến trúc Plugin](plugin-system/01-overview.md): Cách chúng tôi quản lý 956 module.
+*   [Quy trình Nghiệp vụ](../02-business-processes/README.md): Các luồng nghiệp vụ chi tiết (Trước đây là 02-business-processes).
+*   [Thông số Kỹ thuật](../03-technical-specs/README.md): Chi tiết kỹ thuật module (Trước đây là 03-technical-specs).

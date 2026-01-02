@@ -136,7 +136,7 @@ Nguồn: [.gitignore:5](), [[`.devin/wiki.json:290`](../../../.devin/wiki.json#L
 - [Tổng quan Kiến trúc](#1) - Cấu trúc hệ thống và tổ chức module
 - [HIS Desktop Core](../01-architecture/overview.md) - Điểm nhập ứng dụng và khởi tạo
 - [Kiến trúc Hệ thống Plugin](../01-architecture/plugin-system/01-overview.md) - Hướng dẫn phát triển plugin
-- [Hệ thống In ấn MPS](../02-modules/his-desktop/business-plugins.md#mps-print) - Phát triển trình xử lý in ấn
+- [Hệ thống In ấn MPS](../03-technical-specs/his-desktop/business-plugins.md#mps-print) - Phát triển trình xử lý in ấn
 
 ### Vị trí các file Solution
 
