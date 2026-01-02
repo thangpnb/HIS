@@ -14,13 +14,13 @@
 ### 2. Chi tiết các Module
 
 #### HIS Desktop (Ứng dụng chính)
-- [Core Framework](./03-technical-specs/his-desktop/core.md) - Điểm khởi đầu (Entry point) và vòng đời (lifecycle) ứng dụng.
-- [Business Plugins](./03-technical-specs/his-desktop/business-plugins.md) - Tập hợp các plugin xử lý nghiệp vụ.
-- [API Consumer](./03-technical-specs/his-desktop/api-consumer.md) - Cách thức giao tiếp và tương tác với các dịch vụ backend.
+- [Core Framework](./03-technical-specs/his-desktop/01-core-framework.md) - Điểm khởi đầu (Entry point) và vòng đời (lifecycle) ứng dụng.
+- [Business Plugins](./03-technical-specs/his-desktop/business-plugins.md) (Chưa có) - Tập hợp các plugin xử lý nghiệp vụ.
+- [API Consumer](./03-technical-specs/his-desktop/api-consumer.md) (Chưa có) - Cách thức giao tiếp và tương tác với các dịch vụ backend.
 
 #### UC Controls (Thành phần giao diện)
-- [Form Type Controls](./03-technical-specs/uc-controls/form-type-controls.md) - Thư viện gồm 329 thành phần (components) cho các biểu mẫu.
-- [Service Room Controls](./03-technical-specs/uc-controls/service-room-controls.md) - Các thành phần quản lý phòng dịch vụ.
+- [Form Type Controls](./03-technical-specs/uc-controls/01-form-type-controls.md) - Thư viện gồm 329 thành phần (components) cho các biểu mẫu.
+- [Service Room Controls](./03-technical-specs/uc-controls/02-service-room-controls.md) - Các thành phần quản lý phòng dịch vụ.
 
 #### Thư viện dùng chung (Common Libraries)
 - [Libraries (Tổng quan)](./03-technical-specs/common-libraries/00-technical-overview.md) - Hệ thống 46 thư viện dùng chung (Logging, Cache, Device, Util...).
@@ -41,7 +41,7 @@
 - [Ứng dụng Di động](./02-business-processes/mobile-app/01-business-overview.md) - Các quy trình trên thiết bị di động (Kho, Bán hàng, Chăm sóc).
 
 #### Xét nghiệm (LIS)
-- [LIS Plugins](./02-business-processes/laboratory/01-business-overview.md) - Hệ thống 12 plugin chuyên dụng cho quản lý xét nghiệm.
+- [LIS Plugins](./02-business-processes/laboratory/01-business-overview.md) (Chưa có) - Hệ thống 12 plugin chuyên dụng cho quản lý xét nghiệm.
 
 #### Dược & Vật tư y tế
 - [Thuốc & Vật tư](./02-business-processes/pharmacy/01-business-overview.md) - Quản lý danh mục thuốc, vật tư và kho dược.
@@ -56,10 +56,9 @@
 - [Notifications & Events](./04-integrations/notifications-events.md) - Cơ chế Pub/Sub và kiến trúc hướng sự kiện (event-driven).
 - [Helper Plugins](./04-integrations/helper-plugins.md) - Danh sách 36 plugin hỗ trợ (library plugins).
  
- ### 5. Cơ sở dữ liệu (Database)
- ### 5. Cơ sở dữ liệu (Database)
+### 5. Cơ sở dữ liệu (Database)
  - [Architecture Constraint](./03-technical-specs/backend-infrastructure/00-technical-overview.md) - **QUAN TRỌNG**: Cảnh báo về việc thiếu source code Backend & DB.
- - [Data Dictionary](./05-database/01-data-dictionary.md) - Từ điển dữ liệu và cấu trúc bảng (Suy diễn).
+ - [Data Dictionary](./05-database/01-data-dictionary.md) (Chưa có) - Từ điển dữ liệu và cấu trúc bảng (Suy diễn).
 
 
 ### 6. Vận hành & Bảo trì (Operations)
@@ -67,15 +66,15 @@
  - [Configuration Guide](./06-operations/02-configuration-guide.md) - Cấu hình hệ thống.
  - [Troubleshooting](./06-operations/03-troubleshooting.md) - Xử lý sự cố thường gặp.
  
- ### 7. Hướng dẫn Sử dụng (User Guides)
+### 7. Hướng dẫn Sử dụng (User Guides)
  - [Getting Started](./07-user-guides/01-getting-started.md) - Bắt đầu sử dụng.
  - [Common Workflows](./07-user-guides/02-common-workflows.md) - Các thao tác thường quy.
  
- ### 8. Kiểm thử (Testing)
+### 8. Kiểm thử (Testing)
  - [Test Strategy](./08-testing/01-test-strategy.md) - Chiến lược kiểm thử.
  - [UAT Checklist](./08-testing/02-uat-checklist.md) - Ví dụ UAT cho phân hệ Tiếp đón.
  
- ### 99. Dành cho Lập trình viên
+### 99. Dành cho Lập trình viên
 - [Thiết lập môi trường Build](./99-development/build-setup.md)
 - [Các lệnh Build](./99-development/build-commands.md)
 - [Build một dự án cụ thể](./99-development/build-specific-project.md)
