@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{808C25CD-0925-417F-BBF9-CAF9604DA879}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HIS.Desktop.ADO</RootNamespace>
+    <AssemblyName>HIS.Desktop.ADO</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ACS.EFMODEL">
+      <HintPath>..\..\..\Lib\ACS\ACS.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="ACS.Filter">
+      <HintPath>..\..\..\Lib\ACS\ACS.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="ACS.SDO">
+      <HintPath>..\..\..\Lib\ACS\ACS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Common.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Inventec.Common\Inventec.Common.Logging\Inventec.Common.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Common.Mapper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Inventec.Common\Inventec.Common.Mapper\Inventec.Common.Mapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Desktop.Common.Modules, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Inventec.Desktop\Inventec.Desktop.Common.Module\Inventec.Desktop.Common.Modules.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.EFMODEL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\LIB\MOS\MOS.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\MOS\MOS.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.SDO">
+      <HintPath>..\..\..\Lib\MOS\MOS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AggrExpMestPrintSDO.cs" />
+    <Compile Include="AntibioticRequestADO.cs" />
+    <Compile Include="ApproveAggrExpMestSDO.cs" />
+    <Compile Include="AssignBloodADO.cs" />
+    <Compile Include="AssignPrescriptionADO.cs" />
+    <Compile Include="AssignPrescriptionEditADO.cs" />
+    <Compile Include="AssignServiceADO.cs" />
+    <Compile Include="AssignServiceEditADO.cs" />
+    <Compile Include="AssignServiceTestADO.cs" />
+    <Compile Include="AttachFileADO.cs" />
+    <Compile Include="BedLogADO.cs" />
+    <Compile Include="BedRoomInADO.cs" />
+    <Compile Include="BedRoomOutADO.cs" />
+    <Compile Include="BillTransferADO.cs" />
+    <Compile Include="AssignPrescriptionKidneyADO.cs" />
+    <Compile Include="CheckInfoBhytADO.cs" />
+    <Compile Include="ContentSubclinicalADO.cs" />
+    <Compile Include="AppointmentServiceADO.cs" />
+    <Compile Include="EmrAttackFileADO.cs" />
+    <Compile Include="ProductInfoADO.cs" />
+    <Compile Include="TransReqQRADO.cs" />
+    <Compile Include="EmrDocumentInfoADO.cs" />
+    <Compile Include="ExpMestSaleTranADO.cs" />
+    <Compile Include="HoldReturnADO.cs" />
+    <Compile Include="KidneyShiftScheduleADO.cs" />
+    <Compile Include="MRSummaryDetailADO.cs" />
+    <Compile Include="NumOrderBlockChooserADO.cs" />
+    <Compile Include="OtherFormAssServiceReqADO.cs" />
+    <Compile Include="OtherFormAssTreatmentInputADO.cs" />
+    <Compile Include="PrintLogADO.cs" />
+    <Compile Include="TestDeviceSampleADO.cs" />
+    <Compile Include="TextLibraryInfoADO.cs" />
+    <Compile Include="TytNerverADO.cs" />
+    <Compile Include="ServiceReqSessionDetailADO.cs" />
+    <Compile Include="TrackingTempADO.cs" />
+    <Compile Include="DepositServiceADO.cs" />
+    <Compile Include="DHSTADO.cs" />
+    <Compile Include="ExamServiceTempADO.cs" />
+    <Compile Include="ExamTreatmentFinishADO.cs" />
+    <Compile Include="HisEkipUserADO.cs" />
+    <Compile Include="HisInvoiceADO.cs" />
+    <Compile Include="HisSereServADO.cs" />
+    <Compile Include="ImpMestTypeADO.cs" />
+    <Compile Include="ImportADO.cs" />
+    <Compile Include="KeyCodeADO.cs" />
+    <Compile Include="MaterialTypeCreateUpdateADO.cs" />
+    <Compile Include="MedicineTypeAcinADO.cs" />
+    <Compile Include="MedicineTypeADO.cs" />
+    <Compile Include="MediMateTypeADO.cs" />
+    <Compile Include="MedirecordADO.cs" />
+    <Compile Include="MenuTabPageExtADO.cs" />
+    <Compile Include="MobaImpMestListADO.cs" />
+    <Compile Include="PatientTypeDepartmentADO.cs" />
+    <Compile Include="RepayServiceADO.cs" />
+    <Compile Include="SarPrintADO.cs" />
+    <Compile Include="ServiceExecuteADO.cs" />
+    <Compile Include="ServiceReqCallADO.cs" />
+    <Compile Include="PatientADO.cs" />
+    <Compile Include="ExpMestViewDetailADO.cs" />
+    <Compile Include="IcdInputADO.cs" />
+    <Compile Include="ImpMestViewDetailADO.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SecondaryIcdADO.cs" />
+    <Compile Include="SereservInTreatmentADO.cs" />
+    <Compile Include="ServiceReqSttSDO.cs" />
+    <Compile Include="SwapServiceADO.cs" />
+    <Compile Include="TransactionBillADO.cs" />
+    <Compile Include="TransactionDepositADO.cs" />
+    <Compile Include="TransactionRepayADO.cs" />
+    <Compile Include="TransDepartmentADO.cs" />
+    <Compile Include="TreatmentBedRoomADO.cs" />
+    <Compile Include="TreatmentHistoryADO.cs" />
+    <Compile Include="TreatmentLogADO.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HIS.Desktop.Common\HIS.Desktop.Common.csproj">
+      <Project>{59fdcba7-0f9f-4257-b95a-e37a1ccfe107}</Project>
+      <Name>HIS.Desktop.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

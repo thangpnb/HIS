@@ -1,0 +1,792 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8207ACB0-A325-42C6-97CB-FB54AE1AE6B8}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HIS.Desktop</RootNamespace>
+    <AssemblyName>HIS</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>APP.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Accessibility" />
+    <Reference Include="ACS.EFMODEL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\ACS\ACS.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="ACS.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\ACS\ACS.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="ACS.SDO">
+      <HintPath>..\..\..\lib\ACS\ACS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="AutoMapper, Version=4.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Library packages\AutoMapper 4.0.4\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="AxInterop.SIGNVIEWLib">
+      <HintPath>..\..\..\lib\WCF\EMR.WCF\EMR.SignProcessor\AxInterop.SIGNVIEWLib.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.BonusSkins.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.BonusSkins.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Charts.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Charts.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Data.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Data.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Images.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Images.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Office.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Office.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Printing.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Printing.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.RichEdit.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.RichEdit.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Sparkline.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Sparkline.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Spreadsheet.v15.2.Core">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Spreadsheet.v15.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Utils.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.Utils.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraBars.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraBars.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraCharts.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v15.2.UI">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraCharts.v15.2.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraEditors.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraEditors.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraGrid.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraGrid.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraLayout.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraLayout.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraNavBar.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraNavBar.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPrinting.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraPrinting.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraReports.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraRichEdit.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraRichEdit.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraRichEdit.v15.2.Extensions">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraRichEdit.v15.2.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraSpreadsheet.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraSpreadsheet.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraTreeList.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraTreeList.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraVerticalGrid.v15.2">
+      <HintPath>..\..\..\Lib\DEVEXPRESS\DevExpress.XtraVerticalGrid.v15.2.dll</HintPath>
+    </Reference>
+    <Reference Include="EMR.EFMODEL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\histest\x64\ReferencedAssemblies\EMR.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="EMR.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\histest\x64\ReferencedAssemblies\EMR.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="FRD">
+      <HintPath>..\..\..\Lib\FRD\FRD.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.LocalStorage.ConfigCustomizaButton">
+      <HintPath>..\..\..\lib\HIS\HIS.UC.UCPatientRaw\HIS.Desktop.LocalStorage.ConfigCustomizaButton.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.LocalStorage.Location, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\HIS\HIS.Desktop.Plugins.Library.EmrGenerate\HIS.Desktop.LocalStorage.Location.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.Plugins.Library.ConnectBloodPressure, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\HIS\HIS.Desktop.Plugins.Library.ConnectBloodPressure\HIS.Desktop.Plugins.Library.ConnectBloodPressure.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.Plugins.Library.IntegrateAssignPrescription">
+      <HintPath>..\..\..\LIB\HIS\HIS.Desktop.Plugins.Library.IntegrateAssignPrescription\HIS.Desktop.Plugins.Library.IntegrateAssignPrescription.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.Print">
+      <HintPath>..\..\..\lib\HIS\HIS.Desktop.Plugins.Library.PrintServiceReqTreatment\HIS.Desktop.Print.dll</HintPath>
+    </Reference>
+    <Reference Include="HIS.Desktop.Utility, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\HIS\HIS.Desktop.Utilities\HIS.Desktop.Utility.dll</HintPath>
+    </Reference>
+    <Reference Include="His.EventLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\HIS\His.EventLog\His.EventLog.dll</HintPath>
+    </Reference>
+    <Reference Include="HTC.EFMODEL">
+      <HintPath>..\..\..\Lib\HTC\HTC.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="HTC.Filter">
+      <HintPath>..\..\..\Lib\HTC\HTC.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="IMSys.DbConfig.ACS_RS">
+      <HintPath>..\..\..\Lib\IMSys.DbConfig\IMSys.DbConfig.ACS_RS\IMSys.DbConfig.ACS_RS.dll</HintPath>
+    </Reference>
+    <Reference Include="IMSys.DbConfig.HIS_RS">
+      <HintPath>..\..\..\Lib\IMSys.DbConfig\IMSys.DbConfig.HIS_RS\IMSys.DbConfig.HIS_RS.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Common.Mail, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\LIB\Inventec.Common\Inventec.Common.Mail\Inventec.Common.Mail.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Common.RichEditor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\LIB\Inventec.Common\Inventec.Common.RichEditor\Inventec.Common.RichEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Common.SignLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\LIB\Inventec.Common\Inventec.Common.SignLibrary\Inventec.Common.SignLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\LIB\Inventec.Core\Inventec.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Fss.Client">
+      <HintPath>..\..\..\Lib\Inventec.Fss.Client\Inventec.Fss.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Fss.Utility">
+      <HintPath>..\..\..\Lib\Inventec.Fss.Client\Inventec.Fss.Utility.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Token.ClientSystem">
+      <HintPath>..\..\..\Lib\Inventec.Token\Inventec.Token.ClientSystem\Inventec.Token.ClientSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.Token.Core">
+      <HintPath>..\..\..\Lib\Inventec.Token\Inventec.Token.Core\Inventec.Token.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.ChangePassword">
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.ChangePassword\Inventec.UC.ChangePassword.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.ConfigApplication">
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.ConfigApplication\Inventec.UC.ConfigApplication.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.EventLogControl">
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.EventLogControl\Inventec.UC.EventLogControl.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.Loading">
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.Loading\Inventec.UC.Loading.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.Login, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.Login\Inventec.UC.Login.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.Paging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.Paging\Inventec.UC.Paging.dll</HintPath>
+    </Reference>
+    <Reference Include="Inventec.UC.ServerConfig">
+      <HintPath>..\..\..\Lib\Inventec.UC\Inventec.UC.ServerConfig\Inventec.UC.ServerConfig.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Library packages\log4net.1.2.10\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.EFMODEL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\histest\x64\MOS.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\histest\x64\ReferencedAssemblies\MOS.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.LibraryHein.Bhyt, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\MOS\MOS.LibraryHein.Bhyt.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.LibraryHein.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\MOS\MOS.LibraryHein.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.LibraryHein.Factory">
+      <HintPath>..\..\..\Lib\MOS\MOS.LibraryHein.Factory.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.SDO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\histest\x64\ReferencedAssemblies\MOS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="MPS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\MPSv2\MPS\MPS.dll</HintPath>
+    </Reference>
+    <Reference Include="MPS.ProcessorBase">
+      <HintPath>..\..\..\Lib\MPSv2\MPS.ProcessorBase\MPS.ProcessorBase.dll</HintPath>
+    </Reference>
+    <Reference Include="MRS.SDO">
+      <HintPath>..\..\..\Lib\MRS\MRS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\lib\Library packages\Newtonsoft.Json.6.0.8\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RDCACHE.SDO">
+      <HintPath>..\..\..\Lib\RDCACHE\RDCACHE.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="RDCACHE.URI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\RDCACHE\RDCACHE.URI.dll</HintPath>
+    </Reference>
+    <Reference Include="SAR.EFMODEL, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\SAR\SAR.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="SAR.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\SAR\SAR.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="SDA.EFMODEL">
+      <HintPath>..\..\..\Lib\SDA\SDA.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="SDA.Filter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\SDA\SDA.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>..\..\..\Lib\Inventec.Common\Inventec.Common.SQLiteHelper\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UAS.WCF.Client">
+      <HintPath>..\..\..\Lib\UAS\UAS.WCF.Client\UAS.WCF.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="UAS.WCF.DCO">
+      <HintPath>..\..\..\Lib\UAS\UAS.WCF.DCO\UAS.WCF.DCO.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AppConfigKeys.cs" />
+    <Compile Include="Base\DATA.cs" />
+    <Compile Include="Base\ElementNodeADO.cs" />
+    <Compile Include="Base\MemoryRTProcessor.cs" />
+    <Compile Include="Base\Menu.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Base\ModuleADO.cs" />
+    <Compile Include="Base\PrintTypeCodeWorker.cs" />
+    <Compile Include="Base\ReportTypeCodeWorker.cs" />
+    <Compile Include="Base\ResouceManager.cs" />
+    <Compile Include="Base\SystemTimeManager.cs" />
+    <Compile Include="Base\ToolStripBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Base\UserControlWorker.cs" />
+    <Compile Include="CloseAllApp.cs" />
+    <Compile Include="HisConfigKeys.cs" />
+    <Compile Include="Modules\CheckServerConnect\frmCheckServerConnect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\CheckServerConnect\frmCheckServerConnect.Designer.cs">
+      <DependentUpon>frmCheckServerConnect.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Config\frmDesktopConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Config\frmDesktopConfig.Designer.cs">
+      <DependentUpon>frmDesktopConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Config\frmSystemConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Config\frmSystemConfig.Designer.cs">
+      <DependentUpon>frmSystemConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Login\frmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Login\frmLogin.Designer.cs">
+      <DependentUpon>frmLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__LogAction.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__RemoteSupport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__CheckConnectServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__Subcrib.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__UnitTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__DataAsync.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__CheckTokenTimeout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__ApplicationMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus_Notify.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__SyncCacheLocalData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMainPlus__ShortCut.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Login\frmLoadConfigSystem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Login\frmLoadConfigSystem.Designer.cs">
+      <DependentUpon>frmLoadConfigSystem.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Main\frmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main\frmMain.Designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\Main\MyApplicationContext.cs" />
+    <Compile Include="Modules\Main\PopupMenuProcessor.cs" />
+    <Compile Include="Modules\Main\ProcessBase.cs" />
+    <Compile Include="Modules\Main\RedisProcess.cs" />
+    <Compile Include="Modules\Main\SqliteProcess.cs" />
+    <Compile Include="Modules\WaitingForm\frmUgrade.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\WaitingForm\frmUgrade.Designer.cs">
+      <DependentUpon>frmUgrade.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\WaitingForm\frmUgradeAUS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\WaitingForm\frmUgradeAUS.Designer.cs">
+      <DependentUpon>frmUgradeAUS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\WaitingForm\frmUpgradeOption.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\WaitingForm\frmUpgradeOption.Designer.cs">
+      <DependentUpon>frmUpgradeOption.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\ResourceLanguageManager.cs" />
+    <Compile Include="Resources\ResourceCommon.cs" />
+    <EmbeddedResource Include="Modules\CheckServerConnect\frmCheckServerConnect.resx">
+      <DependentUpon>frmCheckServerConnect.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\Config\frmDesktopConfig.resx">
+      <DependentUpon>frmDesktopConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\Config\frmSystemConfig.resx">
+      <DependentUpon>frmSystemConfig.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\Login\frmLoadConfigSystem.resx">
+      <DependentUpon>frmLoadConfigSystem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\Login\frmLogin.resx">
+      <DependentUpon>frmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\Main\frmMain.resx">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\WaitingForm\frmUgrade.resx">
+      <DependentUpon>frmUgrade.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\WaitingForm\frmUgradeAUS.resx">
+      <DependentUpon>frmUgradeAUS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modules\WaitingForm\frmUpgradeOption.resx">
+      <DependentUpon>frmUpgradeOption.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="Resources\Lang.en.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Lang.my.resx" />
+    <EmbeddedResource Include="Resources\Lang.vi.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Message.Lang.en.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Message.Lang.my.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Message.Lang.vi.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Inventec.Aup.Client\Inventec.Aup.Client\Inventec.Aup.Client.csproj">
+      <Project>{4d6778f4-e0cc-486f-b66a-0d9f5964a122}</Project>
+      <Name>Inventec.Aup.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Aup.Client\Inventec.Aup.Utility\Inventec.Aup.Utility.csproj">
+      <Project>{d6f9e3dd-7029-499f-a759-2e28d80687ea}</Project>
+      <Name>Inventec.Aup.Utility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Adapter\Inventec.Common.Adapter.csproj">
+      <Project>{dd2b84a4-a370-41a1-8dfa-10197540c101}</Project>
+      <Name>Inventec.Common.Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Controls.EditorLoader\Inventec.Common.Controls.EditorLoader.csproj">
+      <Project>{13abfbb0-586a-4f63-8fdd-1a8f8c356c9e}</Project>
+      <Name>Inventec.Common.Controls.EditorLoader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Controls.PopupLoader\Inventec.Common.Controls.PopupLoader.csproj">
+      <Project>{e859c788-01c4-4782-9f4e-1f5b66536cdc}</Project>
+      <Name>Inventec.Common.Controls.PopupLoader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.DateTime\Inventec.Common.DateTime.csproj">
+      <Project>{d3437a35-37ed-4697-a3fa-109939baaf47}</Project>
+      <Name>Inventec.Common.DateTime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.FlexCelExport\Inventec.Common.FlexCelExport.csproj">
+      <Project>{3df410c6-e126-4e6b-81b6-4fef5f9e55e4}</Project>
+      <Name>Inventec.Common.FlexCelExport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.FlexCelPrint\Inventec.Common.FlexCelPrint.csproj">
+      <Project>{a9e46128-5af1-4bbd-b318-854517fc26ab}</Project>
+      <Name>Inventec.Common.FlexCelPrint</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.LocalStorage.SdaConfig\Inventec.Common.LocalStorage.SdaConfig.csproj">
+      <Project>{fb371fca-366f-4d79-b5ee-d5a3c25f6c02}</Project>
+      <Name>Inventec.Common.LocalStorage.SdaConfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Logging\Inventec.Common.Logging.csproj">
+      <Project>{4859008d-a40d-47bb-a185-019c8b140569}</Project>
+      <Name>Inventec.Common.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Mapper\Inventec.Common.Mapper.csproj">
+      <Project>{7b793974-0c88-47d8-8686-cfa8f5f6e464}</Project>
+      <Name>Inventec.Common.Mapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Number\Inventec.Common.Number.csproj">
+      <Project>{7428c903-6c07-4763-9154-a5c7461a9cbf}</Project>
+      <Name>Inventec.Common.Number</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Print\Inventec.Common.Print.csproj">
+      <Project>{9ded67a4-7fc4-451a-b30e-12333a464b9f}</Project>
+      <Name>Inventec.Common.Print</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.QrCodeBHYT\Inventec.Common.QrCodeBHYT.csproj">
+      <Project>{8451c96e-d8bd-4a5a-a663-c1e540e8496c}</Project>
+      <Name>Inventec.Common.QrCodeBHYT</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Repository\Inventec.Common.Repository.csproj">
+      <Project>{f085d142-e91b-4db9-9a6f-0c30976f89eb}</Project>
+      <Name>Inventec.Common.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Resource\Inventec.Common.Resource.csproj">
+      <Project>{b7281efe-d0d4-4c75-8f32-5e6d1d580ff6}</Project>
+      <Name>Inventec.Common.Resource</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.SQLiteHelper\Inventec.Common.SQLiteHelper.csproj">
+      <Project>{ec02a200-0228-4790-a2af-d499232bb9e7}</Project>
+      <Name>Inventec.Common.SQLiteHelper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.Sqlite\Inventec.Common.Sqlite\Inventec.Common.Sqlite.csproj">
+      <Project>{70cec503-7124-4a0f-b794-6b84e87b1908}</Project>
+      <Name>Inventec.Common.Sqlite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.String\Inventec.Common.String.csproj">
+      <Project>{dce10a9c-b9df-4306-ac93-691275a5e456}</Project>
+      <Name>Inventec.Common.String</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.ThreadCustom\Inventec.Common.ThreadCustom.csproj">
+      <Project>{20d62709-061f-492e-8f4f-9a6d39c00e7d}</Project>
+      <Name>Inventec.Common.ThreadCustom</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.TypeConvert\Inventec.Common.TypeConvert.csproj">
+      <Project>{36fae455-24a7-45af-b360-aa6dc4d771f8}</Project>
+      <Name>Inventec.Common.TypeConvert</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.WebApiClient\Inventec.Common.WebApiClient.csproj">
+      <Project>{f8a0b7b7-f43a-4f57-94bf-490cf1c3be43}</Project>
+      <Name>Inventec.Common.WebApiClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.WordContent\Inventec.Common.WordContent.csproj">
+      <Project>{e2ba1ac3-7691-4833-b261-280c95d34f45}</Project>
+      <Name>Inventec.Common.WordContent</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Common\Inventec.Common.XmlConfig\Inventec.Common.XmlConfig.csproj">
+      <Project>{32fc4275-3a0e-424b-9768-1f20a1bf1db1}</Project>
+      <Name>Inventec.Common.XmlConfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Controls.ValidationRule\Inventec.Desktop.Common.Controls.ValidationRule.csproj">
+      <Project>{e9d332eb-750d-4bf1-a6f5-2454f7603fdb}</Project>
+      <Name>Inventec.Desktop.Common.Controls.ValidationRule</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Core\Inventec.Desktop.Common.Core.csproj">
+      <Project>{9e945587-4faa-4c90-823c-289983aa29f0}</Project>
+      <Name>Inventec.Desktop.Common.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.LanguageManager\Inventec.Desktop.Common.LanguageManager.csproj">
+      <Project>{c44d9b7b-878d-427b-b18e-5de971d36395}</Project>
+      <Name>Inventec.Desktop.Common.LanguageManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.LibraryMessage\Inventec.Desktop.Common.LibraryMessage.csproj">
+      <Project>{52e34a37-cd2d-4c1c-81f0-9ca6b17ac4a5}</Project>
+      <Name>Inventec.Desktop.Common.LibraryMessage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Message\Inventec.Desktop.Common.Message.csproj">
+      <Project>{2ef2ca8c-b308-4d64-86cd-86ba479c2664}</Project>
+      <Name>Inventec.Desktop.Common.Message</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Module\Inventec.Desktop.Common.Modules.csproj">
+      <Project>{aa9d939b-6eea-4dc7-8d6c-56c3291ebfe3}</Project>
+      <Name>Inventec.Desktop.Common.Modules</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Theme\Inventec.Desktop.Common.Theme.csproj">
+      <Project>{ea97194b-7db5-4803-be2d-44badea6512a}</Project>
+      <Name>Inventec.Desktop.Common.Theme</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Common.Token\Inventec.Desktop.Common.Token.csproj">
+      <Project>{2db338b9-2e6d-4545-b51d-99396acdc636}</Project>
+      <Name>Inventec.Desktop.Common.Token</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Core\Inventec.Desktop.Core.csproj">
+      <Project>{9e99c16e-0f81-40e2-8078-cba7a820ca97}</Project>
+      <Name>Inventec.Desktop.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.CustomControl\Inventec.Desktop.CustomControl.csproj">
+      <Project>{889afeda-bd9a-4819-bc98-41c7d3cbd8c3}</Project>
+      <Name>Inventec.Desktop.CustomControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Plugins.ChangePassword\Inventec.Desktop.Plugins.ChangePassword.csproj">
+      <Project>{76943a1a-2949-4065-98f8-e48cf45fd618}</Project>
+      <Name>Inventec.Desktop.Plugins.ChangePassword</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Plugins.ConfigApplication\Inventec.Desktop.Plugins.ConfigApplication.csproj">
+      <Project>{f91fb40a-697c-41cc-9f9c-834ba2c9f968}</Project>
+      <Name>Inventec.Desktop.Plugins.ConfigApplication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Plugins.EventLog\Inventec.Desktop.Plugins.EventLog.csproj">
+      <Project>{cd389014-9b96-438e-b946-f1315b6d3c45}</Project>
+      <Name>Inventec.Desktop.Plugins.EventLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Inventec.Desktop\Inventec.Desktop.Plugins.Plugin\Inventec.Desktop.Plugins.Plugin.csproj">
+      <Project>{4d5bd9a0-e23d-4b62-bb1f-e32f2c3d850f}</Project>
+      <Name>Inventec.Desktop.Plugins.Plugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.ADO\HIS.Desktop.ADO.csproj">
+      <Project>{808c25cd-0925-417f-bbf9-caf9604da879}</Project>
+      <Name>HIS.Desktop.ADO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.ApiConsumer\HIS.Desktop.ApiConsumer.csproj">
+      <Project>{861bfedb-026f-4b6f-a3cf-32843ae8c03d}</Project>
+      <Name>HIS.Desktop.ApiConsumer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.ApplicationFont\HIS.Desktop.ApplicationFont.csproj">
+      <Project>{ee6bba16-7e46-49bd-9707-a2069e480302}</Project>
+      <Name>HIS.Desktop.ApplicationFont</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.Common\HIS.Desktop.Common.csproj">
+      <Project>{59fdcba7-0f9f-4257-b95a-e37a1ccfe107}</Project>
+      <Name>HIS.Desktop.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.Control.Session\HIS.Desktop.Controls.Session.csproj">
+      <Project>{9b4b505c-afa1-4974-8ac8-503f748bd5a2}</Project>
+      <Name>HIS.Desktop.Controls.Session</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.EventLog\HIS.Desktop.EventLog.csproj">
+      <Project>{306cbc95-d95a-48e1-941e-f3ecc0cbee34}</Project>
+      <Name>HIS.Desktop.EventLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LibraryMessage\HIS.Desktop.LibraryMessage.csproj">
+      <Project>{48d9a44a-7120-4c9b-8923-b1af16b1992f}</Project>
+      <Name>HIS.Desktop.LibraryMessage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.BackendData\HIS.Desktop.LocalStorage.BackendData.csproj">
+      <Project>{86709a9c-a149-4ebb-a817-1bf8f4f4bc07}</Project>
+      <Name>HIS.Desktop.LocalStorage.BackendData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.ConfigApplication\HIS.Desktop.LocalStorage.ConfigApplication.csproj">
+      <Project>{3a2c932a-9d3a-483b-89a0-9f9c8225b283}</Project>
+      <Name>HIS.Desktop.LocalStorage.ConfigApplication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.ConfigHideControl\HIS.Desktop.LocalStorage.ConfigHideControl.csproj">
+      <Project>{7058a480-4ce1-4a56-99e4-77378379fd77}</Project>
+      <Name>HIS.Desktop.LocalStorage.ConfigHideControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.ConfigSystem\HIS.Desktop.LocalStorage.ConfigSystem.csproj">
+      <Project>{48d25a6a-11bc-4f0f-8dd7-15e03a2bcada}</Project>
+      <Name>HIS.Desktop.LocalStorage.ConfigSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.HisConfig\HIS.Desktop.LocalStorage.HisConfig.csproj">
+      <Project>{d1e5461b-8a8e-46f7-9aee-5c1b327e5f2b}</Project>
+      <Name>HIS.Desktop.LocalStorage.HisConfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.LisConfig\HIS.Desktop.LocalStorage.LisConfig.csproj">
+      <Project>{10821b01-1a57-4c91-9dbb-6ac222dada22}</Project>
+      <Name>HIS.Desktop.LocalStorage.LisConfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.LocalData\HIS.Desktop.LocalStorage.LocalData.csproj">
+      <Project>{e036edf5-788c-4892-8d8f-6b1c16dcbd21}</Project>
+      <Name>HIS.Desktop.LocalStorage.LocalData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.LocalStorage.PubSub\HIS.Desktop.LocalStorage.PubSub.csproj">
+      <Project>{e791eade-c034-4b2a-873c-8fdb26fdeb8d}</Project>
+      <Name>HIS.Desktop.LocalStorage.PubSub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HIS.Desktop.ModuleExt\HIS.Desktop.ModuleExt.csproj">
+      <Project>{168b4cc6-8447-41da-b034-a02f336168e4}</Project>
+      <Name>HIS.Desktop.ModuleExt</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Plugins\HIS.Desktop.Library.CacheClient\HIS.Desktop.Library.CacheClient.csproj">
+      <Project>{64837e01-803d-4f1e-9dfc-d34b38ea78f9}</Project>
+      <Name>HIS.Desktop.Library.CacheClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Plugins\HIS.Desktop.Plugins.HisTutorial\HIS.Desktop.Plugins.HisTutorial.csproj">
+      <Project>{f22facd5-3da1-4f80-bb8e-dc83a0ab5cdb}</Project>
+      <Name>HIS.Desktop.Plugins.HisTutorial</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Plugins\HIS.Desktop.Plugins.LocalCacheManager\HIS.Desktop.Plugins.LocalCacheManager.csproj">
+      <Project>{5317499f-b8bb-4f85-8c5d-a6b01476d810}</Project>
+      <Name>HIS.Desktop.Plugins.LocalCacheManager</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="APP.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+</Project>

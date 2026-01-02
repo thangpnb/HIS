@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{64837E01-803D-4F1E-9DFC-D34B38EA78F9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HIS.Desktop.Library.CacheClient</RootNamespace>
+    <AssemblyName>HIS.Desktop.Library.CacheClient</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Inventec.Core">
+      <HintPath>..\..\..\..\Lib\Inventec.Core\Inventec.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.EFMODEL">
+      <HintPath>..\..\..\..\Lib\MOS\MOS.EFMODEL.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.Filter">
+      <HintPath>..\..\..\..\Lib\MOS\MOS.Filter.dll</HintPath>
+    </Reference>
+    <Reference Include="MOS.SDO">
+      <HintPath>..\..\..\..\Lib\MOS\MOS.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="RDCACHE.SDO">
+      <HintPath>..\..\..\..\Lib\RDCACHE\RDCACHE.SDO.dll</HintPath>
+    </Reference>
+    <Reference Include="RDCACHE.URI">
+      <HintPath>..\..\..\..\Lib\RDCACHE\RDCACHE.URI.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApiConsumers.cs" />
+    <Compile Include="CacheMonitor\CacheMonitorGet.cs" />
+    <Compile Include="CacheMonitor\CacheMonitorSync.cs" />
+    <Compile Include="CacheMonitor\RamMonitorGet.cs" />
+    <Compile Include="CacheWorker.cs" />
+    <Compile Include="ControlStateWorker.cs" />
+    <Compile Include="ControlState\ControlStateCFG.cs" />
+    <Compile Include="ControlState\DatabaseCSWorker.cs" />
+    <Compile Include="ControlState\TableCheck.cs" />
+    <Compile Include="ControlState\TableCreateProcess.cs" />
+    <Compile Include="ControlState\TableCreateWorker.cs" />
+    <Compile Include="ConvertListToDataTable.cs" />
+    <Compile Include="ControlStateRDO.cs" />
+    <Compile Include="RequestUriStore.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Redis\RedisConstans.cs" />
+    <Compile Include="Redis\RedisEnumTypes.cs" />
+    <Compile Include="CacheStoreStateRDO.cs" />
+    <Compile Include="Redis\RedisWorker.cs" />
+    <Compile Include="SerivceConfig.cs" />
+    <Compile Include="Sqlites\Checker.cs" />
+    <Compile Include="Sqlites\SqliteSet.cs" />
+    <Compile Include="Sqlites\SHC_SYNC.cs" />
+    <Compile Include="Sqlites\SqliteCheck.cs" />
+    <Compile Include="Sqlites\SqliteDataBaseCreate.cs" />
+    <Compile Include="Sqlites\SqliteDatabaseWorker.cs" />
+    <Compile Include="Sqlites\SqliteTableCreate.cs" />
+    <Compile Include="Sqlites\SqliteGet.cs" />
+    <Compile Include="Sqlites\SqliteWorker.cs" />
+    <Compile Include="SystemTypes.cs" />
+    <Compile Include="Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.Adapter\Inventec.Common.Adapter.csproj">
+      <Project>{dd2b84a4-a370-41a1-8dfa-10197540c101}</Project>
+      <Name>Inventec.Common.Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.DateTime\Inventec.Common.DateTime.csproj">
+      <Project>{d3437a35-37ed-4697-a3fa-109939baaf47}</Project>
+      <Name>Inventec.Common.DateTime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.Logging\Inventec.Common.Logging.csproj">
+      <Project>{4859008d-a40d-47bb-a185-019c8b140569}</Project>
+      <Name>Inventec.Common.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.RedisCache\Inventec.Common.RedisCache\Inventec.Common.RedisCache.csproj">
+      <Project>{1a5b507c-4d19-4b38-a597-adfe9fede331}</Project>
+      <Name>Inventec.Common.RedisCache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.Repository\Inventec.Common.Repository.csproj">
+      <Project>{f085d142-e91b-4db9-9a6f-0c30976f89eb}</Project>
+      <Name>Inventec.Common.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.Sqlite\Inventec.Common.Sqlite\Inventec.Common.Sqlite.csproj">
+      <Project>{70cec503-7124-4a0f-b794-6b84e87b1908}</Project>
+      <Name>Inventec.Common.Sqlite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Common\Inventec.Common\Inventec.Common.WebApiClient\Inventec.Common.WebApiClient.csproj">
+      <Project>{f8a0b7b7-f43a-4f57-94bf-490cf1c3be43}</Project>
+      <Name>Inventec.Common.WebApiClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\HIS.Desktop.XmlCacheMonitor\HIS.Desktop.XmlCacheMonitor.csproj">
+      <Project>{0e390108-e542-44fe-8711-5e01c5406684}</Project>
+      <Name>HIS.Desktop.XmlCacheMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\HIS.Desktop.XmlRamMonitor\HIS.Desktop.XmlRamMonitor.csproj">
+      <Project>{26c8fac6-4f73-445c-a900-cf89caa75274}</Project>
+      <Name>HIS.Desktop.XmlRamMonitor</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

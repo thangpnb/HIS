@@ -1,0 +1,84 @@
+/* IVT
+ * @Project : hisnguonmo
+ * Copyright (C) 2017 INVENTEC
+ *  
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+ * GNU General Public License for more details.
+ *  
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+using Inventec.Core;
+using Inventec.UC.ListReports.MessageLang;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Inventec.UC.ListReports.Sar.SarPaperSize.Get
+{
+    class SarPaperSizeGet : Inventec.UC.ListReports.Base.GetBase
+    {
+        internal SarPaperSizeGet()
+            : base()
+        {
+
+        }
+
+        internal SarPaperSizeGet(CommonParam paramGet)
+            : base(paramGet)
+        {
+            
+        }
+        //Comment
+        //internal List<SAR.EFMODEL.DataModels.SAR_PAPER_SIZE> Get(SAR.Filter.SarPaperSizeFilter searchMVC)
+        //{
+        //    List<SAR.EFMODEL.DataModels.SAR_PAPER_SIZE> result = null;
+        //    try
+        //    {
+        //        var rs = Base.ApiConsumerStore.SarConsumer.Get<Inventec.Core.ApiResultObject<List<SAR.EFMODEL.DataModels.SAR_PAPER_SIZE>>>("/api/SarPaperSize/Get", param, searchMVC);
+        //        if (rs != null)
+        //        {
+        //            param = rs.Param != null ? rs.Param : param;
+        //            result = rs.Data;
+        //        }
+        //        if (result == null) { LogInOut(Inventec.Common.Logging.LogUtil.TraceData(Inventec.Common.Logging.LogUtil.GetMemberName(() => rs), rs) + Inventec.Common.Logging.LogUtil.TraceData(Inventec.Common.Logging.LogUtil.GetMemberName(() => searchMVC), searchMVC)); }
+        //    }
+        //    catch (Inventec.Common.WebApiClient.ApiException ex)
+        //    {
+        //        Inventec.Common.Logging.LogUtil.TraceData(Inventec.Common.Logging.LogUtil.GetMemberName(() => ex.StatusCode), ex.StatusCode);
+        //        if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        //        {
+        //            param.Messages.Add(Base.MessageUtil.GetMessage(Message.Enum.PhanMemKhongKetNoiDuocToiMayChuHeThong));
+        //        }
+        //        else if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        //        {
+        //            param.HasException = true;
+        //            param.Messages.Add(Base.MessageUtil.GetMessage(Message.Enum.HeThongTBNguoiDungDaHetPhienLamViecVuiLongDangNhapLai));
+        //        }
+        //        else if (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        //        {
+        //            param.Messages.Add(Base.MessageUtil.GetMessage(Message.Enum.HeThongTBBanQuyenKhongHopLe));
+        //        }
+        //    }
+        //    catch (AggregateException ex)
+        //    {
+        //        Inventec.Common.Logging.LogSystem.Error(ex);
+        //        param.Messages.Add(Base.MessageUtil.GetMessage(Message.Enum.PhanMemKhongKetNoiDuocToiMayChuHeThong));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Inventec.Common.Logging.LogSystem.Error(ex);
+        //    }
+        //    return result;
+        //}
+    }
+}
