@@ -31,12 +31,12 @@ graph TD
     Tech -.->|"Vận hành trên"| Deploy
     Tech -.->|"Lưu trữ trong"| Data
     
-    style Index fill:#f9f,stroke:#333
-    style Context fill:#bbf,stroke:#333
-    style Func fill:#bfb,stroke:#333
-    style Tech fill:#fbf,stroke:#333
-    style Deploy fill:#fbb,stroke:#333
-    style Data fill:#bff,stroke:#333
+    style Index fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#000
+    style Context fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style Func fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#000
+    style Tech fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+    style Deploy fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#000
+    style Data fill:#E0F7FA,stroke:#00838F,stroke-width:2px,color:#000
 ```
 
 ## Mục lục Tài liệu Kiến trúc
